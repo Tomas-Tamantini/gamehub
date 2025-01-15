@@ -6,6 +6,7 @@ from gamehub.core.event_bus import EventBus
 from gamehub.core.game_room import GameRoom
 from gamehub.core.game_setup import GameSetup
 from gamehub.core.message import MessageEvent, MessageType
+from tests.utils import ExpectedBroadcast, check_messages
 
 
 @pytest.fixture
@@ -27,10 +28,14 @@ async def test_player_can_join_empty_room(output_messages):
         await room.join("Alice")
 
     sent_messages = await output_messages(_action)
-    assert len(sent_messages) == 1
-    assert sent_messages[0].player_id == "Alice"
-    assert sent_messages[0].message.message_type == MessageType.PLAYER_JOINED
-    assert sent_messages[0].message.payload == '{"room_id": 0, "player_ids": ["Alice"]}'
+    expected = [
+        ExpectedBroadcast(
+            ["Alice"],
+            MessageType.PLAYER_JOINED,
+            {"room_id": 0, "player_ids": ["Alice"]},
+        )
+    ]
+    check_messages(sent_messages, expected)
 
 
 @pytest.mark.asyncio
@@ -40,16 +45,14 @@ async def test_players_get_informed_when_new_one_joins(output_messages):
         await room.join("Bob")
 
     sent_messages = await output_messages(_action)
-    assert len(sent_messages) == 3
-    last_messages = sent_messages[-2:]
-    assert [m.player_id for m in last_messages] == ["Alice", "Bob"]
-    assert all(
-        m.message.message_type == MessageType.PLAYER_JOINED for m in last_messages
-    )
-    assert all(
-        m.message.payload == '{"room_id": 0, "player_ids": ["Alice", "Bob"]}'
-        for m in last_messages
-    )
+    expected = [
+        ExpectedBroadcast(
+            ["Alice", "Bob"],
+            MessageType.PLAYER_JOINED,
+            {"room_id": 0, "player_ids": ["Alice", "Bob"]},
+        )
+    ]
+    check_messages(sent_messages[1:], expected)
 
 
 @pytest.mark.asyncio

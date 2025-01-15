@@ -1,5 +1,3 @@
-import json
-
 import pytest
 
 from gamehub.core.event_bus import EventBus
@@ -8,17 +6,7 @@ from gamehub.core.game_setup import GameSetup
 from gamehub.core.message import MessageEvent, MessageType
 from gamehub.core.request import Request, RequestType
 from gamehub.core.room_manager import RoomManager
-
-
-def _check_message(
-    message: MessageEvent,
-    expected_recipient: str,
-    expected_message_type: MessageType,
-    expected_payload: dict,
-) -> None:
-    assert message.player_id == expected_recipient
-    assert message.message.message_type == expected_message_type
-    assert json.loads(message.message.payload) == expected_payload
+from tests.utils import ExpectedBroadcast, check_messages
 
 
 @pytest.mark.asyncio
@@ -49,22 +37,16 @@ async def test_end_to_end():
         await event_bus.publish(request)
 
     expected_broadcasts = (
-        (
+        ExpectedBroadcast(
             ["Alice"],
             MessageType.PLAYER_JOINED,
             {"room_id": 1, "player_ids": ["Alice"]},
         ),
-        (
+        ExpectedBroadcast(
             ["Alice", "Bob"],
             MessageType.PLAYER_JOINED,
             {"room_id": 1, "player_ids": ["Alice", "Bob"]},
         ),
     )
 
-    current_idx = 0
-    for expected in expected_broadcasts:
-        for recipient in expected[0]:
-            _check_message(messages[current_idx], recipient, *expected[1:])
-            current_idx += 1
-
-    assert current_idx == len(messages)
+    check_messages(messages, expected_broadcasts)
