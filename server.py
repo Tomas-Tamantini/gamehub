@@ -2,12 +2,12 @@ import asyncio
 
 import websockets
 
-from gamehub.socket_server import SocketServer
+from gamehub.socket_server import ConnectionHandler
 
 
 async def main():
-    socket_handler = SocketServer()
-    server = await websockets.serve(socket_handler.handle_client, "localhost", 8765)
+    connection_handler = ConnectionHandler()
+    server = await websockets.serve(connection_handler.handle_client, "localhost", 8765)
     await server.wait_closed()
 
 
