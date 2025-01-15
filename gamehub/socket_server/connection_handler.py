@@ -26,6 +26,12 @@ class ConnectionHandler:
             await client.send(response.model_dump_json())
 
     async def handle_client(self, client: websockets.WebSocketServerProtocol) -> None:
-        async for message in client:
-            if request := await self._parse_request(client, message):
-                self._client_manager.associate_player_id(request.player_id, client)
+        try:
+            async for message in client:
+                if request := await self._parse_request(client, message):
+                    self._client_manager.associate_player_id(request.player_id, client)
+        except websockets.ConnectionClosed:
+            # TODO: Handle disconnection
+            ...
+        finally:
+            self._client_manager.remove(client)
