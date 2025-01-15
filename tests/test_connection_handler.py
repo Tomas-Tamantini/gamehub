@@ -1,46 +1,73 @@
+from typing import Optional
 from unittest.mock import AsyncMock, Mock
 
 import pytest
 
+from gamehub.core.event_bus import EventBus
 from gamehub.core.message import Message, MessageType
+from gamehub.core.request import Request, RequestType
 from gamehub.socket_server import ClientManager, ConnectionHandler
 
 
 @pytest.fixture
-def mock_client():
-    def _mock_client(client_msg: str):
-        mock_client = AsyncMock()
-        mock_client.__aiter__.return_value = iter([client_msg])
-        return mock_client
+def client():
+    valid_request = '{"request_type":"JOIN_GAME","player_id":"test_id"}'
+    client = AsyncMock()
+    client.__aiter__.return_value = iter([valid_request])
+    return client
 
-    return _mock_client
+
+@pytest.fixture
+def bad_client():
+    client = AsyncMock()
+    client.__aiter__.return_value = iter(["bad request"])
+    return client
+
+
+@pytest.fixture
+def connection_handler():
+    def _handler(
+        client_manager: Optional[ClientManager] = None,
+        event_bus: Optional[EventBus] = None,
+    ):
+        client_manager = client_manager or ClientManager()
+        event_bus = event_bus or EventBus()
+        return ConnectionHandler(client_manager, event_bus)
+
+    return _handler
 
 
 @pytest.mark.asyncio
-async def test_handler_responds_when_unable_to_parse_request(mock_client):
-    socket_handler = ConnectionHandler(ClientManager())
-    client = mock_client("bad request")
-    client.__aiter__.return_value = iter(["bad request"])
-    await socket_handler.handle_client(client)
-    error_msg = client.send.call_args.args[0]
+async def test_handler_responds_when_unable_to_parse_request(
+    connection_handler, bad_client
+):
+    await connection_handler().handle_client(bad_client)
+    error_msg = bad_client.send.call_args.args[0]
     parsed_error_msg = Message.model_validate_json(error_msg)
     assert parsed_error_msg.message_type == MessageType.ERROR
     assert "Invalid JSON" in parsed_error_msg.payload
 
 
 @pytest.mark.asyncio
-async def test_handler_keeps_track_of_connected_clients(mock_client):
+async def test_handler_keeps_track_of_connected_clients(connection_handler, client):
     client_manager_spy = Mock(spec=ClientManager)
-    socket_handler = ConnectionHandler(client_manager_spy)
-    client = mock_client('{"request_type":"JOIN_GAME","player_id":"test_id"}')
-    await socket_handler.handle_client(client)
+    await connection_handler(client_manager_spy).handle_client(client)
     client_manager_spy.associate_player_id.assert_called_once_with("test_id", client)
 
 
 @pytest.mark.asyncio
-async def test_handler_discards_disconnected_clients(mock_client):
+async def test_handler_discards_disconnected_clients(connection_handler, client):
     client_manager_spy = Mock(spec=ClientManager)
-    socket_handler = ConnectionHandler(client_manager_spy)
-    client = mock_client('{"request_type":"JOIN_GAME","player_id":"test_id"}')
-    await socket_handler.handle_client(client)
+    await connection_handler(client_manager_spy).handle_client(client)
     client_manager_spy.remove.assert_called_once_with(client)
+
+
+@pytest.mark.asyncio
+async def test_handler_publishes_request_in_event_bus(connection_handler, client):
+    event_bus = EventBus()
+    requests = []
+    event_bus.subscribe(Request, requests.append)
+    await connection_handler(event_bus=event_bus).handle_client(client)
+    assert len(requests) == 1
+    assert requests[0].request_type == RequestType.JOIN_GAME
+    assert requests[0].player_id == "test_id"
