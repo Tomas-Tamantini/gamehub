@@ -22,7 +22,7 @@ def _check_message(
 
 
 @pytest.mark.asyncio
-async def test_integration():
+async def test_end_to_end():
     event_bus = EventBus()
 
     game_room = GameRoom(room_id=1, setup=GameSetup(num_players=2), event_bus=event_bus)
@@ -66,3 +66,5 @@ async def test_integration():
         for recipient in expected[0]:
             _check_message(messages[current_idx], recipient, *expected[1:])
             current_idx += 1
+
+    assert current_idx == len(messages)
