@@ -10,14 +10,14 @@ class GameRoom:
         self._room_id = room_id
         self._setup = setup
         self._event_bus = event_bus
-        self._players = set()
+        self._players = list()
 
     @property
     def room_id(self) -> int:
         return self._room_id
 
     def _state(self) -> str:
-        return json.dumps({"room_id": self._room_id, "player_ids": list(self._players)})
+        return json.dumps({"room_id": self._room_id, "player_ids": self._players})
 
     async def _send_error_message(self, player_id: str, payload: str) -> None:
         await self._event_bus.publish(
@@ -43,7 +43,7 @@ class GameRoom:
                 player_id=player_id, payload="Unable to join: Room is full"
             )
         else:
-            self._players.add(player_id)
+            self._players.append(player_id)
             message = Message(
                 message_type=MessageType.PLAYER_JOINED, payload=self._state()
             )
