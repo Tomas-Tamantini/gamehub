@@ -16,3 +16,9 @@ def test_client_manager_removes_client():
     client_manager.associate_player_id("test_id", mock_client)
     client_manager.remove(mock_client)
     assert client_manager.get_client("test_id") is None
+
+
+def test_removing_inexistent_client_does_nothing():
+    client_manager = ClientManager()
+    mock_client = AsyncMock()
+    client_manager.remove(mock_client)
