@@ -5,7 +5,7 @@ from gamehub.core.game_room import GameRoom
 from gamehub.core.message import MessageEvent, MessageType
 from gamehub.core.request import Request, RequestType
 from gamehub.core.room_manager import RoomManager
-from gamehub.games.rock_paper_scissors import rps_setup
+from gamehub.games.rock_paper_scissors import RPSGameLogic
 from tests.utils import ExpectedBroadcast, check_messages
 
 
@@ -13,7 +13,7 @@ from tests.utils import ExpectedBroadcast, check_messages
 async def test_integration():
     event_bus = EventBus()
 
-    game_room = GameRoom(room_id=1, setup=rps_setup(), event_bus=event_bus)
+    game_room = GameRoom(room_id=1, game_logic=RPSGameLogic(), event_bus=event_bus)
     room_manager = RoomManager([game_room], event_bus)
     event_bus.subscribe(Request, room_manager.handle_request)
 

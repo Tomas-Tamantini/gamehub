@@ -5,7 +5,7 @@ import pytest
 from gamehub.core.event_bus import EventBus
 from gamehub.core.game_room import GameRoom
 from gamehub.core.message import MessageEvent, MessageType
-from gamehub.games.rock_paper_scissors import rps_setup
+from gamehub.games.rock_paper_scissors import RPSGameLogic
 from tests.utils import ExpectedBroadcast, check_messages
 
 
@@ -15,7 +15,7 @@ def output_messages():
         event_bus = EventBus()
         sent_messages = []
         event_bus.subscribe(MessageEvent, sent_messages.append)
-        room = GameRoom(room_id=0, setup=rps_setup(), event_bus=event_bus)
+        room = GameRoom(room_id=0, game_logic=RPSGameLogic(), event_bus=event_bus)
         await action(room)
         return sent_messages
 

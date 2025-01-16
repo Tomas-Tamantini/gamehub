@@ -1,21 +1,21 @@
 import json
 
 from gamehub.core.event_bus import EventBus
-from gamehub.core.game_setup import GameSetup
+from gamehub.core.game_logic import GameLogic
 from gamehub.core.message import Message, MessageEvent, MessageType
 
 
 class GameRoom:
-    def __init__(self, room_id: int, setup: GameSetup, event_bus: EventBus):
+    def __init__(self, room_id: int, game_logic: GameLogic, event_bus: EventBus):
         self._room_id = room_id
-        self._setup = setup
+        self._logic = game_logic
         self._event_bus = event_bus
         self._players = list()
         self._game_state = None
 
     @property
     def _is_full(self) -> bool:
-        return len(self._players) >= self._setup.num_players
+        return len(self._players) >= self._logic.num_players
 
     @property
     def room_id(self) -> int:
@@ -49,7 +49,7 @@ class GameRoom:
         await self._broadcast_message(message)
 
     async def _start_game(self) -> None:
-        self._game_state = self._setup.initial_state(self._players)
+        self._game_state = self._logic.initial_state(*self._players)
         await self._broadcast_shared_view()
 
     async def join(self, player_id: str) -> None:
