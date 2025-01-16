@@ -1,6 +1,7 @@
 from gamehub.games.rock_paper_scissors import (
     RPSGameLogic,
     RPSMove,
+    RPSPrivateView,
     RPSSelection,
     RPSSharedPlayerView,
     RPSSharedView,
@@ -36,3 +37,13 @@ def test_rock_paper_scissors_allows_players_to_make_selection():
             RPSSharedPlayerView(player_id="Bob", selected=False),
         ]
     )
+
+
+def test_rock_paper_scissors_informs_private_selection():
+    logic = RPSGameLogic()
+    state = logic.initial_state("Alice", "Bob")
+    state = logic.make_move(
+        state, RPSMove(player_id="Alice", selection=RPSSelection.ROCK)
+    )
+    private_views = list(state.private_views())
+    assert private_views == [("Alice", RPSPrivateView(selection=RPSSelection.ROCK))]

@@ -122,6 +122,14 @@ async def test_players_gets_informed_of_new_game_state_after_making_move(
     sent_messages = await output_messages(_action)
     expected = [
         ExpectedBroadcast(
+            ["Alice"],
+            MessageType.GAME_STATE,
+            {
+                "room_id": 0,
+                "private_view": {"selection": "ROCK"},
+            },
+        ),
+        ExpectedBroadcast(
             ["Alice", "Bob"],
             MessageType.GAME_STATE,
             {
@@ -133,12 +141,11 @@ async def test_players_gets_informed_of_new_game_state_after_making_move(
                     ]
                 },
             },
-        )
+        ),
     ]
     check_messages(sent_messages[5:], expected)
 
 
 # TODO:
-# Check private view after move
 # Check move parse error
 # Check invalid move error

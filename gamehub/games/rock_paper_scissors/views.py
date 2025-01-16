@@ -8,3 +8,7 @@ class RPSSharedPlayerView(BaseModel):
 
 class RPSSharedView(BaseModel):
     players: list[RPSSharedPlayerView]
+
+
+class RPSPrivateView(BaseModel):
+    selection: str

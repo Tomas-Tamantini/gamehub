@@ -59,6 +59,19 @@ class GameRoom(Generic[T]):
         )
         await self._broadcast_message(message)
 
+    async def _send_private_views(self) -> None:
+        for player_id, private_view in self._game_state.private_views():
+            message_payload = {
+                "room_id": self._room_id,
+                "private_view": private_view.model_dump(),
+            }
+            message = Message(
+                message_type=MessageType.GAME_STATE, payload=json.dumps(message_payload)
+            )
+            await self._event_bus.publish(
+                MessageEvent(player_id=player_id, message=message)
+            )
+
     async def _start_game(self) -> None:
         self._game_state = self._logic.initial_state(*self._players)
         await self._broadcast_shared_view()
@@ -85,4 +98,5 @@ class GameRoom(Generic[T]):
         parsed_move = self._parse_move({"player_id": player_id, **move})
         new_state = self._logic.make_move(self._game_state, parsed_move)
         self._game_state = new_state
+        await self._send_private_views()
         await self._broadcast_shared_view()

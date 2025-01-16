@@ -1,9 +1,11 @@
-from typing import Protocol
+from typing import Iterator, Protocol
 
 
-class _SharedView(Protocol):
+class _View(Protocol):
     def model_dump(self) -> dict: ...
 
 
 class GameState(Protocol):
-    def shared_view(self) -> _SharedView: ...
+    def shared_view(self) -> _View: ...
+
+    def private_views(self) -> Iterator[tuple[str, _View]]: ...

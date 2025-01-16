@@ -71,6 +71,14 @@ async def test_integration():
             },
         ),
         ExpectedBroadcast(
+            ["Alice"],
+            MessageType.GAME_STATE,
+            {
+                "room_id": 1,
+                "private_view": {"selection": "ROCK"},
+            },
+        ),
+        ExpectedBroadcast(
             ["Alice", "Bob"],
             MessageType.GAME_STATE,
             {
