@@ -7,7 +7,7 @@ from websockets.asyncio.server import ServerConnection
 
 from gamehub.core.event_bus import EventBus
 from gamehub.core.exceptions import DuplicatePlayerIdError
-from gamehub.core.message import Message, MessageType
+from gamehub.core.message import error_message
 from gamehub.core.request import Request
 from gamehub.socket_server.client_manager import ClientManager
 
@@ -18,6 +18,10 @@ class ConnectionHandler:
         self._event_bus = event_bus
 
     @staticmethod
+    async def _send_error_message(client: ServerConnection, payload: str) -> None:
+        await client.send(error_message(payload).model_dump_json())
+
+    @staticmethod
     async def _parse_request(
         client: ServerConnection, message: str
     ) -> Optional[Request]:
@@ -26,10 +30,7 @@ class ConnectionHandler:
         except ValidationError as e:
             error_msg = f"Unable to parse request: {e}"
             logging.debug(f"To {client.remote_address} - {error_msg}")
-            response = Message(
-                message_type=MessageType.ERROR, payload={"error": error_msg}
-            )
-            await client.send(response.model_dump_json())
+            await ConnectionHandler._send_error_message(client, error_msg)
 
     async def handle_client(self, client: ServerConnection) -> None:
         logging.info(f"Client connected: {client.remote_address}")
@@ -42,12 +43,7 @@ class ConnectionHandler:
                         )
                         await self._event_bus.publish(request)
                     except DuplicatePlayerIdError as e:
-                        await client.send(
-                            Message(
-                                message_type=MessageType.ERROR,
-                                payload={"error": str(e)},
-                            ).model_dump_json()
-                        )
+                        await ConnectionHandler._send_error_message(client, str(e))
         except ConnectionClosed:
             logging.warning(f"Client disconnected: {client.remote_address}")
         except Exception as e:

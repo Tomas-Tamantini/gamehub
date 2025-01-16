@@ -19,3 +19,7 @@ class Message(BaseModel):
 class MessageEvent:
     player_id: str
     message: Message
+
+
+def error_message(payload: str) -> Message:
+    return Message(message_type=MessageType.ERROR, payload={"error": payload})

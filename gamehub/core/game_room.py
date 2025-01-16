@@ -6,7 +6,7 @@ from gamehub.core.event_bus import EventBus
 from gamehub.core.exceptions import InvalidMoveError
 from gamehub.core.game_logic import GameLogic
 from gamehub.core.game_state import GameState
-from gamehub.core.message import Message, MessageEvent, MessageType
+from gamehub.core.message import Message, MessageEvent, MessageType, error_message
 from gamehub.core.move_parser import MoveParser
 
 T = TypeVar("T")
@@ -51,12 +51,7 @@ class GameRoom(Generic[T]):
 
     async def _send_error_message(self, player_id: str, payload: str) -> None:
         await self._event_bus.publish(
-            MessageEvent(
-                player_id=player_id,
-                message=Message(
-                    message_type=MessageType.ERROR, payload={"error": payload}
-                ),
-            )
+            MessageEvent(player_id=player_id, message=error_message(payload))
         )
 
     async def _broadcast_message(self, message: Message) -> None:

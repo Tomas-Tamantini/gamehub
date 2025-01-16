@@ -4,7 +4,7 @@ from pydantic import BaseModel, ValidationError
 
 from gamehub.core.event_bus import EventBus
 from gamehub.core.game_room import GameRoom
-from gamehub.core.message import Message, MessageEvent, MessageType
+from gamehub.core.message import MessageEvent, error_message
 from gamehub.core.request import Request, RequestType
 
 
@@ -22,14 +22,9 @@ class RoomManager:
         self._rooms = {room.room_id: room for room in rooms}
         self._event_bus = event_bus
 
-    async def _respond_error(self, player_id: str, message: str) -> None:
+    async def _respond_error(self, player_id: str, payload: str) -> None:
         await self._event_bus.publish(
-            MessageEvent(
-                player_id=player_id,
-                message=Message(
-                    message_type=MessageType.ERROR, payload={"error": message}
-                ),
-            )
+            MessageEvent(player_id=player_id, message=error_message(payload))
         )
 
     async def _parse_request(
