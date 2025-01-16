@@ -86,6 +86,18 @@ async def test_player_cannot_join_room_twice(output_messages):
 
 
 @pytest.mark.asyncio
+async def test_player_cannot_make_move_before_game_start(output_messages):
+    async def _action(room: GameRoom):
+        await room.join("Alice")
+        await room.make_move("Alice", {"selection": "ROCK"})
+
+    sent_messages = await output_messages(_action)
+    assert sent_messages[-1].player_id == "Alice"
+    assert sent_messages[-1].message.message_type == MessageType.ERROR
+    assert sent_messages[-1].message.payload["error"] == "Game has not started yet"
+
+
+@pytest.mark.asyncio
 async def test_game_starts_when_room_is_full(output_messages):
     async def _action(room: GameRoom):
         await room.join("Alice")

@@ -130,6 +130,10 @@ class GameRoom(Generic[T]):
             await self._send_error_message(
                 player_id=player_id, payload="Player not in room"
             )
+        elif not self._game_state:
+            await self._send_error_message(
+                player_id=player_id, payload="Game has not started yet"
+            )
         elif parsed_move := await self._parsed_move(player_id, move):
             if new_state := await self._state_after_move(player_id, parsed_move):
                 await self._set_state(new_state)
