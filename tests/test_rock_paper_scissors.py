@@ -1,3 +1,5 @@
+import pytest
+
 from gamehub.games.rock_paper_scissors import (
     RPSGameLogic,
     RPSMove,
@@ -6,7 +8,6 @@ from gamehub.games.rock_paper_scissors import (
     RPSSharedPlayerView,
     RPSSharedView,
 )
-import pytest
 
 
 @pytest.fixture
