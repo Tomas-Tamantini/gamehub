@@ -111,7 +111,7 @@ async def test_game_starts_when_room_is_full(output_messages):
 
 
 @pytest.mark.asyncio
-async def test_players_gets_informed_of_new_game_state_after_making_move(
+async def test_players_get_informed_of_new_game_state_after_making_move(
     output_messages,
 ):
     async def _action(room: GameRoom):
@@ -146,6 +146,18 @@ async def test_players_gets_informed_of_new_game_state_after_making_move(
     check_messages(sent_messages[5:], expected)
 
 
+@pytest.mark.asyncio
+async def test_player_gets_informed_of_parse_move_error(output_messages):
+    async def _action(room: GameRoom):
+        await room.join("Alice")
+        await room.join("Bob")
+        await room.make_move("Alice", {"selection": "bad_value"})
+
+    sent_messages = await output_messages(_action)
+    assert sent_messages[-1].player_id == "Alice"
+    assert sent_messages[-1].message.message_type == MessageType.ERROR
+    assert "selection" in sent_messages[-1].message.payload
+
+
 # TODO:
-# Check move parse error
 # Check invalid move error

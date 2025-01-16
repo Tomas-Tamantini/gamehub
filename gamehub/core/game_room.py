@@ -1,5 +1,7 @@
 import json
-from typing import Generic, TypeVar
+from typing import Generic, Optional, TypeVar
+
+from pydantic import ValidationError
 
 from gamehub.core.event_bus import EventBus
 from gamehub.core.game_logic import GameLogic
@@ -94,9 +96,15 @@ class GameRoom(Generic[T]):
             if self._is_full:
                 await self._start_game()
 
+    async def _parsed_move(self, player_id: str, move: dict) -> Optional[T]:
+        try:
+            return self._parse_move({"player_id": player_id, **move})
+        except ValidationError as e:
+            await self._send_error_message(player_id=player_id, payload=str(e))
+
     async def make_move(self, player_id: str, move: dict) -> None:
-        parsed_move = self._parse_move({"player_id": player_id, **move})
-        new_state = self._logic.make_move(self._game_state, parsed_move)
-        self._game_state = new_state
-        await self._send_private_views()
-        await self._broadcast_shared_view()
+        if parsed_move := await self._parsed_move(player_id, move):
+            new_state = self._logic.make_move(self._game_state, parsed_move)
+            self._game_state = new_state
+            await self._send_private_views()
+            await self._broadcast_shared_view()
