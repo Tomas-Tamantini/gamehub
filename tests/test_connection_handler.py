@@ -18,9 +18,18 @@ def client():
 
 
 @pytest.fixture
-def bad_client():
+def bad_request_client():
     client = AsyncMock()
     client.__aiter__.return_value = iter(["bad request"])
+    return client
+
+
+@pytest.fixture
+def duplicate_id_client():
+    req_1 = '{"request_type":"JOIN_GAME","player_id":"id_1"}'
+    req_2 = '{"request_type":"JOIN_GAME","player_id":"id_2"}'
+    client = AsyncMock()
+    client.__aiter__.return_value = iter([req_1, req_2])
     return client
 
 
@@ -39,10 +48,10 @@ def connection_handler():
 
 @pytest.mark.asyncio
 async def test_handler_responds_when_unable_to_parse_request(
-    connection_handler, bad_client
+    connection_handler, bad_request_client
 ):
-    await connection_handler().handle_client(bad_client)
-    error_msg = bad_client.send.call_args.args[0]
+    await connection_handler().handle_client(bad_request_client)
+    error_msg = bad_request_client.send.call_args.args[0]
     parsed_error_msg = Message.model_validate_json(error_msg)
     assert parsed_error_msg.message_type == MessageType.ERROR
     assert "Invalid JSON" in parsed_error_msg.payload["error"]
@@ -71,3 +80,14 @@ async def test_handler_publishes_request_in_event_bus(connection_handler, client
     assert len(requests) == 1
     assert requests[0].request_type == RequestType.JOIN_GAME
     assert requests[0].player_id == "test_id"
+
+
+@pytest.mark.asyncio
+async def test_handler_returns_error_if_duplicate_player_id(
+    connection_handler, duplicate_id_client
+):
+    await connection_handler().handle_client(duplicate_id_client)
+    error_msg = duplicate_id_client.send.call_args.args[0]
+    parsed_error_msg = Message.model_validate_json(error_msg)
+    assert parsed_error_msg.message_type == MessageType.ERROR
+    assert "already associated" in parsed_error_msg.payload["error"]
