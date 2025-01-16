@@ -45,7 +45,7 @@ async def test_handler_responds_when_unable_to_parse_request(
     error_msg = bad_client.send.call_args.args[0]
     parsed_error_msg = Message.model_validate_json(error_msg)
     assert parsed_error_msg.message_type == MessageType.ERROR
-    assert "Invalid JSON" in parsed_error_msg.payload
+    assert "Invalid JSON" in parsed_error_msg.payload["error"]
 
 
 @pytest.mark.asyncio

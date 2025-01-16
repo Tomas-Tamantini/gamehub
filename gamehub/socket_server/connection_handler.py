@@ -25,7 +25,9 @@ class ConnectionHandler:
         except ValidationError as e:
             error_msg = f"Unable to parse request: {e}"
             logging.debug(f"To {client.remote_address} - {error_msg}")
-            response = Message(message_type=MessageType.ERROR, payload=error_msg)
+            response = Message(
+                message_type=MessageType.ERROR, payload={"error": error_msg}
+            )
             await client.send(response.model_dump_json())
 
     async def handle_client(self, client: ServerConnection) -> None:

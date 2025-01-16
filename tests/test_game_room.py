@@ -70,7 +70,7 @@ async def test_player_cannot_join_full_room(output_messages):
     sent_messages = await output_messages(_action)
     assert sent_messages[-1].player_id == "Charlie"
     assert sent_messages[-1].message.message_type == MessageType.ERROR
-    assert sent_messages[-1].message.payload == "Unable to join: Room is full"
+    assert sent_messages[-1].message.payload["error"] == "Unable to join: Room is full"
 
 
 @pytest.mark.asyncio
@@ -82,7 +82,7 @@ async def test_player_cannot_join_room_twice(output_messages):
     sent_messages = await output_messages(_action)
     assert sent_messages[-1].player_id == "Alice"
     assert sent_messages[-1].message.message_type == MessageType.ERROR
-    assert sent_messages[-1].message.payload == "Player already in room"
+    assert sent_messages[-1].message.payload["error"] == "Player already in room"
 
 
 @pytest.mark.asyncio
@@ -156,7 +156,7 @@ async def test_player_gets_informed_of_parse_move_error(output_messages):
     sent_messages = await output_messages(_action)
     assert sent_messages[-1].player_id == "Alice"
     assert sent_messages[-1].message.message_type == MessageType.ERROR
-    assert "selection" in sent_messages[-1].message.payload
+    assert "selection" in sent_messages[-1].message.payload["error"]
 
 
 @pytest.mark.asyncio
@@ -170,7 +170,7 @@ async def test_player_gets_informed_of_invalid_move_error(output_messages):
     sent_messages = await output_messages(_action)
     assert sent_messages[-1].player_id == "Alice"
     assert sent_messages[-1].message.message_type == MessageType.ERROR
-    assert "already selected" in sent_messages[-1].message.payload
+    assert "already selected" in sent_messages[-1].message.payload["error"]
 
 
 @pytest.mark.asyncio
@@ -183,7 +183,7 @@ async def test_player_not_in_game_room_cannot_make_move(output_messages):
     sent_messages = await output_messages(_action)
     assert sent_messages[-1].player_id == "Charlie"
     assert sent_messages[-1].message.message_type == MessageType.ERROR
-    assert "not in room" in sent_messages[-1].message.payload
+    assert "not in room" in sent_messages[-1].message.payload["error"]
 
 
 @pytest.mark.asyncio

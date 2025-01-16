@@ -12,7 +12,7 @@ class MessageType(Enum):
 
 class Message(BaseModel):
     message_type: MessageType
-    payload: str
+    payload: dict
 
 
 @dataclass(frozen=True)

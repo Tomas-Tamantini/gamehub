@@ -1,4 +1,3 @@
-import json
 from typing import Generic, Optional, TypeVar
 
 from pydantic import ValidationError
@@ -47,14 +46,16 @@ class GameRoom(Generic[T]):
     def room_id(self) -> int:
         return self._room_id
 
-    def _room_state(self) -> str:
-        return json.dumps({"room_id": self._room_id, "player_ids": self._players})
+    def _room_state(self) -> dict:
+        return {"room_id": self._room_id, "player_ids": self._players[:]}
 
     async def _send_error_message(self, player_id: str, payload: str) -> None:
         await self._event_bus.publish(
             MessageEvent(
                 player_id=player_id,
-                message=Message(message_type=MessageType.ERROR, payload=payload),
+                message=Message(
+                    message_type=MessageType.ERROR, payload={"error": payload}
+                ),
             )
         )
 
@@ -65,23 +66,25 @@ class GameRoom(Generic[T]):
             )
 
     async def _broadcast_shared_view(self) -> None:
-        message_payload = {
-            "room_id": self._room_id,
-            "shared_view": self._game_state.shared_view().model_dump(exclude_none=True),
-        }
         message = Message(
-            message_type=MessageType.GAME_STATE, payload=json.dumps(message_payload)
+            message_type=MessageType.GAME_STATE,
+            payload={
+                "room_id": self._room_id,
+                "shared_view": self._game_state.shared_view().model_dump(
+                    exclude_none=True
+                ),
+            },
         )
         await self._broadcast_message(message)
 
     async def _send_private_views(self) -> None:
         for player_id, private_view in self._game_state.private_views():
-            message_payload = {
-                "room_id": self._room_id,
-                "private_view": private_view.model_dump(exclude_none=True),
-            }
             message = Message(
-                message_type=MessageType.GAME_STATE, payload=json.dumps(message_payload)
+                message_type=MessageType.GAME_STATE,
+                payload={
+                    "room_id": self._room_id,
+                    "private_view": private_view.model_dump(exclude_none=True),
+                },
             )
             await self._event_bus.publish(
                 MessageEvent(player_id=player_id, message=message)

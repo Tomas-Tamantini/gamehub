@@ -41,7 +41,7 @@ async def test_room_manager_returns_error_message_if_bad_request(
     assert len(sent_messages) == 1
     assert sent_messages[0].player_id == "Ana"
     assert sent_messages[0].message.message_type == MessageType.ERROR
-    assert "bad_key" in sent_messages[0].message.payload
+    assert "bad_key" in sent_messages[0].message.payload["error"]
 
 
 @pytest.mark.parametrize(
@@ -60,7 +60,7 @@ async def test_room_manager_returns_error_message_if_bad_room_id(
     assert len(sent_messages) == 1
     assert sent_messages[0].player_id == "Ana"
     assert sent_messages[0].message.message_type == MessageType.ERROR
-    assert "id 2 does not exist" in sent_messages[0].message.payload
+    assert "id 2 does not exist" in sent_messages[0].message.payload["error"]
 
 
 @pytest.mark.asyncio

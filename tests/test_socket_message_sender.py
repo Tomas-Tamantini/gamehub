@@ -12,7 +12,7 @@ async def test_message_sender_does_not_send_message_if_client_not_found():
     message_sender = SocketMessageSender(client_manager)
     msg = MessageEvent(
         player_id="Alice",
-        message=Message(message_type=MessageType.GAME_STATE, payload="some state"),
+        message=Message(message_type=MessageType.GAME_STATE, payload={"key": "value"}),
     )
     await message_sender.send(msg)
 
@@ -25,9 +25,9 @@ async def test_message_sender_sends_message_if_client_found():
     message_sender = SocketMessageSender(client_manager)
     msg = MessageEvent(
         player_id="Alice",
-        message=Message(message_type=MessageType.GAME_STATE, payload="some state"),
+        message=Message(message_type=MessageType.GAME_STATE, payload={"key": "value"}),
     )
     await message_sender.send(msg)
     client.send.assert_called_once_with(
-        '{"message_type":"GAME_STATE","payload":"some state"}'
+        '{"message_type":"GAME_STATE","payload":{"key":"value"}}'
     )

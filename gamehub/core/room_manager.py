@@ -26,7 +26,9 @@ class RoomManager:
         await self._event_bus.publish(
             MessageEvent(
                 player_id=player_id,
-                message=Message(message_type=MessageType.ERROR, payload=message),
+                message=Message(
+                    message_type=MessageType.ERROR, payload={"error": message}
+                ),
             )
         )
 

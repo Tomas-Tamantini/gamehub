@@ -1,4 +1,3 @@
-import json
 from dataclasses import dataclass
 
 from gamehub.core.message import MessageEvent, MessageType
@@ -12,7 +11,7 @@ class ExpectedBroadcast:
 
     def check_messages(self, messages: list[MessageEvent]) -> None:
         assert all(m.message.message_type == self.message_type for m in messages)
-        assert all(json.loads(m.message.payload) == self.payload for m in messages)
+        assert all(m.message.payload == self.payload for m in messages)
         assert [m.player_id for m in messages] == self.recipients
 
 
