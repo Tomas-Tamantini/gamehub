@@ -41,7 +41,7 @@ class GameRoom:
     async def _broadcast_shared_view(self) -> None:
         message_payload = {
             "room_id": self._room_id,
-            "shared_view": self._game_state.shared_view(),
+            "shared_view": self._game_state.shared_view().model_dump(),
         }
         message = Message(
             message_type=MessageType.GAME_STATE, payload=json.dumps(message_payload)
