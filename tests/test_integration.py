@@ -41,6 +41,11 @@ async def test_integration():
             request_type=RequestType.MAKE_MOVE,
             payload={"room_id": 1, "move": {"selection": "ROCK"}},
         ),
+        Request(
+            player_id="Bob",
+            request_type=RequestType.MAKE_MOVE,
+            payload={"room_id": 1, "move": {"selection": "SCISSORS"}},
+        ),
     )
 
     for request in requests:
@@ -88,6 +93,26 @@ async def test_integration():
                         {"player_id": "Alice", "selected": True},
                         {"player_id": "Bob", "selected": False},
                     ]
+                },
+            },
+        ),
+        ExpectedBroadcast(
+            ["Alice", "Bob"],
+            MessageType.GAME_STATE,
+            {
+                "room_id": 1,
+                "shared_view": {
+                    "players": [
+                        {"player_id": "Alice", "selected": True},
+                        {"player_id": "Bob", "selected": True},
+                    ],
+                    "result": {
+                        "winner": "Alice",
+                        "moves": [
+                            {"player_id": "Alice", "selection": "ROCK"},
+                            {"player_id": "Bob", "selection": "SCISSORS"},
+                        ],
+                    },
                 },
             },
         ),
