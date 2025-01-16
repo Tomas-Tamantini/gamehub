@@ -1,8 +1,9 @@
 import logging
 from typing import Optional
 
-import websockets
 from pydantic import ValidationError
+from websockets import ConnectionClosed
+from websockets.asyncio.server import ServerConnection
 
 from gamehub.core.event_bus import EventBus
 from gamehub.core.message import Message, MessageType
@@ -17,7 +18,7 @@ class ConnectionHandler:
 
     @staticmethod
     async def _parse_request(
-        client: websockets.WebSocketServerProtocol, message: str
+        client: ServerConnection, message: str
     ) -> Optional[Request]:
         try:
             return Request.model_validate_json(message)
@@ -27,14 +28,14 @@ class ConnectionHandler:
             response = Message(message_type=MessageType.ERROR, payload=error_msg)
             await client.send(response.model_dump_json())
 
-    async def handle_client(self, client: websockets.WebSocketServerProtocol) -> None:
+    async def handle_client(self, client: ServerConnection) -> None:
         logging.info(f"Client connected: {client.remote_address}")
         try:
             async for message in client:
                 if request := await self._parse_request(client, message):
                     self._client_manager.associate_player_id(request.player_id, client)
                     await self._event_bus.publish(request)
-        except websockets.ConnectionClosed:
+        except ConnectionClosed:
             logging.warning(f"Client disconnected: {client.remote_address}")
         except Exception as e:
             logging.error(f"Unexpected error: {e}", exc_info=True)
