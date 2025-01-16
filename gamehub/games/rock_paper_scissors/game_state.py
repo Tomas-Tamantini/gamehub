@@ -1,17 +1,11 @@
 from dataclasses import dataclass
-from enum import Enum
 from typing import Optional
 
+from gamehub.games.rock_paper_scissors.selection import RPSSelection
 from gamehub.games.rock_paper_scissors.shared_view import (
     RPSSharedPlayerView,
     RPSSharedView,
 )
-
-
-class RPSSelection(Enum):
-    ROCK = "ROCK"
-    PAPER = "PAPER"
-    SCISSORS = "SCISSORS"
 
 
 @dataclass(frozen=True)
