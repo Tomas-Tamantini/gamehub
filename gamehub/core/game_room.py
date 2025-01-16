@@ -32,6 +32,17 @@ class GameRoom(Generic[T]):
     def _is_full(self) -> bool:
         return len(self._players) >= self._logic.num_players
 
+    def _reset(self) -> None:
+        self._players = list()
+        self._game_state = None
+
+    async def _set_state(self, state: GameState) -> None:
+        self._game_state = state
+        await self._send_private_views()
+        await self._broadcast_shared_view()
+        if state.is_terminal():
+            self._reset()
+
     @property
     def room_id(self) -> int:
         return self._room_id
@@ -77,8 +88,7 @@ class GameRoom(Generic[T]):
             )
 
     async def _start_game(self) -> None:
-        self._game_state = self._logic.initial_state(*self._players)
-        await self._broadcast_shared_view()
+        await self._set_state(self._logic.initial_state(*self._players))
 
     async def join(self, player_id: str) -> None:
         if player_id in self._players:
@@ -119,6 +129,4 @@ class GameRoom(Generic[T]):
             )
         elif parsed_move := await self._parsed_move(player_id, move):
             if new_state := await self._state_after_move(player_id, parsed_move):
-                self._game_state = new_state
-                await self._send_private_views()
-                await self._broadcast_shared_view()
+                await self._set_state(new_state)

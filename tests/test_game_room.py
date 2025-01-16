@@ -184,3 +184,25 @@ async def test_player_not_in_game_room_cannot_make_move(output_messages):
     assert sent_messages[-1].player_id == "Charlie"
     assert sent_messages[-1].message.message_type == MessageType.ERROR
     assert "not in room" in sent_messages[-1].message.payload
+
+
+@pytest.mark.asyncio
+async def test_game_room_resets_after_game_over_and_new_players_can_join(
+    output_messages,
+):
+    async def _action(room: GameRoom):
+        await room.join("Alice")
+        await room.join("Bob")
+        await room.make_move("Alice", {"selection": "ROCK"})
+        await room.make_move("Bob", {"selection": "PAPER"})
+        await room.join("Charlie")
+
+    sent_messages = await output_messages(_action)
+    expected = [
+        ExpectedBroadcast(
+            ["Charlie"],
+            MessageType.PLAYER_JOINED,
+            {"room_id": 0, "player_ids": ["Charlie"]},
+        )
+    ]
+    check_messages(sent_messages[-1:], expected)

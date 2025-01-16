@@ -15,8 +15,7 @@ from gamehub.games.rock_paper_scissors.views import (
 class RPSGameState:
     players: list[RPSPlayer]
 
-    @property
-    def _is_over(self) -> bool:
+    def is_terminal(self) -> bool:
         return all(p.selection is not None for p in self.players)
 
     @staticmethod
@@ -38,7 +37,7 @@ class RPSGameState:
             )
 
     def _result(self) -> Optional[RPSResultView]:
-        if not self._is_over:
+        if not self.is_terminal():
             return None
         moves = [
             RPSPlayerView(player_id=player.player_id, selection=player.selection)
@@ -53,7 +52,7 @@ class RPSGameState:
         )
 
     def private_views(self) -> Iterator[tuple[str, RPSPrivateView]]:
-        if not self._is_over:
+        if not self.is_terminal():
             for player in self.players:
                 if player.selection is not None:
                     yield player.player_id, RPSPrivateView(selection=player.selection)
