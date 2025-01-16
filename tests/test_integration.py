@@ -2,18 +2,18 @@ import pytest
 
 from gamehub.core.event_bus import EventBus
 from gamehub.core.game_room import GameRoom
-from gamehub.core.game_setup import GameSetup
 from gamehub.core.message import MessageEvent, MessageType
 from gamehub.core.request import Request, RequestType
 from gamehub.core.room_manager import RoomManager
+from gamehub.games.rock_paper_scissors import rps_setup
 from tests.utils import ExpectedBroadcast, check_messages
 
 
 @pytest.mark.asyncio
-async def test_end_to_end():
+async def test_integration():
     event_bus = EventBus()
 
-    game_room = GameRoom(room_id=1, setup=GameSetup(num_players=2), event_bus=event_bus)
+    game_room = GameRoom(room_id=1, setup=rps_setup(), event_bus=event_bus)
     room_manager = RoomManager([game_room], event_bus)
     event_bus.subscribe(Request, room_manager.handle_request)
 
@@ -46,6 +46,19 @@ async def test_end_to_end():
             ["Alice", "Bob"],
             MessageType.PLAYER_JOINED,
             {"room_id": 1, "player_ids": ["Alice", "Bob"]},
+        ),
+        ExpectedBroadcast(
+            ["Alice", "Bob"],
+            MessageType.GAME_STATE,
+            {
+                "room_id": 1,
+                "shared_view": {
+                    "players": [
+                        {"player_id": "Alice", "selected": False},
+                        {"player_id": "Bob", "selected": False},
+                    ]
+                },
+            },
         ),
     )
 

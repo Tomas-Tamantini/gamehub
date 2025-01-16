@@ -1,30 +1,21 @@
 from typing import Awaitable, Callable
-from unittest.mock import Mock
 
 import pytest
 
 from gamehub.core.event_bus import EventBus
 from gamehub.core.game_room import GameRoom
-from gamehub.core.game_setup import GameSetup
-from gamehub.core.game_state import GameState
 from gamehub.core.message import MessageEvent, MessageType
+from gamehub.games.rock_paper_scissors import rps_setup
 from tests.utils import ExpectedBroadcast, check_messages
 
 
 @pytest.fixture
-def game_setup():
-    initial_game_state = Mock(spec=GameState)
-    initial_game_state.shared_view.return_value = {"test_key": "test_value"}
-    return GameSetup(num_players=2, initial_state=lambda _: initial_game_state)
-
-
-@pytest.fixture
-def output_messages(game_setup):
+def output_messages():
     async def _output_messages(action: Callable[[GameRoom], Awaitable[None]]):
         event_bus = EventBus()
         sent_messages = []
         event_bus.subscribe(MessageEvent, sent_messages.append)
-        room = GameRoom(room_id=0, setup=game_setup, event_bus=event_bus)
+        room = GameRoom(room_id=0, setup=rps_setup(), event_bus=event_bus)
         await action(room)
         return sent_messages
 
@@ -100,7 +91,15 @@ async def test_game_starts_when_room_is_full(output_messages):
         ExpectedBroadcast(
             ["Alice", "Bob"],
             MessageType.GAME_STATE,
-            {"room_id": 0, "shared_view": {"test_key": "test_value"}},
+            {
+                "room_id": 0,
+                "shared_view": {
+                    "players": [
+                        {"player_id": "Alice", "selected": False},
+                        {"player_id": "Bob", "selected": False},
+                    ]
+                },
+            },
         )
     ]
     check_messages(sent_messages[3:], expected)
