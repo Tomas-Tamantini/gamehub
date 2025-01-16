@@ -45,6 +45,7 @@ class RoomManager:
         except ValidationError as e:
             await self._respond_error(request.player_id, str(e))
 
+    # TODO: Extract request handler to different class
     async def handle_request(self, request: Request) -> None:
         if parsed_payload := await self._parse_request(request):
             if not (room := self._rooms.get(parsed_payload.room_id)):

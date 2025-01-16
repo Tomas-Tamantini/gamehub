@@ -2,6 +2,11 @@ from typing import Optional
 
 from websockets.asyncio.server import ServerConnection
 
+# TODO:
+# Handle same client trying to connect with 2 player ids
+# Handle two clients trying to connect with same player id
+# Handle client disconnect
+
 
 class ClientManager:
     def __init__(self):
