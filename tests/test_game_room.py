@@ -171,3 +171,16 @@ async def test_player_gets_informed_of_invalid_move_error(output_messages):
     assert sent_messages[-1].player_id == "Alice"
     assert sent_messages[-1].message.message_type == MessageType.ERROR
     assert "already selected" in sent_messages[-1].message.payload
+
+
+@pytest.mark.asyncio
+async def test_player_not_in_game_room_cannot_make_move(output_messages):
+    async def _action(room: GameRoom):
+        await room.join("Alice")
+        await room.join("Bob")
+        await room.make_move("Charlie", {"selection": "ROCK"})
+
+    sent_messages = await output_messages(_action)
+    assert sent_messages[-1].player_id == "Charlie"
+    assert sent_messages[-1].message.message_type == MessageType.ERROR
+    assert "not in room" in sent_messages[-1].message.payload

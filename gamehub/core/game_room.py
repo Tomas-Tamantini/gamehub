@@ -6,6 +6,7 @@ from pydantic import ValidationError
 from gamehub.core.event_bus import EventBus
 from gamehub.core.exceptions import InvalidMoveError
 from gamehub.core.game_logic import GameLogic
+from gamehub.core.game_state import GameState
 from gamehub.core.message import Message, MessageEvent, MessageType
 from gamehub.core.move_parser import MoveParser
 
@@ -97,19 +98,27 @@ class GameRoom(Generic[T]):
             if self._is_full:
                 await self._start_game()
 
-    async def _parsed_move(self, player_id: str, move: dict) -> Optional[T]:
+    async def _parsed_move(self, player_id: str, raw_move: dict) -> Optional[T]:
         try:
-            return self._parse_move({"player_id": player_id, **move})
+            return self._parse_move({"player_id": player_id, **raw_move})
         except ValidationError as e:
             await self._send_error_message(player_id=player_id, payload=str(e))
 
+    async def _state_after_move(
+        self, player_id: str, parsed_move: T
+    ) -> Optional[GameState]:
+        try:
+            return self._logic.make_move(self._game_state, parsed_move)
+        except InvalidMoveError as e:
+            await self._send_error_message(player_id=player_id, payload=str(e))
+
     async def make_move(self, player_id: str, move: dict) -> None:
-        if parsed_move := await self._parsed_move(player_id, move):
-            try:
-                new_state = self._logic.make_move(self._game_state, parsed_move)
-            except InvalidMoveError as e:
-                await self._send_error_message(player_id=player_id, payload=str(e))
-                return
-            self._game_state = new_state
-            await self._send_private_views()
-            await self._broadcast_shared_view()
+        if player_id not in self._players:
+            await self._send_error_message(
+                player_id=player_id, payload="Player not in room"
+            )
+        elif parsed_move := await self._parsed_move(player_id, move):
+            if new_state := await self._state_after_move(player_id, parsed_move):
+                self._game_state = new_state
+                await self._send_private_views()
+                await self._broadcast_shared_view()
