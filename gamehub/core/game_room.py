@@ -56,7 +56,7 @@ class GameRoom(Generic[T]):
     async def _broadcast_shared_view(self) -> None:
         message_payload = {
             "room_id": self._room_id,
-            "shared_view": self._game_state.shared_view().model_dump(),
+            "shared_view": self._game_state.shared_view().model_dump(exclude_none=True),
         }
         message = Message(
             message_type=MessageType.GAME_STATE, payload=json.dumps(message_payload)
@@ -67,7 +67,7 @@ class GameRoom(Generic[T]):
         for player_id, private_view in self._game_state.private_views():
             message_payload = {
                 "room_id": self._room_id,
-                "private_view": private_view.model_dump(),
+                "private_view": private_view.model_dump(exclude_none=True),
             }
             message = Message(
                 message_type=MessageType.GAME_STATE, payload=json.dumps(message_payload)

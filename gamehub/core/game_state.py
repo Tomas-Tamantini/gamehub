@@ -2,7 +2,7 @@ from typing import Iterator, Protocol
 
 
 class _View(Protocol):
-    def model_dump(self) -> dict: ...
+    def model_dump(self, *_, exclude_none: bool) -> dict: ...
 
 
 class GameState(Protocol):
