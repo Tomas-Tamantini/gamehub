@@ -6,7 +6,7 @@ from websockets import ConnectionClosed
 from websockets.asyncio.server import ServerConnection
 
 from gamehub.core.event_bus import EventBus
-from gamehub.core.exceptions import DuplicatePlayerIdError
+from gamehub.core.exceptions import AmbiguousPlayerIdError
 from gamehub.core.message import error_message
 from gamehub.core.request import Request
 from gamehub.socket_server.client_manager import ClientManager
@@ -42,7 +42,7 @@ class ConnectionHandler:
                             request.player_id, client
                         )
                         await self._event_bus.publish(request)
-                    except DuplicatePlayerIdError as e:
+                    except AmbiguousPlayerIdError as e:
                         await ConnectionHandler._send_error_message(client, str(e))
         except ConnectionClosed:
             logging.warning(f"Client disconnected: {client.remote_address}")

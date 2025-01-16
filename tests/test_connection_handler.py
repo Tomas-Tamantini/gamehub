@@ -10,11 +10,16 @@ from gamehub.socket_server import ClientManager, ConnectionHandler
 
 
 @pytest.fixture
-def client():
-    valid_request = '{"request_type":"JOIN_GAME","player_id":"test_id"}'
-    client = AsyncMock()
-    client.__aiter__.return_value = iter([valid_request])
-    return client
+def valid_request():
+    return lambda player_id: f'{{"request_type":"JOIN_GAME","player_id":"{player_id}"}}'
+
+
+@pytest.fixture
+def client(valid_request):
+    request = valid_request("test_id")
+    mock_client = AsyncMock()
+    mock_client.__aiter__.return_value = iter([request])
+    return mock_client
 
 
 @pytest.fixture
@@ -25,9 +30,9 @@ def bad_request_client():
 
 
 @pytest.fixture
-def duplicate_id_client():
-    req_1 = '{"request_type":"JOIN_GAME","player_id":"id_1"}'
-    req_2 = '{"request_type":"JOIN_GAME","player_id":"id_2"}'
+def duplicate_id_client(valid_request):
+    req_1 = valid_request("id_1")
+    req_2 = valid_request("id_2")
     client = AsyncMock()
     client.__aiter__.return_value = iter([req_1, req_2])
     return client
@@ -83,11 +88,11 @@ async def test_handler_publishes_request_in_event_bus(connection_handler, client
 
 
 @pytest.mark.asyncio
-async def test_handler_returns_error_if_duplicate_player_id(
+async def test_handler_returns_error_if_same_client_has_two_ids(
     connection_handler, duplicate_id_client
 ):
     await connection_handler().handle_client(duplicate_id_client)
     error_msg = duplicate_id_client.send.call_args.args[0]
     parsed_error_msg = Message.model_validate_json(error_msg)
     assert parsed_error_msg.message_type == MessageType.ERROR
-    assert "already associated" in parsed_error_msg.payload["error"]
+    assert "already associated with another id" in parsed_error_msg.payload["error"]

@@ -2,10 +2,9 @@ from typing import Optional
 
 from websockets.asyncio.server import ServerConnection
 
-from gamehub.core.exceptions import DuplicatePlayerIdError
+from gamehub.core.exceptions import AmbiguousPlayerIdError
 
 # TODO:
-# Handle two clients trying to connect with same player id
 # Handle client disconnect
 
 
@@ -17,11 +16,17 @@ class ClientManager:
     def associate_player_id(self, player_id: str, client: ServerConnection):
         existing_id = self._client_to_player_id.get(client)
         if not existing_id:
-            self._player_id_to_client[player_id] = client
-            self._client_to_player_id[client] = player_id
+            existing_client = self._player_id_to_client.get(player_id)
+            if existing_client:
+                raise AmbiguousPlayerIdError(
+                    "Player id already in use by another client"
+                )
+            else:
+                self._player_id_to_client[player_id] = client
+                self._client_to_player_id[client] = player_id
         elif existing_id != player_id:
-            raise DuplicatePlayerIdError(
-                f"Player ID '{player_id}' is already associated with another client"
+            raise AmbiguousPlayerIdError(
+                "This client is already associated with another id"
             )
 
     def remove(self, client: ServerConnection):
