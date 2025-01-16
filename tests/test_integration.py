@@ -5,7 +5,7 @@ from gamehub.core.game_room import GameRoom
 from gamehub.core.message import MessageEvent, MessageType
 from gamehub.core.request import Request, RequestType
 from gamehub.core.room_manager import RoomManager
-from gamehub.games.rock_paper_scissors import RPSGameLogic
+from gamehub.games.rock_paper_scissors import RPSGameLogic, RPSMove
 from tests.utils import ExpectedBroadcast, check_messages
 
 
@@ -13,7 +13,12 @@ from tests.utils import ExpectedBroadcast, check_messages
 async def test_integration():
     event_bus = EventBus()
 
-    game_room = GameRoom(room_id=1, game_logic=RPSGameLogic(), event_bus=event_bus)
+    game_room = GameRoom(
+        room_id=1,
+        game_logic=RPSGameLogic(),
+        move_parser=RPSMove.model_validate,
+        event_bus=event_bus,
+    )
     room_manager = RoomManager([game_room], event_bus)
     event_bus.subscribe(Request, room_manager.handle_request)
 
@@ -30,6 +35,11 @@ async def test_integration():
             player_id="Bob",
             request_type=RequestType.JOIN_GAME,
             payload={"room_id": 1},
+        ),
+        Request(
+            player_id="Alice",
+            request_type=RequestType.MAKE_MOVE,
+            payload={"room_id": 1, "move": {"selection": "ROCK"}},
         ),
     )
 
@@ -55,6 +65,19 @@ async def test_integration():
                 "shared_view": {
                     "players": [
                         {"player_id": "Alice", "selected": False},
+                        {"player_id": "Bob", "selected": False},
+                    ]
+                },
+            },
+        ),
+        ExpectedBroadcast(
+            ["Alice", "Bob"],
+            MessageType.GAME_STATE,
+            {
+                "room_id": 1,
+                "shared_view": {
+                    "players": [
+                        {"player_id": "Alice", "selected": True},
                         {"player_id": "Bob", "selected": False},
                     ]
                 },

@@ -1,17 +1,28 @@
 import json
+from typing import Generic, TypeVar
 
 from gamehub.core.event_bus import EventBus
 from gamehub.core.game_logic import GameLogic
 from gamehub.core.message import Message, MessageEvent, MessageType
+from gamehub.core.move_parser import MoveParser
+
+T = TypeVar("T")
 
 
-class GameRoom:
-    def __init__(self, room_id: int, game_logic: GameLogic, event_bus: EventBus):
+class GameRoom(Generic[T]):
+    def __init__(
+        self,
+        room_id: int,
+        game_logic: GameLogic[T],
+        move_parser: MoveParser[T],
+        event_bus: EventBus,
+    ):
         self._room_id = room_id
         self._logic = game_logic
         self._event_bus = event_bus
         self._players = list()
         self._game_state = None
+        self._parse_move = move_parser
 
     @property
     def _is_full(self) -> bool:
@@ -71,4 +82,7 @@ class GameRoom:
                 await self._start_game()
 
     async def make_move(self, player_id: str, move: dict) -> None:
-        raise NotImplementedError()
+        parsed_move = self._parse_move({"player_id": player_id, **move})
+        new_state = self._logic.make_move(self._game_state, parsed_move)
+        self._game_state = new_state
+        await self._broadcast_shared_view()

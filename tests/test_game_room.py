@@ -5,7 +5,7 @@ import pytest
 from gamehub.core.event_bus import EventBus
 from gamehub.core.game_room import GameRoom
 from gamehub.core.message import MessageEvent, MessageType
-from gamehub.games.rock_paper_scissors import RPSGameLogic
+from gamehub.games.rock_paper_scissors import RPSGameLogic, RPSMove
 from tests.utils import ExpectedBroadcast, check_messages
 
 
@@ -15,7 +15,12 @@ def output_messages():
         event_bus = EventBus()
         sent_messages = []
         event_bus.subscribe(MessageEvent, sent_messages.append)
-        room = GameRoom(room_id=0, game_logic=RPSGameLogic(), event_bus=event_bus)
+        room = GameRoom(
+            room_id=0,
+            game_logic=RPSGameLogic(),
+            move_parser=RPSMove.model_validate,
+            event_bus=event_bus,
+        )
         await action(room)
         return sent_messages
 
@@ -103,3 +108,37 @@ async def test_game_starts_when_room_is_full(output_messages):
         )
     ]
     check_messages(sent_messages[3:], expected)
+
+
+@pytest.mark.asyncio
+async def test_players_gets_informed_of_new_game_state_after_making_move(
+    output_messages,
+):
+    async def _action(room: GameRoom):
+        await room.join("Alice")
+        await room.join("Bob")
+        await room.make_move("Alice", {"selection": "ROCK"})
+
+    sent_messages = await output_messages(_action)
+    expected = [
+        ExpectedBroadcast(
+            ["Alice", "Bob"],
+            MessageType.GAME_STATE,
+            {
+                "room_id": 0,
+                "shared_view": {
+                    "players": [
+                        {"player_id": "Alice", "selected": True},
+                        {"player_id": "Bob", "selected": False},
+                    ]
+                },
+            },
+        )
+    ]
+    check_messages(sent_messages[5:], expected)
+
+
+# TODO:
+# Check private view after move
+# Check move parse error
+# Check invalid move error
