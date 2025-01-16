@@ -5,12 +5,22 @@ from gamehub.core.game_room import GameRoom
 from gamehub.core.message import MessageEvent, MessageType
 from gamehub.core.request import Request, RequestType
 from gamehub.core.room_manager import RoomManager
+from gamehub.core.setup_bus import setup_event_bus
 from gamehub.games.rock_paper_scissors import RPSGameLogic, RPSMove
 from tests.utils import ExpectedBroadcast, check_messages
 
 
+class _MessageSenderSpy:
+    def __init__(self):
+        self.messages = []
+
+    async def send(self, message: MessageEvent) -> None:
+        self.messages.append(message)
+
+
 @pytest.mark.asyncio
 async def test_integration():
+    message_spy = _MessageSenderSpy()
     event_bus = EventBus()
 
     game_room = GameRoom(
@@ -20,10 +30,7 @@ async def test_integration():
         event_bus=event_bus,
     )
     room_manager = RoomManager([game_room], event_bus)
-    event_bus.subscribe(Request, room_manager.handle_request)
-
-    messages: list[MessageEvent] = []
-    event_bus.subscribe(MessageEvent, messages.append)
+    setup_event_bus(event_bus, message_spy, room_manager)
 
     requests = (
         Request(
@@ -118,4 +125,4 @@ async def test_integration():
         ),
     )
 
-    check_messages(messages, expected_broadcasts)
+    check_messages(message_spy.messages, expected_broadcasts)
