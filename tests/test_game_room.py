@@ -159,5 +159,15 @@ async def test_player_gets_informed_of_parse_move_error(output_messages):
     assert "selection" in sent_messages[-1].message.payload
 
 
-# TODO:
-# Check invalid move error
+@pytest.mark.asyncio
+async def test_player_gets_informed_of_invalid_move_error(output_messages):
+    async def _action(room: GameRoom):
+        await room.join("Alice")
+        await room.join("Bob")
+        await room.make_move("Alice", {"selection": "ROCK"})
+        await room.make_move("Alice", {"selection": "PAPER"})
+
+    sent_messages = await output_messages(_action)
+    assert sent_messages[-1].player_id == "Alice"
+    assert sent_messages[-1].message.message_type == MessageType.ERROR
+    assert "already selected" in sent_messages[-1].message.payload
