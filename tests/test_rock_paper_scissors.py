@@ -6,16 +6,29 @@ from gamehub.games.rock_paper_scissors import (
     RPSSharedPlayerView,
     RPSSharedView,
 )
+import pytest
+
+
+@pytest.fixture
+def initial_state():
+    logic = RPSGameLogic()
+    return logic.initial_state("Alice", "Bob")
+
+
+@pytest.fixture
+def after_first_move(initial_state):
+    logic = RPSGameLogic()
+    return logic.make_move(
+        initial_state, RPSMove(player_id="Alice", selection=RPSSelection.ROCK)
+    )
 
 
 def test_rock_paper_scissors_has_two_players():
     assert RPSGameLogic().num_players == 2
 
 
-def test_rock_paper_scissors_initial_state_has_no_selections():
-    logic = RPSGameLogic()
-    state = logic.initial_state("Alice", "Bob")
-    shared_view = state.shared_view()
+def test_rock_paper_scissors_initial_state_has_no_selections(initial_state):
+    shared_view = initial_state.shared_view()
     assert shared_view == RPSSharedView(
         players=[
             RPSSharedPlayerView(player_id="Alice", selected=False),
@@ -24,13 +37,8 @@ def test_rock_paper_scissors_initial_state_has_no_selections():
     )
 
 
-def test_rock_paper_scissors_allows_players_to_make_selection():
-    logic = RPSGameLogic()
-    state = logic.initial_state("Alice", "Bob")
-    state = logic.make_move(
-        state, RPSMove(player_id="Alice", selection=RPSSelection.ROCK)
-    )
-    shared_view = state.shared_view()
+def test_rock_paper_scissors_allows_players_to_make_selection(after_first_move):
+    shared_view = after_first_move.shared_view()
     assert shared_view == RPSSharedView(
         players=[
             RPSSharedPlayerView(player_id="Alice", selected=True),
@@ -39,11 +47,6 @@ def test_rock_paper_scissors_allows_players_to_make_selection():
     )
 
 
-def test_rock_paper_scissors_informs_private_selection():
-    logic = RPSGameLogic()
-    state = logic.initial_state("Alice", "Bob")
-    state = logic.make_move(
-        state, RPSMove(player_id="Alice", selection=RPSSelection.ROCK)
-    )
-    private_views = list(state.private_views())
+def test_rock_paper_scissors_informs_private_selection(after_first_move):
+    private_views = list(after_first_move.private_views())
     assert private_views == [("Alice", RPSPrivateView(selection=RPSSelection.ROCK))]
