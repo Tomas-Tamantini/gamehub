@@ -1,5 +1,6 @@
 import pytest
 
+from gamehub.core.exceptions import InvalidMoveError
 from gamehub.games.rock_paper_scissors import (
     RPSGameLogic,
     RPSMove,
@@ -46,6 +47,14 @@ def test_rock_paper_scissors_allows_players_to_make_selection(after_first_move):
             RPSSharedPlayerView(player_id="Bob", selected=False),
         ]
     )
+
+
+def test_player_cannot_select_twice_in_rock_paper_scisssors(after_first_move):
+    logic = RPSGameLogic()
+    with pytest.raises(InvalidMoveError, match="has already selected"):
+        _ = logic.make_move(
+            after_first_move, RPSMove(player_id="Alice", selection=RPSSelection.PAPER)
+        )
 
 
 def test_rock_paper_scissors_informs_private_selection(after_first_move):

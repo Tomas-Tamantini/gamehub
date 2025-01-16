@@ -21,9 +21,7 @@ class RPSGameLogic:
         new_players = []
         for player in state.players:
             if player.player_id == move.player_id:
-                new_players.append(
-                    RPSPlayer(player_id=player.player_id, selection=move.selection)
-                )
+                new_players.append(player.make_selection(move.selection))
             else:
                 new_players.append(player)
         return RPSGameState(players=new_players)
