@@ -8,8 +8,13 @@ from gamehub.core.message import Message, MessageEvent, MessageType
 from gamehub.core.request import Request, RequestType
 
 
-class _JoinRoomPayload(BaseModel):
+class _JoinGamePayload(BaseModel):
     room_id: int
+
+
+class _MakeMovePayload(BaseModel):
+    room_id: int
+    move: dict
 
 
 class RoomManager:
@@ -25,19 +30,27 @@ class RoomManager:
             )
         )
 
-    async def _parse_payload(self, request: Request) -> Optional[_JoinRoomPayload]:
+    async def _parse_request(
+        self, request: Request
+    ) -> Optional[_JoinGamePayload | _MakeMovePayload]:
+        model_cls = (
+            _JoinGamePayload
+            if request.request_type == RequestType.JOIN_GAME
+            else _MakeMovePayload
+        )
         try:
-            return _JoinRoomPayload.model_validate(request.payload)
+            return model_cls.model_validate(request.payload)
         except ValidationError as e:
             await self._respond_error(request.player_id, str(e))
 
     async def handle_request(self, request: Request) -> None:
-        if request.request_type == RequestType.JOIN_GAME:
-            if parsed_payload := await self._parse_payload(request):
-                if not (room := self._rooms.get(parsed_payload.room_id)):
-                    await self._respond_error(
-                        request.player_id,
-                        f"Room with id {parsed_payload.room_id} does not exist",
-                    )
-                else:
-                    await room.join(request.player_id)
+        if parsed_payload := await self._parse_request(request):
+            if not (room := self._rooms.get(parsed_payload.room_id)):
+                await self._respond_error(
+                    request.player_id,
+                    f"Room with id {parsed_payload.room_id} does not exist",
+                )
+            elif isinstance(parsed_payload, _JoinGamePayload):
+                await room.join(request.player_id)
+            elif isinstance(parsed_payload, _MakeMovePayload):
+                await room.make_move(request.player_id, parsed_payload.move)

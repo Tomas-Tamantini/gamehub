@@ -69,3 +69,6 @@ class GameRoom:
             await self._broadcast_message(message)
             if self._is_full:
                 await self._start_game()
+
+    async def make_move(self, player_id: str, move: dict) -> None:
+        raise NotImplementedError()

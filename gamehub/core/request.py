@@ -5,6 +5,7 @@ from pydantic import BaseModel, Field
 
 class RequestType(Enum):
     JOIN_GAME = "JOIN_GAME"
+    MAKE_MOVE = "MAKE_MOVE"
 
 
 class Request(BaseModel):

@@ -29,16 +29,38 @@ def output_messages(spy_room):
     return _output_messages
 
 
+@pytest.mark.parametrize("request_type", [RequestType.JOIN_GAME, RequestType.MAKE_MOVE])
 @pytest.mark.asyncio
-async def test_room_manager_returns_error_message_if_bad_request(output_messages):
+async def test_room_manager_returns_error_message_if_bad_request(
+    output_messages, request_type
+):
     request = Request(
-        player_id="Ana", request_type=RequestType.JOIN_GAME, payload={"bad_key": 1}
+        player_id="Ana", request_type=request_type, payload={"bad_key": 1}
     )
     sent_messages = await output_messages(request)
     assert len(sent_messages) == 1
     assert sent_messages[0].player_id == "Ana"
     assert sent_messages[0].message.message_type == MessageType.ERROR
     assert "bad_key" in sent_messages[0].message.payload
+
+
+@pytest.mark.parametrize(
+    ("request_type", "payload"),
+    [
+        (RequestType.JOIN_GAME, {"room_id": 2}),
+        (RequestType.MAKE_MOVE, {"room_id": 2, "move": {}}),
+    ],
+)
+@pytest.mark.asyncio
+async def test_room_manager_returns_error_message_if_bad_room_id(
+    output_messages, request_type, payload
+):
+    request = Request(player_id="Ana", request_type=request_type, payload=payload)
+    sent_messages = await output_messages(request)
+    assert len(sent_messages) == 1
+    assert sent_messages[0].player_id == "Ana"
+    assert sent_messages[0].message.message_type == MessageType.ERROR
+    assert "id 2 does not exist" in sent_messages[0].message.payload
 
 
 @pytest.mark.asyncio
@@ -53,12 +75,14 @@ async def test_room_manager_forwards_join_game_request_to_proper_room(
 
 
 @pytest.mark.asyncio
-async def test_room_manager_returns_error_message_if_bad_room_id(output_messages):
+async def test_room_manager_forwards_make_move_request_to_proper_room(
+    output_messages, spy_room
+):
+    mock_move = {"testkey": "testvalue"}
     request = Request(
-        player_id="Ana", request_type=RequestType.JOIN_GAME, payload={"room_id": 2}
+        player_id="Ana",
+        request_type=RequestType.MAKE_MOVE,
+        payload={"room_id": 1, "move": mock_move},
     )
-    sent_messages = await output_messages(request)
-    assert len(sent_messages) == 1
-    assert sent_messages[0].player_id == "Ana"
-    assert sent_messages[0].message.message_type == MessageType.ERROR
-    assert "id 2 does not exist" in sent_messages[0].message.payload
+    _ = await output_messages(request)
+    spy_room.make_move.assert_called_once_with("Ana", mock_move)
