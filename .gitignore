@@ -11,6 +11,3 @@ wheels/
 
 # Test coverage
 .coverage
-
-# Mock socket client
-mock_client.py
