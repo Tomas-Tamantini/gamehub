@@ -1,5 +1,3 @@
-from typing import Optional
-
 from pydantic import ValidationError
 
 from gamehub.core.event_bus import EventBus
@@ -14,6 +12,30 @@ from gamehub.core.request import (
 )
 
 
+class _JoinByIdParser:
+    @property
+    def model(self):
+        return JoinGameByIdPayload
+
+    @staticmethod
+    def create_new_event(
+        player_id: str, parsed_payload: JoinGameByIdPayload
+    ) -> JoinGameById:
+        return JoinGameById(player_id, parsed_payload.room_id)
+
+
+class _MakeMoveParser:
+    @property
+    def model(self):
+        return MakeMovePayload
+
+    @staticmethod
+    def create_new_event(
+        player_id: str, parsed_payload: MakeMovePayload
+    ) -> MakeMovePayload:
+        return MakeMove(player_id, parsed_payload.room_id, parsed_payload.move)
+
+
 class RequestParser:
     def __init__(self, event_bus: EventBus):
         self._event_bus = event_bus
@@ -23,24 +45,14 @@ class RequestParser:
             MessageEvent(player_id=player_id, message=error_message(payload))
         )
 
-    async def _parsed_payload(
-        self, request: Request
-    ) -> Optional[JoinGameByIdPayload | MakeMovePayload]:
-        payload_cls = (
-            JoinGameByIdPayload
-            if request.request_type == RequestType.JOIN_GAME_BY_ID
-            else MakeMovePayload
-        )
+    async def parse_request(self, request: Request) -> None:
+        parser = {
+            RequestType.JOIN_GAME_BY_ID: _JoinByIdParser,
+            RequestType.MAKE_MOVE: _MakeMoveParser,
+        }[request.request_type]()
         try:
-            return payload_cls.model_validate(request.payload)
+            payload = parser.model.model_validate(request.payload)
+            new_event = parser.create_new_event(request.player_id, payload)
+            await self._event_bus.publish(new_event)
         except ValidationError as e:
             await self._respond_error(request.player_id, str(e))
-
-    async def parse_request(self, request: Request) -> None:
-        if payload := await self._parsed_payload(request):
-            if isinstance(payload, JoinGameByIdPayload):
-                new_event = JoinGameById(request.player_id, payload.room_id)
-                await self._event_bus.publish(new_event)
-            elif isinstance(payload, MakeMovePayload):
-                new_event = MakeMove(request.player_id, payload.room_id, payload.move)
-                await self._event_bus.publish(new_event)
