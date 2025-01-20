@@ -1,13 +1,11 @@
 import player_id from "./user_service.js";
 import socketService from "../socket_service.js";
-
-const room_id = 1;
+import gameContext from "../game_context.js";
 
 export function joinGame() {
-    socketService.joinGame(player_id(), room_id);
+    socketService.joinGame(player_id(), 'rock_paper_scissors');
 }
 
 export function selectMove(selection) {
-    const move = { selection };
-    socketService.makeMove(player_id(), room_id, move);
+    socketService.makeMove(player_id(), gameContext.roomId, { selection });
 }

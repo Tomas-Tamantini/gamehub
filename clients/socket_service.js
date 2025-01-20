@@ -21,11 +21,11 @@ class SocketService {
         this.subscribers.push(callback);
     }
 
-    joinGame(player_id, room_id) {
+    joinGame(player_id, game_type) {
         this.send({
             player_id,
-            request_type: "JOIN_GAME_BY_ID",
-            payload: { room_id }
+            request_type: "JOIN_GAME_BY_TYPE",
+            payload: { game_type }
         });
     }
 

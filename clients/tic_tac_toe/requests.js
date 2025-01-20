@@ -1,12 +1,12 @@
 import player_id from "./user_service.js";
 import socketService from "../socket_service.js";
+import gameContext from "../game_context.js";
 
-const room_id = 1;
 
 export function joinGame() {
-    socketService.joinGame(player_id(), room_id);
+    socketService.joinGame(player_id(), 'tic_tac_toe');
 }
 
 export function makeMove(cell_index) {
-    socketService.makeMove(player_id(), room_id, { cell_index });
+    socketService.makeMove(player_id(), gameContext.roomId, { cell_index });
 }
