@@ -1,75 +1,74 @@
-const serverUrl = "ws://localhost:8765";
-const nameInput = document.getElementById("name");
-const startGameBtn = document.getElementById("start-game");
-const rockBtn = document.getElementById("rock");
-const paperBtn = document.getElementById("paper");
-const scissorsBtn = document.getElementById("scissors");
-const statusArea = document.getElementById("status");
+import socketService from "../socket_service.js";
+import {
+    nameInput,
+    startGameBtn,
+    rockBtn,
+    paperBtn,
+    scissorsBtn,
+    statusArea
+} from "./dom.js";
 
-const ws = new WebSocket(serverUrl);
+
 var mySelection = "";
 
 function player_id() {
     return nameInput.value;
 }
 
-ws.onopen = function () {
-    statusArea.innerHTML = "Connected to server";
-}
-
-ws.onmessage = function (event) {
-    const message = JSON.parse(event.data);
-    if (message.message_type == "ERROR") {
-        statusArea.innerHTML = "ERROR: " + message.payload.error;
-    }
-    else if (message.message_type == "PLAYER_JOINED") {
-        statusArea.innerHTML = message.payload.player_ids[0] + " joined the game";
-    }
-    else if (message.message_type == "GAME_STATE") {
-        if (message.payload.private_view) {
-            mySelection = message.payload.private_view.selection;
-            statusArea.innerHTML = "Your selection: " + mySelection;
+socketService.subscribe(
+    msg => {
+        if (msg.message_type == "ERROR") {
+            statusArea.innerHTML = "ERROR: " + msg.payload.error;
         }
-        else if (message.payload.shared_view) {
-            if (message.payload.shared_view.result) {
-                mySelection = "";
-                if (message.payload.shared_view.result.winner) {
-                    statusArea.innerHTML = message.payload.shared_view.result.winner + " wins!";
-                }
-                else {
-                    statusArea.innerHTML = "It's a tie!";
-                }
+        else if (msg.message_type == "PLAYER_JOINED") {
+            statusArea.innerHTML = msg.payload.player_ids[0] + " joined the game";
+        }
+        else if (msg.message_type == "GAME_STATE") {
+            if (msg.payload.private_view) {
+                mySelection = msg.payload.private_view.selection;
+                statusArea.innerHTML = "Your selection: " + mySelection;
             }
-            else {
-                if (mySelection) {
-                    statusArea.innerHTML = "Waiting for other players to make their move";
+            else if (msg.payload.shared_view) {
+                if (msg.payload.shared_view.result) {
+                    mySelection = "";
+                    if (msg.payload.shared_view.result.winner) {
+                        statusArea.innerHTML = msg.payload.shared_view.result.winner + " wins!";
+                    }
+                    else {
+                        statusArea.innerHTML = "It's a tie!";
+                    }
                 }
                 else {
-                    statusArea.innerHTML = "Make your move";
+                    if (mySelection) {
+                        statusArea.innerHTML = "Waiting for other players to make their move";
+                    }
+                    else {
+                        statusArea.innerHTML = "Make your move";
+                    }
                 }
             }
         }
+        else {
+            statusArea.innerHTML = event.data;
+        }
     }
-    else {
-        statusArea.innerHTML = event.data;
-    }
-}
+)
 
 startGameBtn.onclick = function () {
-    ws.send(JSON.stringify({
+    socketService.send({
         player_id: player_id(),
         request_type: "JOIN_GAME",
         payload: { room_id: 1 }
 
-    }));
+    });
 }
 
 function makeMove(move) {
-    ws.send(JSON.stringify({
+    socketService.send({
         player_id: player_id(),
         request_type: "MAKE_MOVE",
         payload: { room_id: 1, move: { selection: move } }
-    }));
+    });
 }
 
 rockBtn.onclick = () => makeMove("ROCK");
