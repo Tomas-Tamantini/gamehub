@@ -1,6 +1,7 @@
 from gamehub.games.tic_tac_toe.game_state import TicTacToeState
 from gamehub.games.tic_tac_toe.move import TicTacToeMove
 from gamehub.games.tic_tac_toe.player import TicTacToePlayer
+from gamehub.core.exceptions import InvalidMoveError
 
 
 class TicTacToeGameLogic:
@@ -18,4 +19,4 @@ class TicTacToeGameLogic:
         )
 
     def make_move(self, state: TicTacToeState, move: TicTacToeMove) -> TicTacToeState:
-        raise NotImplementedError
+        raise InvalidMoveError("Not player's turn")
