@@ -1,11 +1,12 @@
 from pydantic import ValidationError
 
 from gamehub.core.event_bus import EventBus
-from gamehub.core.events.join_game import JoinGameById
+from gamehub.core.events.join_game import JoinGameById, JoinGameByType
 from gamehub.core.events.make_move import MakeMove
 from gamehub.core.message import MessageEvent, error_message
 from gamehub.core.request import (
     JoinGameByIdPayload,
+    JoinGameByTypePayload,
     MakeMovePayload,
     Request,
     RequestType,
@@ -22,6 +23,18 @@ class _JoinByIdParser:
         player_id: str, parsed_payload: JoinGameByIdPayload
     ) -> JoinGameById:
         return JoinGameById(player_id, parsed_payload.room_id)
+
+
+class _JoinByTypeParser:
+    @property
+    def model(self):
+        return JoinGameByTypePayload
+
+    @staticmethod
+    def create_new_event(
+        player_id: str, parsed_payload: JoinGameByType
+    ) -> JoinGameByType:
+        return JoinGameByType(player_id, parsed_payload.game_type)
 
 
 class _MakeMoveParser:
@@ -48,6 +61,7 @@ class RequestParser:
     async def parse_request(self, request: Request) -> None:
         parser = {
             RequestType.JOIN_GAME_BY_ID: _JoinByIdParser,
+            RequestType.JOIN_GAME_BY_TYPE: _JoinByTypeParser,
             RequestType.MAKE_MOVE: _MakeMoveParser,
         }[request.request_type]()
         try:

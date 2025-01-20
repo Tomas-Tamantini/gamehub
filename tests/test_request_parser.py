@@ -1,7 +1,7 @@
 import pytest
 
 from gamehub.core.event_bus import EventBus
-from gamehub.core.events.join_game import JoinGameById
+from gamehub.core.events.join_game import JoinGameById, JoinGameByType
 from gamehub.core.events.make_move import MakeMove
 from gamehub.core.message import MessageEvent, MessageType
 from gamehub.core.request import Request, RequestType
@@ -14,9 +14,8 @@ def output_events():
         event_bus = EventBus()
         parser = RequestParser(event_bus)
         events = []
-        event_bus.subscribe(MessageEvent, events.append)
-        event_bus.subscribe(JoinGameById, events.append)
-        event_bus.subscribe(MakeMove, events.append)
+        for event_type in (MessageEvent, JoinGameById, MakeMove, JoinGameByType):
+            event_bus.subscribe(event_type, events.append)
         await parser.parse_request(request)
         return events
 
@@ -47,6 +46,18 @@ async def test_request_parser_raises_join_game_by_id_event(output_events):
     output_events = await output_events(request)
     assert len(output_events) == 1
     assert output_events[0] == JoinGameById(player_id="Ana", room_id=123)
+
+
+@pytest.mark.asyncio
+async def test_request_parser_raises_join_game_by_type_event(output_events):
+    request = Request(
+        player_id="Ana",
+        request_type=RequestType.JOIN_GAME_BY_TYPE,
+        payload={"game_type": "tic_tac_toe"},
+    )
+    output_events = await output_events(request)
+    assert len(output_events) == 1
+    assert output_events[0] == JoinGameByType(player_id="Ana", game_type="tic_tac_toe")
 
 
 @pytest.mark.asyncio
