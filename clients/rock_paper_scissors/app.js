@@ -6,7 +6,7 @@ import {
     scissorsBtn,
     statusArea
 } from "./dom.js";
-import player_id from "./user_service.js";
+import { joinGame, makeMove } from "./requests.js";
 
 
 var mySelection = "";
@@ -51,23 +51,7 @@ socketService.subscribe(
     }
 )
 
-startGameBtn.onclick = function () {
-    socketService.send({
-        player_id: player_id(),
-        request_type: "JOIN_GAME",
-        payload: { room_id: 1 }
-
-    });
-}
-
-function makeMove(move) {
-    socketService.send({
-        player_id: player_id(),
-        request_type: "MAKE_MOVE",
-        payload: { room_id: 1, move: { selection: move } }
-    });
-}
-
+startGameBtn.onclick = joinGame;
 rockBtn.onclick = () => makeMove("ROCK");
 paperBtn.onclick = () => makeMove("PAPER");
 scissorsBtn.onclick = () => makeMove("SCISSORS");
