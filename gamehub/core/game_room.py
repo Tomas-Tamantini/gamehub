@@ -28,7 +28,11 @@ class GameRoom(Generic[T]):
         self._parse_move = move_parser
 
     @property
-    def _is_full(self) -> bool:
+    def game_type(self) -> str:
+        return self._logic.game_type
+
+    @property
+    def is_full(self) -> bool:
         return len(self._players) >= self._logic.num_players
 
     def _reset(self) -> None:
@@ -93,7 +97,7 @@ class GameRoom(Generic[T]):
             await self._send_error_message(
                 player_id=player_id, payload="Player already in room"
             )
-        elif self._is_full:
+        elif self.is_full:
             await self._send_error_message(
                 player_id=player_id, payload="Unable to join: Room is full"
             )
@@ -103,7 +107,7 @@ class GameRoom(Generic[T]):
                 message_type=MessageType.PLAYER_JOINED, payload=self._room_state()
             )
             await self._broadcast_message(message)
-            if self._is_full:
+            if self.is_full:
                 await self._start_game()
 
     async def _parsed_move(self, player_id: str, raw_move: dict) -> Optional[T]:

@@ -1,5 +1,5 @@
 from gamehub.core.event_bus import EventBus
-from gamehub.core.events.join_game import JoinGameById
+from gamehub.core.events.join_game import JoinGameById, JoinGameByType
 from gamehub.core.events.make_move import MakeMove
 from gamehub.core.game_room import GameRoom
 from gamehub.core.message import MessageEvent, error_message
@@ -22,6 +22,17 @@ class RoomManager:
             )
         else:
             await room.join(join_game.player_id)
+
+    async def join_game_by_type(self, join_game: JoinGameByType) -> None:
+        for room in self._rooms.values():
+            if room.game_type == join_game.game_type and not room.is_full:
+                await room.join(join_game.player_id)
+                return
+
+        await self._respond_error(
+            join_game.player_id,
+            f"No available room for game type {join_game.game_type}",
+        )
 
     async def make_move(self, make_move: MakeMove) -> None:
         if not (room := self._rooms.get(make_move.room_id)):

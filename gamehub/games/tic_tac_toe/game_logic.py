@@ -9,6 +9,10 @@ class TicTacToeGameLogic:
     def num_players(self) -> int:
         return 2
 
+    @property
+    def game_type(self) -> str:
+        return "tic_tac_toe"
+
     @staticmethod
     def initial_state(*player_ids: str) -> TicTacToeState:
         return TicTacToeState(

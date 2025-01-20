@@ -6,6 +6,7 @@ from gamehub.core.event_bus import EventBus
 from gamehub.core.game_room import GameRoom
 from gamehub.core.room_manager import RoomManager
 from gamehub.core.setup_bus import setup_event_bus
+from gamehub.games.rock_paper_scissors import RPSGameLogic, RPSMove
 from gamehub.games.tic_tac_toe import TicTacToeGameLogic, TicTacToeMove
 from gamehub.socket_server import ClientManager, ConnectionHandler, SocketMessageSender
 
@@ -18,7 +19,13 @@ def game_manager(event_bus: EventBus) -> RoomManager:
                 game_logic=TicTacToeGameLogic(),
                 move_parser=TicTacToeMove.model_validate,
                 event_bus=event_bus,
-            )
+            ),
+            GameRoom(
+                room_id=2,
+                game_logic=RPSGameLogic(),
+                move_parser=RPSMove.model_validate,
+                event_bus=event_bus,
+            ),
         ],
         event_bus=event_bus,
     )

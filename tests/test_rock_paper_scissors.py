@@ -30,6 +30,10 @@ def test_rock_paper_scissors_has_two_players():
     assert RPSGameLogic().num_players == 2
 
 
+def test_rock_paper_scissors_has_proper_game_type():
+    assert RPSGameLogic().game_type == "rock_paper_scissors"
+
+
 def test_rock_paper_scissors_initial_state_has_no_selections(initial_state):
     shared_view = initial_state.shared_view()
     assert shared_view == RPSSharedView(

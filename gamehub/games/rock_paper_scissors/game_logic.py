@@ -7,6 +7,10 @@ class RPSGameLogic:
     def num_players(self) -> int:
         return 2
 
+    @property
+    def game_type(self) -> str:
+        return "rock_paper_scissors"
+
     @staticmethod
     def initial_state(*player_ids: str) -> RPSGameState:
         return RPSGameState(

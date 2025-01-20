@@ -218,3 +218,13 @@ async def test_game_room_resets_after_game_over_and_new_players_can_join(
         )
     ]
     check_messages(sent_messages[-1:], expected)
+
+
+def test_room_has_associated_game_type():
+    room = GameRoom(
+        room_id=0,
+        game_logic=RPSGameLogic(),
+        move_parser=RPSMove.model_validate,
+        event_bus=EventBus(),
+    )
+    assert room.game_type == "rock_paper_scissors"
