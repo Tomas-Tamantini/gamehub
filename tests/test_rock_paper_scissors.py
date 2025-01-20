@@ -1,13 +1,12 @@
 import pytest
 
 from gamehub.core.exceptions import InvalidMoveError
-from gamehub.games.rock_paper_scissors import (
-    RPSGameLogic,
-    RPSMove,
+from gamehub.games.rock_paper_scissors import RPSGameLogic, RPSMove
+from gamehub.games.rock_paper_scissors.selection import RPSSelection
+from gamehub.games.rock_paper_scissors.views import (
     RPSPlayerView,
     RPSPrivateView,
     RPSResultView,
-    RPSSelection,
     RPSSharedPlayerView,
     RPSSharedView,
 )
