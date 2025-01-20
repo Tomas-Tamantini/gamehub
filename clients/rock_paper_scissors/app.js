@@ -1,19 +1,16 @@
 import socketService from "../socket_service.js";
 import {
-    nameInput,
     startGameBtn,
     rockBtn,
     paperBtn,
     scissorsBtn,
     statusArea
 } from "./dom.js";
+import player_id from "./user_service.js";
 
 
 var mySelection = "";
 
-function player_id() {
-    return nameInput.value;
-}
 
 socketService.subscribe(
     msg => {
