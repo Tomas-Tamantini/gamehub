@@ -49,7 +49,7 @@ socketService.subscribe(
             }
         }
         else {
-            statusArea.innerHTML = event.data;
+            statusArea.innerHTML = msg;
         }
     }
 )
