@@ -3,6 +3,7 @@ from pydantic import ValidationError
 
 from gamehub.core.exceptions import InvalidMoveError
 from gamehub.games.tic_tac_toe import TicTacToeGameLogic, TicTacToeMove
+from gamehub.games.tic_tac_toe.game_state import TicTacToeState
 from gamehub.games.tic_tac_toe.player import TicTacToePlayer
 from gamehub.games.tic_tac_toe.views import TicTacToeView
 
@@ -16,6 +17,16 @@ def initial_state():
 def after_first_move(initial_state):
     return TicTacToeGameLogic().make_move(
         initial_state, TicTacToeMove(player_id="Alice", cell_index=0)
+    )
+
+
+@pytest.fixture
+def tie_game():
+    return TicTacToeState(
+        players=(
+            TicTacToePlayer(player_id="Alice", selections={0, 1, 5, 6, 8}),
+            TicTacToePlayer(player_id="Bob", selections={2, 3, 4, 7}),
+        )
     )
 
 
@@ -60,4 +71,48 @@ def test_tic_tac_toe_cell_cannot_be_selected_twice(after_first_move):
     with pytest.raises(InvalidMoveError, match="already selected"):
         _ = TicTacToeGameLogic().make_move(
             after_first_move, TicTacToeMove(player_id="Bob", cell_index=0)
+        )
+
+
+@pytest.mark.parametrize(
+    ("selections_a", "selections_b", "winner"),
+    [
+        ({0, 1, 2}, {3, 4}, "Alice"),
+        ({0, 1, 8}, {3, 4, 5}, "Bob"),
+        ({0, 1, 3}, {6, 7, 8}, "Bob"),
+        ({0, 3, 6}, {1, 2}, "Alice"),
+        ({1, 4, 7}, {0, 2}, "Alice"),
+        ({2, 5, 8}, {1, 0}, "Alice"),
+        ({0, 4, 8}, {1, 2}, "Alice"),
+        ({0, 1, 8}, {2, 4, 6}, "Bob"),
+    ],
+)
+def test_player_wins_tic_tac_toe_if_three_in_a_row(selections_a, selections_b, winner):
+    state = TicTacToeState(
+        players=(
+            TicTacToePlayer(player_id="Alice", selections=selections_a),
+            TicTacToePlayer(player_id="Bob", selections=selections_b),
+        )
+    )
+    shared_view = state.shared_view()
+    assert shared_view.is_over
+    assert shared_view.winner == winner
+
+
+def test_players_tie_on_tic_tac_toe_if_no_three_in_a_row(tie_game):
+    shared_view = tie_game.shared_view()
+    assert shared_view.is_over
+    assert shared_view.winner is None
+
+
+def test_players_cannot_make_move_after_game_over():
+    state = TicTacToeState(
+        players=(
+            TicTacToePlayer(player_id="Alice", selections={0, 1, 2}),
+            TicTacToePlayer(player_id="Bob", selections={3, 4}),
+        )
+    )
+    with pytest.raises(InvalidMoveError, match="Game is over"):
+        _ = TicTacToeGameLogic().make_move(
+            state, TicTacToeMove(player_id="Bob", cell_index=5)
         )

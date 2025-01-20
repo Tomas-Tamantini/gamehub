@@ -20,6 +20,8 @@ class TicTacToeGameLogic:
 
     @staticmethod
     def make_move(state: TicTacToeState, move: TicTacToeMove) -> TicTacToeState:
+        if state.is_terminal():
+            raise InvalidMoveError("Game is over")
         if move.player_id != state.current_turn():
             raise InvalidMoveError("Not player's turn")
         if move.cell_index in state.selected_cells():
