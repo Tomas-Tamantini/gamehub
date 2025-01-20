@@ -1,6 +1,7 @@
 from typing import Awaitable, Callable
 
 import pytest
+from pydantic import BaseModel
 
 from gamehub.core.event_bus import EventBus
 from gamehub.core.game_room import GameRoom
@@ -22,7 +23,7 @@ def messages_spy(event_bus):
 
 
 @pytest.fixture
-def room(event_bus):
+def rps_room(event_bus):
     return GameRoom(
         room_id=0,
         game_logic=RPSGameLogic(),
@@ -32,17 +33,52 @@ def room(event_bus):
 
 
 @pytest.fixture
-def output_messages(messages_spy, room):
-    async def _output_messages(action: Callable[[GameRoom], Awaitable[None]]):
-        await action(room)
-        return messages_spy
+def automated_transition_room(event_bus):
+    # TODO: Refactor
+    class _MockState(BaseModel):
+        status: str
 
-    return _output_messages
+        def private_views(self):
+            yield from []
+
+        def shared_view(self):
+            return self
+
+        def is_terminal(self):
+            return False
+
+    class _MockLogic:
+        @property
+        def num_players(self):
+            return 2
+
+        def initial_state(self, *_, **__):
+            return _MockState(status="START")
+
+        def make_move(self, state, *_, **__):
+            return _MockState(status="MOVE")
+
+        def next_automated_state(self, state, *_, **__):
+            if state.status == "START":
+                return _MockState(status="AUTO_START_A")
+            if state.status == "AUTO_START_A":
+                return _MockState(status="AUTO_START_B")
+            if state.status == "MOVE":
+                return _MockState(status="AUTO_MOVE_A")
+            if state.status == "AUTO_MOVE_A":
+                return _MockState(status="AUTO_MOVE_B")
+
+    return GameRoom(
+        room_id=0,
+        game_logic=_MockLogic(),
+        move_parser=lambda _: {"a": 1},
+        event_bus=event_bus,
+    )
 
 
 @pytest.mark.asyncio
-async def test_player_can_join_empty_room(room, messages_spy):
-    await room.join("Alice")
+async def test_player_can_join_empty_room(rps_room, messages_spy):
+    await rps_room.join("Alice")
     expected = [
         ExpectedBroadcast(
             ["Alice"],
@@ -54,9 +90,9 @@ async def test_player_can_join_empty_room(room, messages_spy):
 
 
 @pytest.mark.asyncio
-async def test_players_get_informed_when_new_one_joins(room, messages_spy):
-    await room.join("Alice")
-    await room.join("Bob")
+async def test_players_get_informed_when_new_one_joins(rps_room, messages_spy):
+    await rps_room.join("Alice")
+    await rps_room.join("Bob")
     expected = [
         ExpectedBroadcast(
             ["Alice", "Bob"],
@@ -68,10 +104,10 @@ async def test_players_get_informed_when_new_one_joins(room, messages_spy):
 
 
 @pytest.mark.asyncio
-async def test_player_cannot_join_full_room(room, messages_spy):
-    await room.join("Alice")
-    await room.join("Bob")
-    await room.join("Charlie")
+async def test_player_cannot_join_full_room(rps_room, messages_spy):
+    await rps_room.join("Alice")
+    await rps_room.join("Bob")
+    await rps_room.join("Charlie")
 
     assert messages_spy[-1].player_id == "Charlie"
     assert messages_spy[-1].message.message_type == MessageType.ERROR
@@ -79,9 +115,9 @@ async def test_player_cannot_join_full_room(room, messages_spy):
 
 
 @pytest.mark.asyncio
-async def test_player_cannot_join_room_twice(room, messages_spy):
-    await room.join("Alice")
-    await room.join("Alice")
+async def test_player_cannot_join_room_twice(rps_room, messages_spy):
+    await rps_room.join("Alice")
+    await rps_room.join("Alice")
 
     assert messages_spy[-1].player_id == "Alice"
     assert messages_spy[-1].message.message_type == MessageType.ERROR
@@ -89,9 +125,9 @@ async def test_player_cannot_join_room_twice(room, messages_spy):
 
 
 @pytest.mark.asyncio
-async def test_player_cannot_make_move_before_game_start(room, messages_spy):
-    await room.join("Alice")
-    await room.make_move("Alice", {"selection": "ROCK"})
+async def test_player_cannot_make_move_before_game_start(rps_room, messages_spy):
+    await rps_room.join("Alice")
+    await rps_room.make_move("Alice", {"selection": "ROCK"})
 
     assert messages_spy[-1].player_id == "Alice"
     assert messages_spy[-1].message.message_type == MessageType.ERROR
@@ -99,9 +135,9 @@ async def test_player_cannot_make_move_before_game_start(room, messages_spy):
 
 
 @pytest.mark.asyncio
-async def test_game_starts_when_room_is_full(room, messages_spy):
-    await room.join("Alice")
-    await room.join("Bob")
+async def test_game_starts_when_room_is_full(rps_room, messages_spy):
+    await rps_room.join("Alice")
+    await rps_room.join("Bob")
 
     expected = [
         ExpectedBroadcast(
@@ -123,11 +159,11 @@ async def test_game_starts_when_room_is_full(room, messages_spy):
 
 @pytest.mark.asyncio
 async def test_players_get_informed_of_new_game_state_after_making_move(
-    room, messages_spy
+    rps_room, messages_spy
 ):
-    await room.join("Alice")
-    await room.join("Bob")
-    await room.make_move("Alice", {"selection": "ROCK"})
+    await rps_room.join("Alice")
+    await rps_room.join("Bob")
+    await rps_room.make_move("Alice", {"selection": "ROCK"})
 
     expected = [
         ExpectedBroadcast(
@@ -156,10 +192,10 @@ async def test_players_get_informed_of_new_game_state_after_making_move(
 
 
 @pytest.mark.asyncio
-async def test_player_gets_informed_of_parse_move_error(room, messages_spy):
-    await room.join("Alice")
-    await room.join("Bob")
-    await room.make_move("Alice", {"selection": "bad_value"})
+async def test_player_gets_informed_of_parse_move_error(rps_room, messages_spy):
+    await rps_room.join("Alice")
+    await rps_room.join("Bob")
+    await rps_room.make_move("Alice", {"selection": "bad_value"})
 
     assert messages_spy[-1].player_id == "Alice"
     assert messages_spy[-1].message.message_type == MessageType.ERROR
@@ -167,11 +203,11 @@ async def test_player_gets_informed_of_parse_move_error(room, messages_spy):
 
 
 @pytest.mark.asyncio
-async def test_player_gets_informed_of_invalid_move_error(room, messages_spy):
-    await room.join("Alice")
-    await room.join("Bob")
-    await room.make_move("Alice", {"selection": "ROCK"})
-    await room.make_move("Alice", {"selection": "PAPER"})
+async def test_player_gets_informed_of_invalid_move_error(rps_room, messages_spy):
+    await rps_room.join("Alice")
+    await rps_room.join("Bob")
+    await rps_room.make_move("Alice", {"selection": "ROCK"})
+    await rps_room.make_move("Alice", {"selection": "PAPER"})
 
     assert messages_spy[-1].player_id == "Alice"
     assert messages_spy[-1].message.message_type == MessageType.ERROR
@@ -179,10 +215,10 @@ async def test_player_gets_informed_of_invalid_move_error(room, messages_spy):
 
 
 @pytest.mark.asyncio
-async def test_player_not_in_game_room_cannot_make_move(room, messages_spy):
-    await room.join("Alice")
-    await room.join("Bob")
-    await room.make_move("Charlie", {"selection": "ROCK"})
+async def test_player_not_in_game_room_cannot_make_move(rps_room, messages_spy):
+    await rps_room.join("Alice")
+    await rps_room.join("Bob")
+    await rps_room.make_move("Charlie", {"selection": "ROCK"})
 
     assert messages_spy[-1].player_id == "Charlie"
     assert messages_spy[-1].message.message_type == MessageType.ERROR
@@ -191,13 +227,13 @@ async def test_player_not_in_game_room_cannot_make_move(room, messages_spy):
 
 @pytest.mark.asyncio
 async def test_game_room_resets_after_game_over_and_new_players_can_join(
-    room, messages_spy
+    rps_room, messages_spy
 ):
-    await room.join("Alice")
-    await room.join("Bob")
-    await room.make_move("Alice", {"selection": "ROCK"})
-    await room.make_move("Bob", {"selection": "PAPER"})
-    await room.join("Charlie")
+    await rps_room.join("Alice")
+    await rps_room.join("Bob")
+    await rps_room.make_move("Alice", {"selection": "ROCK"})
+    await rps_room.make_move("Bob", {"selection": "PAPER"})
+    await rps_room.join("Charlie")
 
     expected = [
         ExpectedBroadcast(
@@ -209,5 +245,31 @@ async def test_game_room_resets_after_game_over_and_new_players_can_join(
     check_messages(messages_spy[-1:], expected)
 
 
-def test_room_has_associated_game_type(room):
-    assert room.game_type == "rock_paper_scissors"
+def test_room_has_associated_game_type(rps_room):
+    assert rps_room.game_type == "rock_paper_scissors"
+
+
+@pytest.mark.asyncio
+async def test_players_get_informed_of_new_game_state_after_automatic_transition(
+    automated_transition_room, messages_spy
+):
+    await automated_transition_room.join("Alice")
+    await automated_transition_room.join("Bob")
+    await automated_transition_room.make_move("Alice", {})
+
+    expected = [
+        ExpectedBroadcast(
+            ["Alice", "Bob"],
+            MessageType.GAME_STATE,
+            {"room_id": 0, "shared_view": {"status": status}},
+        )
+        for status in (
+            "START",
+            "AUTO_START_A",
+            "AUTO_START_B",
+            "MOVE",
+            "AUTO_MOVE_A",
+            "AUTO_MOVE_B",
+        )
+    ]
+    check_messages(messages_spy[3:], expected)

@@ -21,6 +21,10 @@ class RPSGameLogic:
         )
 
     @staticmethod
+    def next_automated_state(state: RPSGameState):
+        return None
+
+    @staticmethod
     def make_move(state: RPSGameState, move: RPSMove) -> RPSGameState:
         new_players = []
         for player in state.players:

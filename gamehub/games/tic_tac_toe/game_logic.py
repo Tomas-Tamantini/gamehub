@@ -23,6 +23,10 @@ class TicTacToeGameLogic:
         )
 
     @staticmethod
+    def next_automated_state(state: TicTacToeState):
+        return None
+
+    @staticmethod
     def make_move(state: TicTacToeState, move: TicTacToeMove) -> TicTacToeState:
         if state.is_terminal():
             raise InvalidMoveError("Game is over")

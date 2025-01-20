@@ -45,6 +45,8 @@ class GameRoom(Generic[T]):
         await self._broadcast_shared_view()
         if state.is_terminal():
             self._reset()
+        elif new_state := self._logic.next_automated_state(state):
+            await self._set_state(new_state)
 
     @property
     def room_id(self) -> int:
