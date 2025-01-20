@@ -14,7 +14,10 @@ class TicTacToeState:
 
     def shared_view(self) -> TicTacToeView:
         return TicTacToeView(
-            players=self._players, is_over=self.is_terminal(), winner=self._winner()
+            players=self._players,
+            is_over=self.is_terminal(),
+            winner=self._winner(),
+            current_player=self.current_turn(),
         )
 
     @staticmethod

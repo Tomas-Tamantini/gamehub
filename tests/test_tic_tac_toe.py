@@ -46,7 +46,8 @@ def test_tic_tac_toe_starts_with_empty_board(initial_state):
         players=(
             TicTacToePlayer(player_id="Alice", selections=set()),
             TicTacToePlayer(player_id="Bob", selections=set()),
-        )
+        ),
+        current_player="Alice",
     )
 
 
@@ -63,7 +64,8 @@ def test_tic_tac_toe_allows_player_to_select_empty_cell(after_first_move):
         players=(
             TicTacToePlayer(player_id="Alice", selections={0}),
             TicTacToePlayer(player_id="Bob", selections=set()),
-        )
+        ),
+        current_player="Bob",
     )
 
 
