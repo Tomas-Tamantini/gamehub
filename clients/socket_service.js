@@ -24,7 +24,7 @@ class SocketService {
     joinGame(player_id, room_id) {
         this.send({
             player_id,
-            request_type: "JOIN_GAME",
+            request_type: "JOIN_GAME_BY_ID",
             payload: { room_id }
         });
     }

@@ -35,12 +35,12 @@ async def test_integration():
     requests = (
         Request(
             player_id="Alice",
-            request_type=RequestType.JOIN_GAME,
+            request_type=RequestType.JOIN_GAME_BY_ID,
             payload={"room_id": 1},
         ),
         Request(
             player_id="Bob",
-            request_type=RequestType.JOIN_GAME,
+            request_type=RequestType.JOIN_GAME_BY_ID,
             payload={"room_id": 1},
         ),
         Request(

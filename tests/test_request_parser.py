@@ -1,0 +1,63 @@
+import pytest
+
+from gamehub.core.event_bus import EventBus
+from gamehub.core.events.join_game import JoinGameById
+from gamehub.core.events.make_move import MakeMove
+from gamehub.core.message import MessageEvent, MessageType
+from gamehub.core.request import Request, RequestType
+from gamehub.core.request_parser import RequestParser
+
+
+@pytest.fixture
+def output_events():
+    async def _output_events(request: Request):
+        event_bus = EventBus()
+        parser = RequestParser(event_bus)
+        events = []
+        event_bus.subscribe(MessageEvent, events.append)
+        event_bus.subscribe(JoinGameById, events.append)
+        event_bus.subscribe(MakeMove, events.append)
+        await parser.parse_request(request)
+        return events
+
+    return _output_events
+
+
+@pytest.mark.asyncio
+async def test_request_parser_returns_error_message_if_bad_request(output_events):
+    request = Request(
+        player_id="Ana",
+        request_type=RequestType.JOIN_GAME_BY_ID,
+        payload={"bad_key": 1},
+    )
+    output_events = await output_events(request)
+    assert len(output_events) == 1
+    assert output_events[0].player_id == "Ana"
+    assert output_events[0].message.message_type == MessageType.ERROR
+    assert "bad_key" in output_events[0].message.payload["error"]
+
+
+@pytest.mark.asyncio
+async def test_request_parser_raises_join_game_by_id_event(output_events):
+    request = Request(
+        player_id="Ana",
+        request_type=RequestType.JOIN_GAME_BY_ID,
+        payload={"room_id": 123},
+    )
+    output_events = await output_events(request)
+    assert len(output_events) == 1
+    assert output_events[0] == JoinGameById(player_id="Ana", room_id=123)
+
+
+@pytest.mark.asyncio
+async def test_request_parser_raises_make_move_event(output_events):
+    request = Request(
+        player_id="Ana",
+        request_type=RequestType.MAKE_MOVE,
+        payload={"room_id": 123, "move": {"mock": "move"}},
+    )
+    output_events = await output_events(request)
+    assert len(output_events) == 1
+    assert output_events[0] == MakeMove(
+        player_id="Ana", room_id=123, move={"mock": "move"}
+    )

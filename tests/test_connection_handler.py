@@ -1,3 +1,4 @@
+import json
 from typing import Optional
 from unittest.mock import AsyncMock, Mock
 
@@ -11,7 +12,12 @@ from gamehub.socket_server import ClientManager, ConnectionHandler
 
 @pytest.fixture
 def valid_request():
-    return lambda player_id: f'{{"request_type":"JOIN_GAME","player_id":"{player_id}"}}'
+    return lambda player_id: json.dumps(
+        {
+            "request_type": "JOIN_GAME_BY_ID",
+            "player_id": player_id,
+        }
+    )
 
 
 @pytest.fixture
@@ -83,7 +89,7 @@ async def test_handler_publishes_request_in_event_bus(connection_handler, client
     event_bus.subscribe(Request, requests.append)
     await connection_handler(event_bus=event_bus).handle_client(client)
     assert len(requests) == 1
-    assert requests[0].request_type == RequestType.JOIN_GAME
+    assert requests[0].request_type == RequestType.JOIN_GAME_BY_ID
     assert requests[0].player_id == "test_id"
 
 
