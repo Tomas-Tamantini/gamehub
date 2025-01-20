@@ -24,33 +24,16 @@ def spy_room():
     return _spy_room
 
 
-async def make_join_game_by_id_request(
-    request: JoinGameById, room: GameRoom, messages_spy: list[MessageEvent] = None
-):
-    event_bus = EventBus()
-    room_manager = RoomManager([room], event_bus)
-    if messages_spy is not None:
-        event_bus.subscribe(MessageEvent, messages_spy.append)
-    await room_manager.join_game_by_id(request)
-
-
-async def make_move_request(
-    request: MakeMove, room: GameRoom, messages_spy: list[MessageEvent] = None
-):
-    event_bus = EventBus()
-    room_manager = RoomManager([room], event_bus)
-    if messages_spy is not None:
-        event_bus.subscribe(MessageEvent, messages_spy.append)
-    await room_manager.make_move(request)
-
-
 @pytest.mark.asyncio
 async def test_room_manager_returns_error_message_if_bad_room_id_when_joining_game(
     spy_room,
 ):
     request = JoinGameById(player_id="Ana", room_id=2)
     messages_spy = []
-    await make_join_game_by_id_request(request, spy_room(), messages_spy)
+    event_bus = EventBus()
+    room_manager = RoomManager([spy_room()], event_bus)
+    event_bus.subscribe(MessageEvent, messages_spy.append)
+    await room_manager.join_game_by_id(request)
     assert len(messages_spy) == 1
     assert messages_spy[0].player_id == "Ana"
     assert messages_spy[0].message.message_type == MessageType.ERROR
@@ -63,7 +46,10 @@ async def test_room_manager_returns_error_message_if_bad_room_id_when_making_mov
 ):
     request = MakeMove(player_id="Ana", room_id=2, move={})
     messages_spy = []
-    await make_move_request(request, spy_room(), messages_spy)
+    event_bus = EventBus()
+    room_manager = RoomManager([spy_room()], event_bus)
+    event_bus.subscribe(MessageEvent, messages_spy.append)
+    await room_manager.make_move(request)
     assert len(messages_spy) == 1
     assert messages_spy[0].player_id == "Ana"
     assert messages_spy[0].message.message_type == MessageType.ERROR
@@ -71,10 +57,27 @@ async def test_room_manager_returns_error_message_if_bad_room_id_when_making_mov
 
 
 @pytest.mark.asyncio
+async def test_room_manager_returns_error_message_if_bad_game_type_when_joining_game(
+    spy_room,
+):
+    request = JoinGameByType(player_id="Ana", game_type="tic-tac-toe")
+    messages_spy = []
+    event_bus = EventBus()
+    room_manager = RoomManager([spy_room(is_full=True)], event_bus)
+    event_bus.subscribe(MessageEvent, messages_spy.append)
+    await room_manager.join_game_by_type(request)
+    assert len(messages_spy) == 1
+    assert messages_spy[0].player_id == "Ana"
+    assert messages_spy[0].message.message_type == MessageType.ERROR
+    assert "No available" in messages_spy[0].message.payload["error"]
+
+
+@pytest.mark.asyncio
 async def test_room_manager_forwards_join_game_request_to_proper_room(spy_room):
     request = JoinGameById(player_id="Ana", room_id=1)
     room = spy_room()
-    await make_join_game_by_id_request(request, room)
+    room_manager = RoomManager([room], EventBus())
+    await room_manager.join_game_by_id(request)
     room.join.assert_called_once_with("Ana")
 
 
@@ -83,7 +86,8 @@ async def test_room_manager_forwards_make_move_request_to_proper_room(spy_room):
     mock_move = {"testkey": "testvalue"}
     request = MakeMove(player_id="Ana", room_id=1, move=mock_move)
     room = spy_room()
-    await make_move_request(request, room)
+    room_manager = RoomManager([room], EventBus())
+    await room_manager.make_move(request)
     room.make_move.assert_called_once_with("Ana", mock_move)
 
 
