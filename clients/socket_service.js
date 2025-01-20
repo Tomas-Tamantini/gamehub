@@ -20,6 +20,22 @@ class SocketService {
     subscribe(callback) {
         this.subscribers.push(callback);
     }
+
+    joinGame(player_id, room_id) {
+        this.send({
+            player_id,
+            request_type: "JOIN_GAME",
+            payload: { room_id }
+        });
+    }
+
+    makeMove(player_id, room_id, move) {
+        this.send({
+            player_id,
+            request_type: "MAKE_MOVE",
+            payload: { room_id, move }
+        });
+    }
 }
 
 

@@ -1,19 +1,13 @@
 import player_id from "./user_service.js";
 import socketService from "../socket_service.js";
 
+const room_id = 1;
 
 export function joinGame() {
-    socketService.send({
-        player_id: player_id(),
-        request_type: "JOIN_GAME",
-        payload: { room_id: 1 }
-    });
+    socketService.joinGame(player_id(), room_id);
 }
 
-export function makeMove(move) {
-    socketService.send({
-        player_id: player_id(),
-        request_type: "MAKE_MOVE",
-        payload: { room_id: 1, move: { selection: move } }
-    });
+export function selectMove(selection) {
+    const move = { selection };
+    socketService.makeMove(player_id(), room_id, move);
 }
