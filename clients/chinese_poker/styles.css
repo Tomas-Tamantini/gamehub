@@ -54,3 +54,9 @@ body {
 .join-button:hover {
     background-color: #0056b3;
 }
+
+.join-button:disabled {
+    background-color: #ccc;
+    color: #fff;
+    cursor: not-allowed;
+}

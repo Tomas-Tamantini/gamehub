@@ -1,9 +1,8 @@
-import { playerIdKey } from "./auth_service.js";
 import updateDom from "./update_dom.js";
 
 function initialState() {
     return {
-        playerId: localStorage.getItem(playerIdKey)
+        playerId: null
     }
 }
 
