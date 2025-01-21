@@ -3,7 +3,7 @@ from typing import Optional
 from gamehub.games.chinese_poker.configuration import ChinesePokerConfiguration
 from gamehub.games.chinese_poker.game_state import ChinesePokerState
 from gamehub.games.chinese_poker.move import ChinesePokerMove
-from gamehub.games.chinese_poker.player import ChinesePokerPlayer
+from gamehub.games.chinese_poker.player import player_initial_state
 from gamehub.games.chinese_poker.status import ChinesePokerStatus
 
 
@@ -23,9 +23,7 @@ class ChinesePokerGameLogic:
     def initial_state(*player_ids: str) -> ChinesePokerState:
         return ChinesePokerState(
             status=ChinesePokerStatus.START_GAME,
-            players=tuple(
-                ChinesePokerPlayer(player_id, num_points=0) for player_id in player_ids
-            ),
+            players=tuple(player_initial_state(player_id) for player_id in player_ids),
         )
 
     def make_move(
