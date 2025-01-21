@@ -13,6 +13,15 @@ def test_start_match_transitions_to_deal_cards(game_logic, start_match):
     assert deal_cards.shared_view().status == ChinesePokerStatus.DEAL_CARDS
 
 
+def test_each_player_receives_dealt_cards(deal_cards):
+    assert all(len(player.cards) == 13 for player in deal_cards.players)
+
+
+def test_players_receive_cards_without_repetition(deal_cards):
+    cards = {card for player in deal_cards.players for card in player.cards}
+    assert len(cards) == 52
+
+
 @pytest.mark.parametrize("state_before", ["start_game", "start_match"])
 def test_transition_preserves_players_order(request, game_logic, state_before):
     state_before = request.getfixturevalue(state_before)

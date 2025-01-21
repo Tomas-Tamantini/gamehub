@@ -1,19 +1,27 @@
 from dataclasses import dataclass
 
 from gamehub.games.chinese_poker.views import ChinesePokerPlayerSharedView
+from gamehub.games.playing_cards import PlayingCard
 
 
 @dataclass(frozen=True)
 class ChinesePokerPlayer:
     player_id: str
     num_points: int
-    cards: tuple
+    cards: tuple[PlayingCard, ...]
 
     def shared_view(self) -> ChinesePokerPlayerSharedView:
         return ChinesePokerPlayerSharedView(
             player_id=self.player_id,
             num_points=self.num_points,
             num_cards=len(self.cards),
+        )
+
+    def deal_cards(self, cards: tuple[PlayingCard, ...]) -> "ChinesePokerPlayer":
+        return ChinesePokerPlayer(
+            player_id=self.player_id,
+            num_points=self.num_points,
+            cards=cards,
         )
 
 

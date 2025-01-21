@@ -5,6 +5,7 @@ from gamehub.games.chinese_poker.game_state import ChinesePokerState
 from gamehub.games.chinese_poker.move import ChinesePokerMove
 from gamehub.games.chinese_poker.player import player_initial_state
 from gamehub.games.chinese_poker.status import ChinesePokerStatus
+from gamehub.games.playing_cards import deal_hands
 
 
 class ChinesePokerGameLogic:
@@ -40,7 +41,11 @@ class ChinesePokerGameLogic:
                 players=state.players,
             )
         elif state.status == ChinesePokerStatus.START_MATCH:
+            hands = deal_hands(
+                num_hands=self.num_players,
+                hand_size=self._configuration.cards_per_player,
+            )
             return ChinesePokerState(
                 status=ChinesePokerStatus.DEAL_CARDS,
-                players=state.players,
+                players=[p.deal_cards(hand) for p, hand in zip(state.players, hands)],
             )
