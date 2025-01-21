@@ -60,7 +60,7 @@ def automated_transition_room(event_bus):
 
         def next_automated_state(self, state, *_, **__):
             if "_" not in state.status:
-                return _MockState(status=state.status + "_A")
+                return _MockState(status="AUTO_" + state.status + "_A")
             elif state.status.endswith("_A"):
                 return _MockState(status=state.status.replace("_A", "_B"))
 
