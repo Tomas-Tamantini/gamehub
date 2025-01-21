@@ -1,6 +1,7 @@
 from dataclasses import dataclass
 
 from gamehub.games.chinese_poker.player import ChinesePokerPlayer
+from gamehub.games.chinese_poker.status import ChinesePokerStatus
 from gamehub.games.chinese_poker.views import (
     ChinesePokerSharedView,
 )
@@ -12,5 +13,6 @@ class ChinesePokerState:
 
     def shared_view(self) -> ChinesePokerSharedView:
         return ChinesePokerSharedView(
-            players=map(lambda player: player.shared_view(), self.players)
+            status=ChinesePokerStatus.START_GAME,
+            players=map(lambda player: player.shared_view(), self.players),
         )
