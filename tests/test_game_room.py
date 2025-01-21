@@ -59,14 +59,10 @@ def automated_transition_room(event_bus):
             return _MockState(status="MOVE")
 
         def next_automated_state(self, state, *_, **__):
-            if state.status == "START":
-                return _MockState(status="AUTO_START_A")
-            if state.status == "AUTO_START_A":
-                return _MockState(status="AUTO_START_B")
-            if state.status == "MOVE":
-                return _MockState(status="AUTO_MOVE_A")
-            if state.status == "AUTO_MOVE_A":
-                return _MockState(status="AUTO_MOVE_B")
+            if "_" not in state.status:
+                return _MockState(status=state.status + "_A")
+            elif state.status.endswith("_A"):
+                return _MockState(status=state.status.replace("_A", "_B"))
 
     return GameRoom(
         room_id=0,
