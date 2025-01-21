@@ -1,5 +1,3 @@
-from typing import Awaitable, Callable
-
 import pytest
 from pydantic import BaseModel
 
@@ -33,9 +31,8 @@ def rps_room(event_bus):
 
 
 @pytest.fixture
-def automated_transition_room(event_bus):
-    # TODO: Refactor
-    class _MockState(BaseModel):
+def automated_transition_logic():
+    class MockState(BaseModel):
         status: str
 
         def private_views(self):
@@ -47,26 +44,31 @@ def automated_transition_room(event_bus):
         def is_terminal(self):
             return False
 
-    class _MockLogic:
+    class MockLogic:
         @property
         def num_players(self):
             return 2
 
         def initial_state(self, *_, **__):
-            return _MockState(status="START")
+            return MockState(status="START")
 
         def make_move(self, state, *_, **__):
-            return _MockState(status="MOVE")
+            return MockState(status="MOVE")
 
         def next_automated_state(self, state, *_, **__):
             if "_" not in state.status:
-                return _MockState(status="AUTO_" + state.status + "_A")
+                return MockState(status="AUTO_" + state.status + "_A")
             elif state.status.endswith("_A"):
-                return _MockState(status=state.status.replace("_A", "_B"))
+                return MockState(status=state.status.replace("_A", "_B"))
 
+    return MockLogic()
+
+
+@pytest.fixture
+def automated_transition_room(event_bus, automated_transition_logic):
     return GameRoom(
         room_id=0,
-        game_logic=_MockLogic(),
+        game_logic=automated_transition_logic,
         move_parser=lambda _: {"a": 1},
         event_bus=event_bus,
     )
