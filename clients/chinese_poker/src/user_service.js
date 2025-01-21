@@ -28,7 +28,7 @@ class UserService {
     login(playerId) {
         const trimmed = playerId?.trim();
         if (trimmed) {
-            localStorage.setItem('ghPlayerId', playerId);
+            localStorage.setItem('ghPlayerId', trimmed);
             this.updateDom();
         }
     }
