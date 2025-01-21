@@ -19,5 +19,10 @@ def game_logic(default_config):
 
 
 @pytest.fixture
-def initial_state(game_logic, player_ids):
+def start_game(game_logic, player_ids):
     return game_logic.initial_state(*player_ids)
+
+
+@pytest.fixture
+def start_match(game_logic, start_game):
+    return game_logic.next_automated_state(start_game)

@@ -4,6 +4,7 @@ from gamehub.games.chinese_poker.configuration import ChinesePokerConfiguration
 from gamehub.games.chinese_poker.game_state import ChinesePokerState
 from gamehub.games.chinese_poker.move import ChinesePokerMove
 from gamehub.games.chinese_poker.player import ChinesePokerPlayer
+from gamehub.games.chinese_poker.status import ChinesePokerStatus
 
 
 class ChinesePokerGameLogic:
@@ -21,9 +22,10 @@ class ChinesePokerGameLogic:
     @staticmethod
     def initial_state(*player_ids: str) -> ChinesePokerState:
         return ChinesePokerState(
+            status=ChinesePokerStatus.START_GAME,
             players=tuple(
                 ChinesePokerPlayer(player_id, num_points=0) for player_id in player_ids
-            )
+            ),
         )
 
     def make_move(
@@ -34,4 +36,13 @@ class ChinesePokerGameLogic:
     def next_automated_state(
         self, state: ChinesePokerState
     ) -> Optional[ChinesePokerState]:
-        raise NotImplementedError()
+        if state.status == ChinesePokerStatus.START_GAME:
+            return ChinesePokerState(
+                status=ChinesePokerStatus.START_MATCH,
+                players=state.players,
+            )
+        elif state.status == ChinesePokerStatus.START_MATCH:
+            return ChinesePokerState(
+                status=ChinesePokerStatus.DEAL_CARDS,
+                players=state.players,
+            )

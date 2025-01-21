@@ -9,10 +9,11 @@ from gamehub.games.chinese_poker.views import (
 
 @dataclass(frozen=True)
 class ChinesePokerState:
+    status: ChinesePokerStatus
     players: tuple[ChinesePokerPlayer, ...]
 
     def shared_view(self) -> ChinesePokerSharedView:
         return ChinesePokerSharedView(
-            status=ChinesePokerStatus.START_GAME,
+            status=self.status,
             players=map(lambda player: player.shared_view(), self.players),
         )
