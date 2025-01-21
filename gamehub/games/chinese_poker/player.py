@@ -10,5 +10,5 @@ class ChinesePokerPlayer:
 
     def shared_view(self) -> ChinesePokerPlayerSharedView:
         return ChinesePokerPlayerSharedView(
-            player_id=self.player_id, num_points=self.num_points
+            player_id=self.player_id, num_points=self.num_points, num_cards=0
         )
