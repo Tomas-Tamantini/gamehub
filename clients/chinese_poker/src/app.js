@@ -1,7 +1,7 @@
+import socket_service from "../../socket_service.js";
 import { login, logout } from "./auth_service.js";
-import { authBtn } from "./dom.js";
+import { authBtn, joinGameBtn } from "./dom.js";
 import state_store from "./state_store.js";
-
 
 authBtn.addEventListener('click', () => {
     if (state_store.state.playerId) {
@@ -12,4 +12,8 @@ authBtn.addEventListener('click', () => {
         if (playerId)
             state_store.action(state => login(state, playerId));
     }
+});
+
+joinGameBtn.addEventListener('click', () => {
+    socket_service.joinGame(state_store.state.playerId, 'chinese_poker');
 });

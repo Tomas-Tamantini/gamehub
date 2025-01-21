@@ -41,3 +41,16 @@ body {
 .auth-button:hover {
     background-color: #0056b3;
 }
+
+.join-button {
+    background-color: #007bff;
+    color: #fff;
+    border: none;
+    border-radius: 5px;
+    padding: 5px 10px;
+    cursor: pointer;
+}
+
+.join-button:hover {
+    background-color: #0056b3;
+}
