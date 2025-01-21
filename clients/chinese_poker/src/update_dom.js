@@ -1,4 +1,4 @@
-import { authBtn, playerIdSpan, joinGameBtn } from "./dom.js";
+import { authBtn, playerIdSpan, joinGameBtn, statusArea } from "./dom.js";
 
 export default function updateDom(state) {
     if (state.playerId) {
@@ -10,5 +10,11 @@ export default function updateDom(state) {
         playerIdSpan.textContent = '';
         authBtn.textContent = 'Login';
         joinGameBtn.disabled = true;
+    }
+    if (state.statusMsg) {
+        statusArea.textContent = state.statusMsg;
+    }
+    else {
+        statusArea.textContent = '';
     }
 }

@@ -29,7 +29,16 @@ joinGameBtn.addEventListener('click', () => {
 
 socket_service.subscribe(msg => {
     if (msg.message_type == "ERROR") {
-        statusArea.textContent = msg.payload.error;
+        state_store.action(state => {
+            return { ...state, statusMsg: msg.payload.error }
+        })
+    }
+    else if (msg.message_type == "PLAYER_JOINED") {
+        const statusMsg = `Players in room: ${msg.payload.player_ids.join(', ')}`;
+        const roomId = msg.payload.room_id;
+        state_store.action(state => {
+            return { ...state, statusMsg, roomId }
+        })
     }
     else {
         console.log(msg)
