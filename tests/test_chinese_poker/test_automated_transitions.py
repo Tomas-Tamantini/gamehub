@@ -61,3 +61,10 @@ def test_transition_preserves_players_cards(request, game_logic, state_before):
         before.cards == after.cards
         for before, after in zip(state_before.players, next_state.players)
     )
+
+
+@pytest.mark.parametrize("state_before", ["start_game", "start_match"])
+def test_transition_resets_current_turn(request, game_logic, state_before):
+    state_before = request.getfixturevalue(state_before)
+    next_state = game_logic.next_automated_state(state_before)
+    assert next_state.current_player_id() is None
