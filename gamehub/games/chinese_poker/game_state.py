@@ -3,6 +3,7 @@ from dataclasses import dataclass
 from gamehub.games.chinese_poker.player import ChinesePokerPlayer
 from gamehub.games.chinese_poker.status import ChinesePokerStatus
 from gamehub.games.chinese_poker.views import (
+    ChinesePokerPrivateView,
     ChinesePokerSharedView,
 )
 
@@ -19,8 +20,11 @@ class ChinesePokerState:
         )
 
     def private_views(self):
-        # TODO: Implement
-        yield from []
+        if self.status == ChinesePokerStatus.DEAL_CARDS:
+            for player in self.players:
+                yield player.player_id, ChinesePokerPrivateView(
+                    status=self.status, cards=player.cards
+                )
 
     def is_terminal(self) -> bool:
         # TODO: Implement
