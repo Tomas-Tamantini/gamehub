@@ -69,6 +69,14 @@ socket_service.subscribe(msg => {
                     return { ...state, statusMsg }
                 })
             }
+            else if (sharedView.status == "AWAIT_PLAYER_ACTION") {
+                state_store.action(state => {
+                    const statusMsg = state.currentPlayerId == state.playerId ?
+                        "Make your move" :
+                        `Awaiting ${sharedView.current_player_id}'s move`;
+                    return { ...state, statusMsg }
+                })
+            }
         }
         const private_view = msg.payload.private_view;
         if (private_view) {

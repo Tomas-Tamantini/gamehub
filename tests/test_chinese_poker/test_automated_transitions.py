@@ -23,6 +23,11 @@ def test_start_round_transitions_to_start_turn(game_logic, start_round):
     assert start_turn.shared_view().status == ChinesePokerStatus.START_TURN
 
 
+def test_start_turn_transitions_to_await_player_action(game_logic, start_turn):
+    await_action = game_logic.next_automated_state(start_turn)
+    assert await_action.shared_view().status == ChinesePokerStatus.AWAIT_PLAYER_ACTION
+
+
 def test_each_player_receives_dealt_cards(game_logic, start_match):
     deal_cards = game_logic.next_automated_state(start_match)
     assert all(len(player.cards) == 13 for player in deal_cards.players)
@@ -39,7 +44,8 @@ def test_player_with_the_smallest_card_starts_first_round(start_round):
 
 
 @pytest.mark.parametrize(
-    "state_before", ["start_game", "start_match", "deal_cards", "start_round"]
+    "state_before",
+    ["start_game", "start_match", "deal_cards", "start_round", "start_turn"],
 )
 def test_transition_preserves_players_order(request, game_logic, state_before):
     state_before = request.getfixturevalue(state_before)
@@ -51,7 +57,8 @@ def test_transition_preserves_players_order(request, game_logic, state_before):
 
 
 @pytest.mark.parametrize(
-    "state_before", ["start_game", "start_match", "deal_cards", "start_round"]
+    "state_before",
+    ["start_game", "start_match", "deal_cards", "start_round", "start_turn"],
 )
 def test_transition_preserves_players_num_points(request, game_logic, state_before):
     state_before = request.getfixturevalue(state_before)
@@ -62,7 +69,9 @@ def test_transition_preserves_players_num_points(request, game_logic, state_befo
     )
 
 
-@pytest.mark.parametrize("state_before", ["start_game", "deal_cards", "start_round"])
+@pytest.mark.parametrize(
+    "state_before", ["start_game", "deal_cards", "start_round", "start_turn"]
+)
 def test_transition_preserves_players_cards(request, game_logic, state_before):
     state_before = request.getfixturevalue(state_before)
     next_state = game_logic.next_automated_state(state_before)
@@ -79,7 +88,7 @@ def test_transition_resets_current_turn(request, game_logic, state_before):
     assert next_state.current_player_id() is None
 
 
-@pytest.mark.parametrize("state_before", ["start_round"])
+@pytest.mark.parametrize("state_before", ["start_round", "start_turn"])
 def test_transition_preserves_current_turn(request, game_logic, state_before):
     state_before = request.getfixturevalue(state_before)
     next_state = game_logic.next_automated_state(state_before)
