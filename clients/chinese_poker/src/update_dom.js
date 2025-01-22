@@ -1,4 +1,4 @@
-import { authBtn, playerIdSpan, joinGameBtn, statusArea, playerNames, opponentCards } from "./dom.js";
+import { authBtn, playerIdSpan, joinGameBtn, statusArea, playerNames, opponentCards, myCardsContainer } from "./dom.js";
 
 export default function updateDom(state) {
     if (state.playerId) {
@@ -37,5 +37,31 @@ export default function updateDom(state) {
             opponentCard.textContent = '';
             opponentCard.style.display = 'none';
         });
+    }
+
+    if (state.myCards) {
+        myCardsContainer.innerHTML = '';
+        const suitSymbols = { 'd': '♦', 'c': '♣', 'h': '♥', 's': '♠' };
+        state.myCards.forEach((card, index) => {
+            const cardDiv = document.createElement('div');
+            cardDiv.classList.add('card');
+            cardDiv.classList.add('my-card');
+            if (card.suit === 'd' || card.suit === 'h') {
+                cardDiv.classList.add('red');
+            }
+            else {
+                cardDiv.classList.add('black');
+            }
+            cardDiv.dataset.index = index;
+            const cardText = document.createTextNode(`${card.rank}${suitSymbols[card.suit]}`);
+            cardDiv.appendChild(cardText);
+            cardDiv.addEventListener('click', () => {
+                cardDiv.classList.toggle('selected');
+            });
+            myCardsContainer.appendChild(cardDiv);
+        })
+    }
+    else {
+        myCardsContainer.innerHTML = '';
     }
 }

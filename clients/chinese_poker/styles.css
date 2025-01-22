@@ -97,7 +97,10 @@ body {
 .player {
     position: absolute;
     text-align: center;
-    width: 120px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 10px;
 }
 
 #player-offset-0 {
@@ -124,17 +127,51 @@ body {
     transform: translateY(-50%);
 }
 
+.my-cards {
+    display: inline-flex;
+    gap: 0px;
+    justify-content: center;
+}
+
 .card {
     width: 30px;
     height: 50px;
     border-radius: 5px;
-    display: flex;
-    justify-content: center;
-    align-items: center;
     font-weight: bold;
     border: 1px solid #000;
+    user-select: none;
 }
 
 .card.back {
+    display: flex;
+    justify-content: center;
+    align-items: center;
     background-color: blue;
+
+}
+
+.card.my-card {
+    display: flex;
+    align-items: flex-start;
+    position: relative;
+    background-color: #fff;
+    transition: transform 0.1s;
+    cursor: pointer;
+    margin-left: -10px;
+}
+
+.card:first-child {
+    margin-left: 0;
+}
+
+.card.selected {
+    transform: translateY(-8px);
+}
+
+.black {
+    color: black;
+}
+
+.red {
+    color: red;
 }

@@ -59,6 +59,12 @@ socket_service.subscribe(msg => {
                 })
             }
         }
+        const private_view = msg.payload.private_view;
+        if (private_view) {
+            state_store.action(state => {
+                return { ...state, myCards: private_view.cards }
+            })
+        }
         console.log(msg)
     }
 
