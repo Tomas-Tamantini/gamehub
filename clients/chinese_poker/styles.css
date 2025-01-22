@@ -93,3 +93,33 @@ body {
     justify-content: center;
     align-items: center;
 }
+
+.player {
+    position: absolute;
+    text-align: center;
+    width: 120px;
+}
+
+#player-offset-0 {
+    bottom: 5%;
+    left: 50%;
+    transform: translateX(-50%);
+}
+
+#player-offset-1 {
+    left: 10%;
+    top: 50%;
+    transform: translateY(-50%);
+}
+
+#player-offset-2 {
+    top: 10%;
+    left: 50%;
+    transform: translateX(-50%);
+}
+
+#player-offset-3 {
+    right: 10%;
+    top: 50%;
+    transform: translateY(-50%);
+}
