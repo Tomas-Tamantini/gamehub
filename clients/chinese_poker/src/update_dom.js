@@ -112,10 +112,10 @@ export default function updateDom(state) {
     }
 
     if (state.moveHistory) {
+        moveHistories.forEach(moveHistory => moveHistory.innerHTML = '');
         const suitSymbols = { 'd': '♦', 'c': '♣', 'h': '♥', 's': '♠' };
         const numPlayers = state.players.length;
         const lastMoves = state.moveHistory.slice(-numPlayers);
-        console.log(lastMoves);
         const myIdx = state.players.findIndex(player => player.player_id === state.playerId);
         lastMoves.forEach((move, i) => {
             const playerId = move.player_id;

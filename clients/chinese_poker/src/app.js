@@ -73,7 +73,7 @@ socket_service.subscribe(msg => {
             else if (sharedView.status == "START_TURN") {
                 state_store.action(state => {
                     const statusMsg = `Player ${sharedView.current_player_id}'s turn`;
-                    return { ...state, statusMsg }
+                    return { ...state, statusMsg, currentPlayerId: sharedView.current_player_id }
                 })
             }
             else if (sharedView.status == "AWAIT_PLAYER_ACTION") {
@@ -81,7 +81,7 @@ socket_service.subscribe(msg => {
                     const statusMsg = state.currentPlayerId == state.playerId ?
                         "Make your move" :
                         `Awaiting ${sharedView.current_player_id}'s move`;
-                    return { ...state, statusMsg }
+                    return { ...state, statusMsg, currentPlayerId: sharedView.current_player_id }
                 })
             }
             else if (sharedView.status == "END_TURN") {
