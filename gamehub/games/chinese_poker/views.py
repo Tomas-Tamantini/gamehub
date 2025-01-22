@@ -1,3 +1,5 @@
+from typing import Optional
+
 from pydantic import BaseModel
 
 from gamehub.games.chinese_poker.status import ChinesePokerStatus
@@ -13,6 +15,7 @@ class ChinesePokerPlayerSharedView(BaseModel):
 class ChinesePokerSharedView(BaseModel):
     status: ChinesePokerStatus
     players: tuple[ChinesePokerPlayerSharedView, ...]
+    current_player_id: Optional[str]
 
 
 class ChinesePokerPrivateView(BaseModel):

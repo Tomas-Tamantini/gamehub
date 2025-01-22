@@ -18,13 +18,19 @@ def test_deal_cards_transitions_to_start_round(game_logic, deal_cards):
     assert start_round.shared_view().status == ChinesePokerStatus.START_ROUND
 
 
-def test_each_player_receives_dealt_cards(deal_cards):
+def test_each_player_receives_dealt_cards(game_logic, start_match):
+    deal_cards = game_logic.next_automated_state(start_match)
     assert all(len(player.cards) == 13 for player in deal_cards.players)
 
 
-def test_players_receive_cards_without_repetition(deal_cards):
+def test_players_receive_cards_without_repetition(game_logic, start_match):
+    deal_cards = game_logic.next_automated_state(start_match)
     cards = {card for player in deal_cards.players for card in player.cards}
     assert len(cards) == 52
+
+
+def test_player_with_the_smallest_card_starts_first_round(start_round):
+    assert start_round.current_player_id() == "Diana"
 
 
 @pytest.mark.parametrize("state_before", ["start_game", "start_match", "deal_cards"])
