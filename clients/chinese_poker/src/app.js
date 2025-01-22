@@ -67,7 +67,7 @@ socket_service.subscribe(msg => {
             }
             else if (sharedView.status == "START_ROUND") {
                 state_store.action(state => {
-                    return { ...state, statusMsg: 'Starting new round', currentPlayerId: sharedView.current_player_id }
+                    return { ...state, statusMsg: 'Starting new round', currentPlayerId: sharedView.current_player_id, moveHistory: sharedView.move_history }
                 })
             }
             else if (sharedView.status == "START_TURN") {
@@ -88,6 +88,18 @@ socket_service.subscribe(msg => {
                 state_store.action(state => {
                     const statusMsg = `Player ${sharedView.current_player_id} ended their turn`;
                     return { ...state, players: sharedView.players, moveHistory: sharedView.move_history, statusMsg }
+                })
+            }
+            else if (sharedView.status == "END_ROUND") {
+                state_store.action(state => {
+                    const statusMsg = "Round ended";
+                    return { ...state, players: sharedView.players, moveHistory: sharedView.move_history, statusMsg, currentPlayerId: sharedView.current_player_id }
+                })
+            }
+            else if (sharedView.status == "END_MATCH") {
+                state_store.action(state => {
+                    const statusMsg = "Match ended";
+                    return { ...state, players: sharedView.players, moveHistory: sharedView.move_history, statusMsg, currentPlayerId: sharedView.current_player_id }
                 })
             }
         }
