@@ -1,14 +1,10 @@
 import updateDom from "./update_dom.js";
 
-function initialState() {
-    return {
-        playerId: null
-    }
-}
+
 
 class StateStore {
     constructor() {
-        this.state = initialState();
+        this.state = {};
     }
 
     action(action) {
