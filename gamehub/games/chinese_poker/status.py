@@ -8,3 +8,4 @@ class ChinesePokerStatus(Enum):
     START_ROUND = "START_ROUND"
     START_TURN = "START_TURN"
     AWAIT_PLAYER_ACTION = "AWAIT_PLAYER_ACTION"
+    END_TURN = "END_TURN"

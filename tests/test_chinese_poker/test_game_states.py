@@ -37,7 +37,7 @@ def test_state_doesnt_have_current_player(request, state):
     assert state.shared_view().current_player_id is None
 
 
-@pytest.mark.parametrize("state", ["start_round", "start_turn"])
+@pytest.mark.parametrize("state", ["start_round", "start_turn", "await_action"])
 def test_state_has_current_player(request, state):
     state = request.getfixturevalue(state)
     assert state.shared_view().current_player_id == "Diana"

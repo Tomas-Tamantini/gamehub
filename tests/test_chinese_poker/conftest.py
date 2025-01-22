@@ -1,6 +1,10 @@
 import pytest
 
-from gamehub.games.chinese_poker import ChinesePokerConfiguration, ChinesePokerGameLogic
+from gamehub.games.chinese_poker import (
+    ChinesePokerConfiguration,
+    ChinesePokerGameLogic,
+    ChinesePokerMove,
+)
 from gamehub.games.chinese_poker.game_state import ChinesePokerState
 from gamehub.games.chinese_poker.player import ChinesePokerPlayer
 from gamehub.games.chinese_poker.status import ChinesePokerStatus
@@ -20,6 +24,11 @@ def initial_cards():
         "Diana": "3d 4c 5s 6d 6h 7h 7s 8h 8s Jd Ah 2s 2c",
     }
     return {player_id: _parse_hand(hand) for player_id, hand in hands_str.items()}
+
+
+@pytest.fixture
+def first_move():
+    return ChinesePokerMove()
 
 
 @pytest.fixture

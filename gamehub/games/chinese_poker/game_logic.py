@@ -1,5 +1,6 @@
 from typing import Optional
 
+from gamehub.core.exceptions import InvalidMoveError
 from gamehub.games.chinese_poker.configuration import ChinesePokerConfiguration
 from gamehub.games.chinese_poker.game_state import ChinesePokerState
 from gamehub.games.chinese_poker.move import ChinesePokerMove
@@ -30,7 +31,14 @@ class ChinesePokerGameLogic:
     def make_move(
         self, state: ChinesePokerState, move: ChinesePokerMove
     ) -> ChinesePokerState:
-        raise NotImplementedError()
+        if state.status != ChinesePokerStatus.AWAIT_PLAYER_ACTION:
+            raise InvalidMoveError("Cannot make move at this time")
+        else:
+            return ChinesePokerState(
+                status=ChinesePokerStatus.END_TURN,
+                players=state.players,
+                current_player_idx=state.current_player_idx,
+            )
 
     def next_automated_state(
         self, state: ChinesePokerState
