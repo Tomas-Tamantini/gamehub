@@ -2,6 +2,7 @@ from dataclasses import dataclass
 from typing import Iterator, Optional
 
 from gamehub.games.chinese_poker.card_value import card_value
+from gamehub.games.chinese_poker.move import ChinesePokerMove
 from gamehub.games.chinese_poker.player import ChinesePokerPlayer
 from gamehub.games.chinese_poker.status import ChinesePokerStatus
 from gamehub.games.chinese_poker.views import (
@@ -15,6 +16,7 @@ class ChinesePokerState:
     status: ChinesePokerStatus
     players: tuple[ChinesePokerPlayer, ...]
     current_player_idx: int = -1
+    move_history: tuple[ChinesePokerMove, ...] = ()
 
     def idx_of_player_with_smallest_card(self) -> int:
         return min(
@@ -31,6 +33,7 @@ class ChinesePokerState:
             status=self.status,
             players=map(lambda player: player.shared_view(), self.players),
             current_player_id=self.current_player_id(),
+            move_history=self.move_history,
         )
 
     def _players_to_send_private_view(self) -> Iterator[ChinesePokerPlayer]:

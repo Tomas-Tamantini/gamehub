@@ -92,8 +92,24 @@ def test_transition_resets_current_turn(request, game_logic, state_before):
     assert next_state.current_player_id() is None
 
 
+@pytest.mark.parametrize(
+    "state_before", ["start_game", "start_match", "deal_cards", "start_round"]
+)
+def test_transition_resets_move_history(request, game_logic, state_before):
+    state_before = request.getfixturevalue(state_before)
+    next_state = game_logic.next_automated_state(state_before)
+    assert not next_state.move_history
+
+
 @pytest.mark.parametrize("state_before", ["start_round", "start_turn"])
 def test_transition_preserves_current_turn(request, game_logic, state_before):
     state_before = request.getfixturevalue(state_before)
     next_state = game_logic.next_automated_state(state_before)
     assert state_before.current_player_id() == next_state.current_player_id()
+
+
+@pytest.mark.parametrize("state_before", ["start_turn"])
+def test_transition_preserves_move_history(request, game_logic, state_before):
+    state_before = request.getfixturevalue(state_before)
+    next_state = game_logic.next_automated_state(state_before)
+    assert state_before.move_history == next_state.move_history

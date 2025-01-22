@@ -29,3 +29,9 @@ def test_players_cards_are_updated_after_valid_move(
     assert set(private_view.cards) == set(initial_cards[player_id]) - set(
         first_move.cards
     )
+
+
+def test_move_history_is_updated_after_valid_move(game_logic, await_action, first_move):
+    next_state = game_logic.make_move(await_action, first_move)
+    shared_view = next_state.shared_view()
+    assert shared_view.move_history == (first_move,)

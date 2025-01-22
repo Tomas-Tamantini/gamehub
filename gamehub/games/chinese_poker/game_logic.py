@@ -47,6 +47,7 @@ class ChinesePokerGameLogic:
                 status=ChinesePokerStatus.END_TURN,
                 players=tuple(ChinesePokerGameLogic._players_after_move(state, move)),
                 current_player_idx=state.current_player_idx,
+                move_history=state.move_history + (move,),
             )
 
     def next_automated_state(
