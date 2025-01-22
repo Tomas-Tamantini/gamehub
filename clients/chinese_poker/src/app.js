@@ -102,6 +102,12 @@ socket_service.subscribe(msg => {
                     return { ...state, players: sharedView.players, moveHistory: sharedView.move_history, statusMsg, currentPlayerId: sharedView.current_player_id }
                 })
             }
+            else if (sharedView.status == "UPDATE_POINTS") {
+                state_store.action(state => {
+                    const statusMsg = "Points updated";
+                    return { ...state, players: sharedView.players, statusMsg, currentPlayerId: sharedView.current_player_id }
+                })
+            }
         }
         const private_view = msg.payload.private_view;
         if (private_view) {
