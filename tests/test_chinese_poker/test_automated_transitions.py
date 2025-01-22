@@ -50,6 +50,13 @@ def test_player_who_won_last_round_starts_next_one(game_logic, end_last_turn):
     assert end_round.shared_view().current_player_id == "Alice"
 
 
+def test_end_turn_transitions_to_end_round_if_next_player_has_zero_cards(
+    game_logic, end_last_turn_of_match
+):
+    end_round = game_logic.next_automated_state(end_last_turn_of_match)
+    assert end_round.shared_view().status == ChinesePokerStatus.END_ROUND
+
+
 def test_each_player_receives_dealt_cards(game_logic, start_match):
     deal_cards = game_logic.next_automated_state(start_match)
     assert all(len(player.cards) == 13 for player in deal_cards.players)
@@ -59,6 +66,18 @@ def test_players_receive_cards_without_repetition(game_logic, start_match):
     deal_cards = game_logic.next_automated_state(start_match)
     cards = {card for player in deal_cards.players for card in player.cards}
     assert len(cards) == 52
+
+
+def test_end_round_transitions_to_start_round_if_not_match_end(game_logic, end_round):
+    start_round = game_logic.next_automated_state(end_round)
+    assert start_round.shared_view().status == ChinesePokerStatus.START_ROUND
+
+
+def test_end_round_transitions_to_end_match_if_some_player_has_zero_cards(
+    game_logic, end_last_round
+):
+    end_match = game_logic.next_automated_state(end_last_round)
+    assert end_match.shared_view().status == ChinesePokerStatus.END_MATCH
 
 
 def test_player_with_the_smallest_card_starts_first_round(start_round):
@@ -78,6 +97,8 @@ def test_await_action_does_not_transition_automatically(game_logic, await_action
         "start_round",
         "start_turn",
         "end_turn",
+        "end_last_turn",
+        "end_round",
     ],
 )
 def test_transition_preserves_players_order(request, game_logic, state_before):
@@ -98,6 +119,8 @@ def test_transition_preserves_players_order(request, game_logic, state_before):
         "start_round",
         "start_turn",
         "end_turn",
+        "end_last_turn",
+        "end_round",
     ],
 )
 def test_transition_preserves_players_num_points(request, game_logic, state_before):
@@ -111,7 +134,15 @@ def test_transition_preserves_players_num_points(request, game_logic, state_befo
 
 @pytest.mark.parametrize(
     "state_before",
-    ["start_game", "deal_cards", "start_round", "start_turn", "end_turn"],
+    [
+        "start_game",
+        "deal_cards",
+        "start_round",
+        "start_turn",
+        "end_turn",
+        "end_last_turn",
+        "end_round",
+    ],
 )
 def test_transition_preserves_players_cards(request, game_logic, state_before):
     state_before = request.getfixturevalue(state_before)
@@ -130,7 +161,8 @@ def test_transition_resets_current_turn(request, game_logic, state_before):
 
 
 @pytest.mark.parametrize(
-    "state_before", ["start_game", "start_match", "deal_cards", "start_round"]
+    "state_before",
+    ["start_game", "start_match", "deal_cards", "start_round", "end_round"],
 )
 def test_transition_resets_move_history(request, game_logic, state_before):
     state_before = request.getfixturevalue(state_before)
@@ -138,14 +170,14 @@ def test_transition_resets_move_history(request, game_logic, state_before):
     assert not next_state.move_history
 
 
-@pytest.mark.parametrize("state_before", ["start_round", "start_turn"])
+@pytest.mark.parametrize("state_before", ["start_round", "start_turn", "end_round"])
 def test_transition_preserves_current_turn(request, game_logic, state_before):
     state_before = request.getfixturevalue(state_before)
     next_state = game_logic.next_automated_state(state_before)
     assert state_before.current_player_id() == next_state.current_player_id()
 
 
-@pytest.mark.parametrize("state_before", ["start_turn", "end_turn"])
+@pytest.mark.parametrize("state_before", ["start_turn", "end_turn", "end_last_turn"])
 def test_transition_preserves_move_history(request, game_logic, state_before):
     state_before = request.getfixturevalue(state_before)
     next_state = game_logic.next_automated_state(state_before)

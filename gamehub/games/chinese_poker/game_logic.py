@@ -87,7 +87,7 @@ class ChinesePokerGameLogic:
                 move_history=state.move_history,
             )
         elif state.status == ChinesePokerStatus.END_TURN:
-            if state.last_players_passed():
+            if state.last_players_passed() or state.next_player_has_zero_cards():
                 return ChinesePokerState(
                     status=ChinesePokerStatus.END_ROUND,
                     players=state.players,
@@ -100,4 +100,16 @@ class ChinesePokerGameLogic:
                     players=state.players,
                     current_player_idx=state.next_player_idx(),
                     move_history=state.move_history,
+                )
+        elif state.status == ChinesePokerStatus.END_ROUND:
+            if state.some_player_has_zero_cards():
+                return ChinesePokerState(
+                    status=ChinesePokerStatus.END_MATCH,
+                    players=state.players,
+                )
+            else:
+                return ChinesePokerState(
+                    status=ChinesePokerStatus.START_ROUND,
+                    players=state.players,
+                    current_player_idx=state.current_player_idx,
                 )

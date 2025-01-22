@@ -28,6 +28,12 @@ class ChinesePokerState:
         num_passes_to_check = len(self.players) - 1
         return all(move.is_pass for move in self.move_history[-num_passes_to_check:])
 
+    def next_player_has_zero_cards(self) -> bool:
+        return len(self.players[self.next_player_idx()].cards) == 0
+
+    def some_player_has_zero_cards(self) -> bool:
+        return any(len(player.cards) == 0 for player in self.players)
+
     def idx_of_player_with_smallest_card(self) -> int:
         return min(
             range(len(self.players)),
