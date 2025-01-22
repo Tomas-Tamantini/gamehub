@@ -38,6 +38,18 @@ def test_end_turn_increments_turn_if_not_round_end(game_logic, end_turn):
     assert start_turn.shared_view().current_player_id == "Alice"
 
 
+def test_end_turn_transitions_to_end_round_if_every_player_passed(
+    game_logic, end_last_turn
+):
+    end_round = game_logic.next_automated_state(end_last_turn)
+    assert end_round.shared_view().status == ChinesePokerStatus.END_ROUND
+
+
+def test_player_who_won_last_round_starts_next_one(game_logic, end_last_turn):
+    end_round = game_logic.next_automated_state(end_last_turn)
+    assert end_round.shared_view().current_player_id == "Alice"
+
+
 def test_each_player_receives_dealt_cards(game_logic, start_match):
     deal_cards = game_logic.next_automated_state(start_match)
     assert all(len(player.cards) == 13 for player in deal_cards.players)

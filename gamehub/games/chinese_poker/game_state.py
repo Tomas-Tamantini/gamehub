@@ -18,6 +18,16 @@ class ChinesePokerState:
     current_player_idx: int = -1
     move_history: tuple[ChinesePokerMove, ...] = ()
 
+    def next_player_idx(self) -> int:
+        if self.current_player_idx < 0:
+            return -1
+        else:
+            return (self.current_player_idx + 1) % len(self.players)
+
+    def last_players_passed(self) -> bool:
+        num_passes_to_check = len(self.players) - 1
+        return all(move.is_pass for move in self.move_history[-num_passes_to_check:])
+
     def idx_of_player_with_smallest_card(self) -> int:
         return min(
             range(len(self.players)),

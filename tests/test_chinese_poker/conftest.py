@@ -27,11 +27,19 @@ def initial_cards():
 
 
 @pytest.fixture
-def first_move():
-    return ChinesePokerMove(
-        player_id="Diana",
-        cards=_parse_hand("3d 4c 5s 6d 7h"),
-    )
+def moves_first_round():
+    return [
+        ChinesePokerMove(player_id="Diana", cards=_parse_hand("3d 4c 5s 6d 7h")),
+        ChinesePokerMove(player_id="Alice", cards=_parse_hand("9d 9c Kd Kh Kc")),
+        ChinesePokerMove(player_id="Bob", cards=_parse_hand("")),
+        ChinesePokerMove(player_id="Charlie", cards=_parse_hand("")),
+        ChinesePokerMove(player_id="Diana", cards=_parse_hand("")),
+    ]
+
+
+@pytest.fixture
+def first_move(moves_first_round):
+    return moves_first_round[0]
 
 
 @pytest.fixture
@@ -90,3 +98,13 @@ def await_action(game_logic, start_turn):
 @pytest.fixture
 def end_turn(game_logic, await_action, first_move):
     return game_logic.make_move(await_action, first_move)
+
+
+@pytest.fixture
+def end_last_turn(game_logic, await_action, moves_first_round):
+    state = await_action
+    for move in moves_first_round:
+        while state.status != ChinesePokerStatus.AWAIT_PLAYER_ACTION:
+            state = game_logic.next_automated_state(state)
+        state = game_logic.make_move(state, move)
+    return state
