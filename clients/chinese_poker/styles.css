@@ -185,3 +185,23 @@ body {
     border-radius: 50%;
     display: flex;
 }
+
+.make-move-button {
+    background-color: #007bff;
+    color: #fff;
+    border: 1px solid #000;
+    border-radius: 5px;
+    padding: 5px 10px;
+    cursor: pointer;
+}
+
+.make-move-button:hover {
+    background-color: #0056b3;
+}
+
+.move-action-container {
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+    align-items: center;
+}

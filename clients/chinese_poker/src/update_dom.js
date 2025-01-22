@@ -1,4 +1,14 @@
-import { authBtn, playerIdSpan, joinGameBtn, statusArea, playerNames, opponentCards, myCardsContainer, dealer } from "./dom.js";
+import {
+    authBtn,
+    playerIdSpan,
+    joinGameBtn,
+    statusArea,
+    playerNames,
+    opponentCards,
+    myCardsContainer,
+    dealer,
+    makeMoveBtn
+} from "./dom.js";
 
 export default function updateDom(state) {
     if (state.playerId) {
@@ -74,24 +84,29 @@ export default function updateDom(state) {
             dealer.style.bottom = '20%';
             dealer.style.left = '50%';
             dealer.style.transform = 'translateX(-50%)';
+            makeMoveBtn.style.display = 'flex';
         }
         else if (offset == 1) {
             dealer.style.bottom = '50%';
             dealer.style.left = '25%';
             dealer.style.transform = 'translateY(50%)';
+            makeMoveBtn.style.display = 'none';
         }
         else if (offset == 2) {
             dealer.style.top = '25%';
             dealer.style.left = '50%';
             dealer.style.transform = 'translateX(-50%)';
+            makeMoveBtn.style.display = 'none';
         }
         else {
             dealer.style.bottom = '50%';
             dealer.style.right = '25%';
             dealer.style.transform = 'translateY(50%)';
+            makeMoveBtn.style.display = 'none';
         }
     }
     else {
         dealer.style.display = 'none';
+        makeMoveBtn.style.display = 'none';
     }
 }

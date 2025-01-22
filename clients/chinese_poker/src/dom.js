@@ -10,3 +10,4 @@ export const opponentCards = Array.from([1, 2, 3], (i) =>
 );
 export const myCardsContainer = document.getElementById('my-cards');
 export const dealer = document.getElementById('dealer');
+export const makeMoveBtn = document.getElementById('make-move-button');
