@@ -5,3 +5,6 @@ export const statusArea = document.getElementById('status');
 export const playerNames = Array.from({ length: 4 }, (_, i) =>
     document.getElementById(`player-name-${i}`)
 );
+export const opponentCards = Array.from([1, 2, 3], (i) =>
+    document.getElementById(`opponent-cards-${i}`)
+);

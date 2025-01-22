@@ -1,4 +1,4 @@
-import { authBtn, playerIdSpan, joinGameBtn, statusArea, playerNames } from "./dom.js";
+import { authBtn, playerIdSpan, joinGameBtn, statusArea, playerNames, opponentCards } from "./dom.js";
 
 export default function updateDom(state) {
     if (state.playerId) {
@@ -25,9 +25,17 @@ export default function updateDom(state) {
             const numPlayers = state.players.length;
             const domIdx = (i + numPlayers - offset) % numPlayers;
             playerNames[domIdx].textContent = `${player.player_id} - ${player.num_points} pts`
+            if (domIdx > 0) {
+                opponentCards[domIdx - 1].style.display = 'flex';
+                opponentCards[domIdx - 1].textContent = `x${player.num_cards}`;
+            }
         });
     }
     else {
         playerNames.forEach(playerName => playerName.textContent = '');
+        opponentCards.forEach(opponentCard => {
+            opponentCard.textContent = '';
+            opponentCard.style.display = 'none';
+        });
     }
 }
