@@ -18,3 +18,14 @@ def test_await_player_action_transitions_to_end_turn_after_valid_move(
 ):
     next_state = game_logic.make_move(await_action, first_move)
     assert next_state.status == ChinesePokerStatus.END_TURN
+
+
+def test_players_cards_are_updated_after_valid_move(
+    game_logic, await_action, first_move, initial_cards
+):
+    next_state = game_logic.make_move(await_action, first_move)
+    player_id, private_view = next(next_state.private_views())
+    assert len(private_view.cards) == 8
+    assert set(private_view.cards) == set(initial_cards[player_id]) - set(
+        first_move.cards
+    )

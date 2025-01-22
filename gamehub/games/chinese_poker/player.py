@@ -24,6 +24,13 @@ class ChinesePokerPlayer:
             cards=cards,
         )
 
+    def remove_cards(self, cards: tuple[PlayingCard, ...]) -> "ChinesePokerPlayer":
+        return ChinesePokerPlayer(
+            player_id=self.player_id,
+            num_points=self.num_points,
+            cards=tuple(card for card in self.cards if card not in cards),
+        )
+
 
 def player_initial_state(player_id: str) -> ChinesePokerPlayer:
     return ChinesePokerPlayer(player_id=player_id, num_points=0, cards=tuple())

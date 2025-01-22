@@ -36,7 +36,10 @@ class ChinesePokerState:
     def _players_to_send_private_view(self) -> Iterator[ChinesePokerPlayer]:
         if self.status == ChinesePokerStatus.DEAL_CARDS:
             yield from self.players
-        elif self.status == ChinesePokerStatus.AWAIT_PLAYER_ACTION:
+        elif self.status in {
+            ChinesePokerStatus.AWAIT_PLAYER_ACTION,
+            ChinesePokerStatus.END_TURN,
+        }:
             yield self.players[self.current_player_idx]
 
     def private_views(self):

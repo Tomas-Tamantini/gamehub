@@ -31,6 +31,17 @@ def test_player_receives_their_private_cards_on_their_turn(await_action, initial
     assert view.status == ChinesePokerStatus.AWAIT_PLAYER_ACTION
 
 
+def test_player_receives_their_private_cards_after_their_turn(
+    end_turn, initial_cards, first_move
+):
+    private_views = list(end_turn.private_views())
+    assert len(private_views) == 1
+    player_id, view = private_views[0]
+    assert player_id == "Diana"
+    assert set(view.cards) == set(initial_cards["Diana"]) - set(first_move.cards)
+    assert view.status == ChinesePokerStatus.END_TURN
+
+
 @pytest.mark.parametrize("state", ["start_game", "start_match", "deal_cards"])
 def test_state_doesnt_have_current_player(request, state):
     state = request.getfixturevalue(state)

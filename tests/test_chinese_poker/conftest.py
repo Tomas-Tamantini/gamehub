@@ -28,7 +28,10 @@ def initial_cards():
 
 @pytest.fixture
 def first_move():
-    return ChinesePokerMove()
+    return ChinesePokerMove(
+        player_id="Diana",
+        cards=_parse_hand("3d 4c 5s 6d 7h"),
+    )
 
 
 @pytest.fixture
@@ -82,3 +85,8 @@ def start_turn(game_logic, start_round):
 @pytest.fixture
 def await_action(game_logic, start_turn):
     return game_logic.next_automated_state(start_turn)
+
+
+@pytest.fixture
+def end_turn(game_logic, await_action, first_move):
+    return game_logic.make_move(await_action, first_move)

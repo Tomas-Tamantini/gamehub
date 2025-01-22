@@ -28,15 +28,24 @@ class ChinesePokerGameLogic:
             players=tuple(player_initial_state(player_id) for player_id in player_ids),
         )
 
+    @staticmethod
+    def _players_after_move(state: ChinesePokerState, move: ChinesePokerMove):
+        for player in state.players:
+            if player.player_id == move.player_id:
+                yield player.remove_cards(move.cards)
+            else:
+                yield player
+
+    @staticmethod
     def make_move(
-        self, state: ChinesePokerState, move: ChinesePokerMove
+        state: ChinesePokerState, move: ChinesePokerMove
     ) -> ChinesePokerState:
         if state.status != ChinesePokerStatus.AWAIT_PLAYER_ACTION:
             raise InvalidMoveError("Cannot make move at this time")
         else:
             return ChinesePokerState(
                 status=ChinesePokerStatus.END_TURN,
-                players=state.players,
+                players=tuple(ChinesePokerGameLogic._players_after_move(state, move)),
                 current_player_idx=state.current_player_idx,
             )
 
