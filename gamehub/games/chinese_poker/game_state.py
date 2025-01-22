@@ -17,3 +17,11 @@ class ChinesePokerState:
             status=self.status,
             players=map(lambda player: player.shared_view(), self.players),
         )
+
+    def private_views(self):
+        # TODO: Implement
+        yield from []
+
+    def is_terminal(self) -> bool:
+        # TODO: Implement
+        return False

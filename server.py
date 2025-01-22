@@ -6,6 +6,11 @@ from gamehub.core.event_bus import EventBus
 from gamehub.core.game_room import GameRoom
 from gamehub.core.room_manager import RoomManager
 from gamehub.core.setup_bus import setup_event_bus
+from gamehub.games.chinese_poker import (
+    ChinesePokerConfiguration,
+    ChinesePokerGameLogic,
+    ChinesePokerMove,
+)
 from gamehub.games.rock_paper_scissors import RPSGameLogic, RPSMove
 from gamehub.games.tic_tac_toe import TicTacToeGameLogic, TicTacToeMove
 from gamehub.socket_server import ClientManager, ConnectionHandler, SocketMessageSender
@@ -24,6 +29,14 @@ def game_manager(event_bus: EventBus) -> RoomManager:
                 room_id=2,
                 game_logic=RPSGameLogic(),
                 move_parser=RPSMove.model_validate,
+                event_bus=event_bus,
+            ),
+            GameRoom(
+                room_id=3,
+                game_logic=ChinesePokerGameLogic(
+                    ChinesePokerConfiguration(num_players=2, cards_per_player=13)
+                ),
+                move_parser=ChinesePokerMove.model_validate,
                 event_bus=event_bus,
             ),
         ],
