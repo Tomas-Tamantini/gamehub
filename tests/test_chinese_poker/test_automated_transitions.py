@@ -80,6 +80,22 @@ def test_end_round_transitions_to_end_match_if_some_player_has_zero_cards(
     assert end_match.shared_view().status == ChinesePokerStatus.END_MATCH
 
 
+def test_end_match_transitions_to_update_points(game_logic, end_match):
+    update_points = game_logic.next_automated_state(end_match)
+    assert update_points.shared_view().status == ChinesePokerStatus.UPDATE_POINTS
+
+
+def test_points_are_updated_after_match_end(update_points):
+    expected_points = [0, 7, 5, 8]
+    assert [
+        player.num_points for player in update_points.shared_view().players
+    ] == expected_points
+
+
+def test_cards_are_reset_after_match_end(update_points):
+    assert all(player.num_cards == 0 for player in update_points.shared_view().players)
+
+
 def test_player_with_the_smallest_card_starts_first_round(start_round):
     assert start_round.current_player_id() == "Diana"
 
@@ -99,6 +115,7 @@ def test_await_action_does_not_transition_automatically(game_logic, await_action
         "end_turn",
         "end_last_turn",
         "end_round",
+        "end_match",
     ],
 )
 def test_transition_preserves_players_order(request, game_logic, state_before):
@@ -153,7 +170,10 @@ def test_transition_preserves_players_cards(request, game_logic, state_before):
     )
 
 
-@pytest.mark.parametrize("state_before", ["start_game", "start_match"])
+@pytest.mark.parametrize(
+    "state_before",
+    ["start_game", "start_match", "end_match"],
+)
 def test_transition_resets_current_turn(request, game_logic, state_before):
     state_before = request.getfixturevalue(state_before)
     next_state = game_logic.next_automated_state(state_before)
@@ -162,7 +182,14 @@ def test_transition_resets_current_turn(request, game_logic, state_before):
 
 @pytest.mark.parametrize(
     "state_before",
-    ["start_game", "start_match", "deal_cards", "start_round", "end_round"],
+    [
+        "start_game",
+        "start_match",
+        "deal_cards",
+        "start_round",
+        "end_round",
+        "end_match",
+    ],
 )
 def test_transition_resets_move_history(request, game_logic, state_before):
     state_before = request.getfixturevalue(state_before)

@@ -113,3 +113,8 @@ class ChinesePokerGameLogic:
                     players=state.players,
                     current_player_idx=state.current_player_idx,
                 )
+        elif state.status == ChinesePokerStatus.END_MATCH:
+            return ChinesePokerState(
+                status=ChinesePokerStatus.UPDATE_POINTS,
+                players=tuple(p.increment_points() for p in state.players),
+            )

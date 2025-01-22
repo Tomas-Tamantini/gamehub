@@ -148,3 +148,13 @@ def end_last_turn_of_match(game_logic, await_action, moves_first_match):
 @pytest.fixture
 def end_last_round(game_logic, end_last_turn_of_match):
     return game_logic.next_automated_state(end_last_turn_of_match)
+
+
+@pytest.fixture
+def end_match(game_logic, end_last_round):
+    return game_logic.next_automated_state(end_last_round)
+
+
+@pytest.fixture
+def update_points(game_logic, end_match):
+    return game_logic.next_automated_state(end_match)
