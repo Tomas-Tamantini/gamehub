@@ -175,3 +175,13 @@ body {
 .red {
     color: red;
 }
+
+.dealer {
+    position: absolute;
+    width: 20px;
+    height: 20px;
+    background-color: red;
+    border: 2px solid #000;
+    border-radius: 50%;
+    display: flex;
+}

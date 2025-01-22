@@ -9,3 +9,4 @@ export const opponentCards = Array.from([1, 2, 3], (i) =>
     document.getElementById(`opponent-cards-${i}`)
 );
 export const myCardsContainer = document.getElementById('my-cards');
+export const dealer = document.getElementById('dealer');

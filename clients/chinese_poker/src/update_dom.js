@@ -1,4 +1,4 @@
-import { authBtn, playerIdSpan, joinGameBtn, statusArea, playerNames, opponentCards, myCardsContainer } from "./dom.js";
+import { authBtn, playerIdSpan, joinGameBtn, statusArea, playerNames, opponentCards, myCardsContainer, dealer } from "./dom.js";
 
 export default function updateDom(state) {
     if (state.playerId) {
@@ -63,5 +63,35 @@ export default function updateDom(state) {
     }
     else {
         myCardsContainer.innerHTML = '';
+    }
+
+    if (state.currentPlayerId) {
+        const myIdx = state.players.findIndex(player => player.player_id === state.playerId);
+        const dealerIdx = state.players.findIndex(player => player.player_id === state.currentPlayerId);
+        const offset = (dealerIdx - myIdx + state.players.length) % state.players.length;
+        dealer.style.display = 'flex';
+        if (offset == 0) {
+            dealer.style.bottom = '20%';
+            dealer.style.left = '50%';
+            dealer.style.transform = 'translateX(-50%)';
+        }
+        else if (offset == 1) {
+            dealer.style.bottom = '50%';
+            dealer.style.left = '25%';
+            dealer.style.transform = 'translateY(50%)';
+        }
+        else if (offset == 2) {
+            dealer.style.top = '25%';
+            dealer.style.left = '50%';
+            dealer.style.transform = 'translateX(-50%)';
+        }
+        else {
+            dealer.style.bottom = '50%';
+            dealer.style.right = '25%';
+            dealer.style.transform = 'translateY(50%)';
+        }
+    }
+    else {
+        dealer.style.display = 'none';
     }
 }

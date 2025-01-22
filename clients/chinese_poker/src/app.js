@@ -58,6 +58,11 @@ socket_service.subscribe(msg => {
                     return { ...state, statusMsg: 'Dealing cards', players: sharedView.players }
                 })
             }
+            else if (sharedView.status == "START_ROUND") {
+                state_store.action(state => {
+                    return { ...state, statusMsg: 'Starting new round', currentPlayerId: sharedView.current_player_id }
+                })
+            }
         }
         const private_view = msg.payload.private_view;
         if (private_view) {
