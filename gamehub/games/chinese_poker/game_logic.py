@@ -84,4 +84,12 @@ class ChinesePokerGameLogic:
                 status=ChinesePokerStatus.AWAIT_PLAYER_ACTION,
                 players=state.players,
                 current_player_idx=state.current_player_idx,
+                move_history=state.move_history,
+            )
+        elif state.status == ChinesePokerStatus.END_TURN:
+            return ChinesePokerState(
+                status=ChinesePokerStatus.START_TURN,
+                players=state.players,
+                current_player_idx=(state.current_player_idx + 1) % len(state.players),
+                move_history=state.move_history,
             )
