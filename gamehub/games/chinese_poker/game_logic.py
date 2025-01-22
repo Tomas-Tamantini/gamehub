@@ -55,3 +55,9 @@ class ChinesePokerGameLogic:
                 players=state.players,
                 current_player_idx=state.idx_of_player_with_smallest_card(),
             )
+        elif state.status == ChinesePokerStatus.START_ROUND:
+            return ChinesePokerState(
+                status=ChinesePokerStatus.START_TURN,
+                players=state.players,
+                current_player_idx=state.current_player_idx,
+            )

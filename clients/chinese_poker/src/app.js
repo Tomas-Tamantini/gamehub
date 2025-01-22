@@ -63,6 +63,12 @@ socket_service.subscribe(msg => {
                     return { ...state, statusMsg: 'Starting new round', currentPlayerId: sharedView.current_player_id }
                 })
             }
+            else if (sharedView.status == "START_TURN") {
+                state_store.action(state => {
+                    const statusMsg = `Player ${sharedView.current_player_id}'s turn`;
+                    return { ...state, statusMsg }
+                })
+            }
         }
         const private_view = msg.payload.private_view;
         if (private_view) {
