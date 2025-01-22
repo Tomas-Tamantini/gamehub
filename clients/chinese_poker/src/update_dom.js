@@ -27,7 +27,7 @@ export default function updateDom(state) {
             playerNames[domIdx].textContent = `${player.player_id} - ${player.num_points} pts`
             if (domIdx > 0) {
                 opponentCards[domIdx - 1].style.display = 'flex';
-                opponentCards[domIdx - 1].textContent = `x${player.num_cards}`;
+                opponentCards[domIdx - 1].textContent = player.num_cards;
             }
         });
     }

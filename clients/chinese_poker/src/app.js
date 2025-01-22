@@ -48,6 +48,16 @@ socket_service.subscribe(msg => {
                     return { ...state, statusMsg: 'Game about to start!', players: sharedView.players }
                 })
             }
+            else if (sharedView.status == "START_MATCH") {
+                state_store.action(state => {
+                    return { ...state, statusMsg: 'Match about to start!' }
+                })
+            }
+            else if (sharedView.status == "DEAL_CARDS") {
+                state_store.action(state => {
+                    return { ...state, statusMsg: 'Dealing cards', players: sharedView.players }
+                })
+            }
         }
         console.log(msg)
     }
