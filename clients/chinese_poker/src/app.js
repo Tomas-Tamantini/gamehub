@@ -105,7 +105,7 @@ socket_service.subscribe(msg => {
             else if (sharedView.status == "UPDATE_POINTS") {
                 state_store.action(state => {
                     const statusMsg = "Points updated";
-                    return { ...state, players: sharedView.players, statusMsg, currentPlayerId: sharedView.current_player_id }
+                    return { ...state, players: sharedView.players, statusMsg, currentPlayerId: sharedView.current_player_id, myCards: [] }
                 })
             }
         }
