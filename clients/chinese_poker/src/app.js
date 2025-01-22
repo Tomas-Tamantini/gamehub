@@ -40,7 +40,16 @@ socket_service.subscribe(msg => {
             return { ...state, statusMsg, roomId }
         })
     }
-    else {
+    else if (msg.message_type == "GAME_STATE") {
+        const sharedView = msg.payload.shared_view;
+        if (sharedView) {
+            if (sharedView.status == "START_GAME") {
+                state_store.action(state => {
+                    return { ...state, statusMsg: 'Game about to start!', players: sharedView.players }
+                })
+            }
+        }
         console.log(msg)
     }
+
 })
