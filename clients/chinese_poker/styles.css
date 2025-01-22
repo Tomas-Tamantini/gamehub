@@ -70,3 +70,26 @@ body {
     text-align: center;
     padding: 10px 0;
 }
+
+.game-area {
+    font-family: Arial, sans-serif;
+    background-color: #228B22;
+    color: white;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 92vh;
+    margin: 0;
+}
+
+.table {
+    position: relative;
+    width: 80%;
+    height: 80%;
+    background-color: #006400;
+    border: 3px solid #000;
+    border-radius: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
