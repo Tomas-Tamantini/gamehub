@@ -7,7 +7,8 @@ import {
     opponentCards,
     myCardsContainer,
     dealer,
-    makeMoveBtn
+    makeMoveBtn,
+    moveHistories
 } from "./dom.js";
 
 export default function updateDom(state) {
@@ -108,5 +109,43 @@ export default function updateDom(state) {
     else {
         dealer.style.display = 'none';
         makeMoveBtn.style.display = 'none';
+    }
+
+    if (state.moveHistory) {
+        const suitSymbols = { 'd': '♦', 'c': '♣', 'h': '♥', 's': '♠' };
+        const numPlayers = state.players.length;
+        const lastMoves = state.moveHistory.slice(-numPlayers);
+        console.log(lastMoves);
+        const myIdx = state.players.findIndex(player => player.player_id === state.playerId);
+        lastMoves.forEach((move, i) => {
+            const playerId = move.player_id;
+            const cards = move.cards;
+            const playerIdx = state.players.findIndex(player => player.player_id === playerId);
+            const domIdx = (playerIdx - myIdx + numPlayers) % numPlayers;
+            const component = moveHistories[domIdx];
+            if (cards.length == 0) {
+                component.textContent = 'PASS';
+            }
+            else {
+
+                cards.forEach(card => {
+                    const cardDiv = document.createElement('div');
+                    cardDiv.classList.add('card');
+                    cardDiv.classList.add('mini');
+                    if (card.suit === 'd' || card.suit === 'h') {
+                        cardDiv.classList.add('red');
+                    }
+                    else {
+                        cardDiv.classList.add('black');
+                    }
+                    const cardText = document.createTextNode(`${card.rank}${suitSymbols[card.suit]}`);
+                    cardDiv.appendChild(cardText);
+                    component.appendChild(cardDiv);
+                });
+            }
+        });
+    }
+    else {
+        moveHistories.forEach(moveHistory => moveHistory.innerHTML = '');
     }
 }

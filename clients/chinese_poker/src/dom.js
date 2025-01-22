@@ -15,3 +15,6 @@ export function selectedCardsIndices() {
     const selectedCards = Array.from(document.getElementsByClassName('selected'));
     return selectedCards.map(card => parseInt(card.dataset.index));
 }
+export const moveHistories = Array.from({ length: 4 }, (_, i) =>
+    document.getElementById(`move-history-player-${i}`)
+);

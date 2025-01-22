@@ -87,7 +87,7 @@ socket_service.subscribe(msg => {
             else if (sharedView.status == "END_TURN") {
                 state_store.action(state => {
                     const statusMsg = `Player ${sharedView.current_player_id} ended their turn`;
-                    return { ...state, players: sharedView.players, statusMsg }
+                    return { ...state, players: sharedView.players, moveHistory: sharedView.move_history, statusMsg }
                 })
             }
         }

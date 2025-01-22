@@ -127,6 +127,39 @@ body {
     transform: translateY(-50%);
 }
 
+.move-history-container {
+    position: absolute;
+    text-align: center;
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    gap: 0px;
+}
+
+#move-history-player-0 {
+    bottom: 35%;
+    left: 50%;
+    transform: translateX(-50%);
+}
+
+#move-history-player-1 {
+    left: 25%;
+    top: 50%;
+    transform: translateY(-50%);
+}
+
+#move-history-player-2 {
+    top: 25%;
+    left: 50%;
+    transform: translateX(-50%);
+}
+
+#move-history-player-3 {
+    right: 25%;
+    top: 50%;
+    transform: translateY(-50%);
+}
+
 .my-cards {
     display: inline-flex;
     gap: 0px;
@@ -140,6 +173,12 @@ body {
     font-weight: bold;
     border: 1px solid #000;
     user-select: none;
+}
+
+.card.mini {
+    width: 20px;
+    height: 30px;
+    background-color: #fff;
 }
 
 .card.back {
