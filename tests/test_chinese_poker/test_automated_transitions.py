@@ -92,6 +92,13 @@ def test_points_are_updated_after_match_end(update_points):
     ] == expected_points
 
 
+def test_update_points_transitions_to_start_match_if_not_end_game(
+    game_logic, update_points
+):
+    start_match = game_logic.next_automated_state(update_points)
+    assert start_match.shared_view().status == ChinesePokerStatus.START_MATCH
+
+
 def test_cards_are_reset_after_match_end(update_points):
     assert all(player.num_cards == 0 for player in update_points.shared_view().players)
 
@@ -116,6 +123,7 @@ def test_await_action_does_not_transition_automatically(game_logic, await_action
         "end_last_turn",
         "end_round",
         "end_match",
+        "update_points",
     ],
 )
 def test_transition_preserves_players_order(request, game_logic, state_before):
@@ -138,6 +146,7 @@ def test_transition_preserves_players_order(request, game_logic, state_before):
         "end_turn",
         "end_last_turn",
         "end_round",
+        "update_points",
     ],
 )
 def test_transition_preserves_players_num_points(request, game_logic, state_before):
@@ -172,7 +181,7 @@ def test_transition_preserves_players_cards(request, game_logic, state_before):
 
 @pytest.mark.parametrize(
     "state_before",
-    ["start_game", "start_match", "end_match"],
+    ["start_game", "start_match", "end_match", "update_points"],
 )
 def test_transition_resets_current_turn(request, game_logic, state_before):
     state_before = request.getfixturevalue(state_before)
@@ -189,6 +198,7 @@ def test_transition_resets_current_turn(request, game_logic, state_before):
         "start_round",
         "end_round",
         "end_match",
+        "update_points",
     ],
 )
 def test_transition_resets_move_history(request, game_logic, state_before):
