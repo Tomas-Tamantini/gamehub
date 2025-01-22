@@ -1,7 +1,7 @@
 import pytest
 
 
-@pytest.mark.parametrize("state", ["start_game", "start_match"])
+@pytest.mark.parametrize("state", ["start_game", "start_match", "start_round"])
 def test_states_dont_have_private_views(request, state):
     state = request.getfixturevalue(state)
     assert not list(state.private_views())

@@ -13,6 +13,11 @@ def test_start_match_transitions_to_deal_cards(game_logic, start_match):
     assert deal_cards.shared_view().status == ChinesePokerStatus.DEAL_CARDS
 
 
+def test_deal_cards_transitions_to_start_round(game_logic, deal_cards):
+    start_round = game_logic.next_automated_state(deal_cards)
+    assert start_round.shared_view().status == ChinesePokerStatus.START_ROUND
+
+
 def test_each_player_receives_dealt_cards(deal_cards):
     assert all(len(player.cards) == 13 for player in deal_cards.players)
 
@@ -22,7 +27,7 @@ def test_players_receive_cards_without_repetition(deal_cards):
     assert len(cards) == 52
 
 
-@pytest.mark.parametrize("state_before", ["start_game", "start_match"])
+@pytest.mark.parametrize("state_before", ["start_game", "start_match", "deal_cards"])
 def test_transition_preserves_players_order(request, game_logic, state_before):
     state_before = request.getfixturevalue(state_before)
     next_state = game_logic.next_automated_state(state_before)
@@ -32,7 +37,7 @@ def test_transition_preserves_players_order(request, game_logic, state_before):
     )
 
 
-@pytest.mark.parametrize("state_before", ["start_game", "start_match"])
+@pytest.mark.parametrize("state_before", ["start_game", "start_match", "deal_cards"])
 def test_transition_preserves_players_num_points(request, game_logic, state_before):
     state_before = request.getfixturevalue(state_before)
     next_state = game_logic.next_automated_state(state_before)
@@ -42,7 +47,7 @@ def test_transition_preserves_players_num_points(request, game_logic, state_befo
     )
 
 
-@pytest.mark.parametrize("state_before", ["start_game"])
+@pytest.mark.parametrize("state_before", ["start_game", "deal_cards"])
 def test_transition_preserves_players_cards(request, game_logic, state_before):
     state_before = request.getfixturevalue(state_before)
     next_state = game_logic.next_automated_state(state_before)

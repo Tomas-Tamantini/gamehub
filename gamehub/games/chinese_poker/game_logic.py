@@ -49,3 +49,8 @@ class ChinesePokerGameLogic:
                 status=ChinesePokerStatus.DEAL_CARDS,
                 players=[p.deal_cards(hand) for p, hand in zip(state.players, hands)],
             )
+        elif state.status == ChinesePokerStatus.DEAL_CARDS:
+            return ChinesePokerState(
+                status=ChinesePokerStatus.START_ROUND,
+                players=state.players,
+            )

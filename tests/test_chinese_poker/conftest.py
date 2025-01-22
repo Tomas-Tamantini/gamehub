@@ -31,3 +31,8 @@ def start_match(game_logic, start_game):
 @pytest.fixture
 def deal_cards(game_logic, start_match):
     return game_logic.next_automated_state(start_match)
+
+
+@pytest.fixture
+def start_round(game_logic, deal_cards):
+    return game_logic.next_automated_state(deal_cards)
