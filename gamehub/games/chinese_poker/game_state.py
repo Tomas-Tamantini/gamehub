@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from typing import Optional
+from typing import Iterator, Optional
 
 from gamehub.games.chinese_poker.card_value import card_value
 from gamehub.games.chinese_poker.player import ChinesePokerPlayer
@@ -33,12 +33,17 @@ class ChinesePokerState:
             current_player_id=self.current_player_id(),
         )
 
-    def private_views(self):
+    def _players_to_send_private_view(self) -> Iterator[ChinesePokerPlayer]:
         if self.status == ChinesePokerStatus.DEAL_CARDS:
-            for player in self.players:
-                yield player.player_id, ChinesePokerPrivateView(
-                    status=self.status, cards=player.cards
-                )
+            yield from self.players
+        elif self.status == ChinesePokerStatus.AWAIT_PLAYER_ACTION:
+            yield self.players[self.current_player_idx]
+
+    def private_views(self):
+        for player in self._players_to_send_private_view():
+            yield player.player_id, ChinesePokerPrivateView(
+                status=self.status, cards=player.cards
+            )
 
     def is_terminal(self) -> bool:
         # TODO: Implement

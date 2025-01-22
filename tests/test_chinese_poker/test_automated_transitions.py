@@ -43,6 +43,10 @@ def test_player_with_the_smallest_card_starts_first_round(start_round):
     assert start_round.current_player_id() == "Diana"
 
 
+def test_await_action_does_not_transition_automatically(game_logic, await_action):
+    assert game_logic.next_automated_state(await_action) is None
+
+
 @pytest.mark.parametrize(
     "state_before",
     ["start_game", "start_match", "deal_cards", "start_round", "start_turn"],

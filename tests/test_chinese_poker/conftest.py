@@ -68,3 +68,8 @@ def start_round(game_logic, deal_cards):
 @pytest.fixture
 def start_turn(game_logic, start_round):
     return game_logic.next_automated_state(start_round)
+
+
+@pytest.fixture
+def await_action(game_logic, start_turn):
+    return game_logic.next_automated_state(start_turn)
