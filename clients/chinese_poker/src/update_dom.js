@@ -24,7 +24,7 @@ export default function updateDom(state) {
         state.players.forEach((player, i) => {
             const numPlayers = state.players.length;
             const domIdx = (i + numPlayers - offset) % numPlayers;
-            playerNames[domIdx].textContent = player.player_id;
+            playerNames[domIdx].textContent = `${player.player_id} - ${player.num_points} pts`
         });
     }
     else {
