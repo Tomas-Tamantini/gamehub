@@ -1,6 +1,6 @@
 import socket_service from "../../socket_service.js";
 import { login, logout, playerIdKey } from "./auth_service.js";
-import { authBtn, joinGameBtn, statusArea } from "./dom.js";
+import { authBtn, joinGameBtn, makeMoveBtn, selectedCardsIndices } from "./dom.js";
 import state_store from "./state_store.js";
 
 const playerId = localStorage.getItem(playerIdKey);
@@ -24,6 +24,13 @@ authBtn.addEventListener('click', () => {
 
 joinGameBtn.addEventListener('click', () => {
     socket_service.joinGame(state_store.state.playerId, 'chinese_poker');
+});
+
+makeMoveBtn.addEventListener('click', () => {
+    const cardIndices = selectedCardsIndices();
+    const state = state_store.state;
+    const cards = cardIndices.map(index => state.myCards[index]);
+    socket_service.makeMove(state.playerId, state.roomId, { cards });
 });
 
 
@@ -75,6 +82,12 @@ socket_service.subscribe(msg => {
                         "Make your move" :
                         `Awaiting ${sharedView.current_player_id}'s move`;
                     return { ...state, statusMsg }
+                })
+            }
+            else if (sharedView.status == "END_TURN") {
+                state_store.action(state => {
+                    const statusMsg = `Player ${sharedView.current_player_id} ended their turn`;
+                    return { ...state, players: sharedView.players, statusMsg }
                 })
             }
         }

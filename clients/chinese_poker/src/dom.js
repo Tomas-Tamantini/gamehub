@@ -11,3 +11,7 @@ export const opponentCards = Array.from([1, 2, 3], (i) =>
 export const myCardsContainer = document.getElementById('my-cards');
 export const dealer = document.getElementById('dealer');
 export const makeMoveBtn = document.getElementById('make-move-button');
+export function selectedCardsIndices() {
+    const selectedCards = Array.from(document.getElementsByClassName('selected'));
+    return selectedCards.map(card => parseInt(card.dataset.index));
+}
