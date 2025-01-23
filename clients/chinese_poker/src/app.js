@@ -108,6 +108,12 @@ socket_service.subscribe(msg => {
                     return { ...state, players: sharedView.players, statusMsg, currentPlayerId: sharedView.current_player_id, myCards: [] }
                 })
             }
+            else if (sharedView.status == "END_GAME") {
+                state_store.action(state => {
+                    const statusMsg = "Game over";
+                    return { ...state, players: sharedView.players, statusMsg, currentPlayerId: sharedView.current_player_id, myCards: [] }
+                })
+            }
         }
         const private_view = msg.payload.private_view;
         if (private_view) {
