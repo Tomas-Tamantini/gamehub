@@ -53,6 +53,15 @@ class ChinesePokerGameLogic:
             and state.smallest_card() not in move.cards
         ):
             raise InvalidMoveError("First player of the match must use smallest card")
+        hand_to_beat = state.hand_to_beat()
+        if (
+            hand_to_beat
+            and not move.is_pass
+            and len(move.cards) != len(hand_to_beat.cards)
+        ):
+            raise InvalidMoveError(
+                "Must use the same number of cards as the hand to beat"
+            )
         else:
             return ChinesePokerState(
                 status=ChinesePokerStatus.END_TURN,

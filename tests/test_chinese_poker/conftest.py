@@ -69,13 +69,17 @@ def first_move(moves_first_round):
     return moves_first_round[0]
 
 
-def _make_moves(state, moves, game_logic):
-    current_state = state
-    for move in moves:
-        while current_state.status != ChinesePokerStatus.AWAIT_PLAYER_ACTION:
-            current_state = game_logic.next_automated_state(current_state)
-        current_state = game_logic.make_move(current_state, move)
-    return current_state
+@pytest.fixture
+def make_moves(game_logic):
+    def _make_moves(state, moves):
+        current_state = state
+        for move in moves:
+            while current_state.status != ChinesePokerStatus.AWAIT_PLAYER_ACTION:
+                current_state = game_logic.next_automated_state(current_state)
+            current_state = game_logic.make_move(current_state, move)
+        return current_state
+
+    return _make_moves
 
 
 @pytest.fixture
@@ -139,8 +143,8 @@ def end_turn(game_logic, await_action, first_move):
 
 
 @pytest.fixture
-def end_last_turn(game_logic, await_action, moves_first_round):
-    return _make_moves(await_action, moves_first_round, game_logic)
+def end_last_turn(await_action, moves_first_round, make_moves):
+    return make_moves(await_action, moves_first_round)
 
 
 @pytest.fixture
@@ -149,8 +153,8 @@ def end_round(game_logic, end_last_turn):
 
 
 @pytest.fixture
-def end_last_turn_of_match(game_logic, await_action, moves_first_match):
-    return _make_moves(await_action, moves_first_match, game_logic)
+def end_last_turn_of_match(await_action, moves_first_match, make_moves):
+    return make_moves(await_action, moves_first_match)
 
 
 @pytest.fixture

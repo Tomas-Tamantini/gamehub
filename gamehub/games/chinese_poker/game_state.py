@@ -83,3 +83,8 @@ class ChinesePokerState:
 
     def smallest_card(self) -> PlayingCard:
         return min((player.smallest_card() for player in self.players), key=card_value)
+
+    def hand_to_beat(self) -> Optional[ChinesePokerMove]:
+        for move in reversed(self.move_history):
+            if not move.is_pass:
+                return move

@@ -67,3 +67,14 @@ def test_first_player_of_the_match_must_use_smallest_card(
         game_logic.make_move(
             await_action, ChinesePokerMove(player_id="Diana", cards=(parse_hand("4c")))
         )
+
+
+def test_player_must_use_same_number_of_cards_as_hand_to_beat(
+    await_action, parse_hand, make_moves
+):
+    moves = [
+        ChinesePokerMove(player_id="Diana", cards=(parse_hand("3d"))),
+        ChinesePokerMove(player_id="Alice", cards=(parse_hand("5d 5h"))),
+    ]
+    with pytest.raises(InvalidMoveError, match="Must use the same number of cards"):
+        make_moves(await_action, moves)
