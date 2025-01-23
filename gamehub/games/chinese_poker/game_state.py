@@ -6,7 +6,9 @@ from gamehub.games.chinese_poker.move import ChinesePokerMove
 from gamehub.games.chinese_poker.player import ChinesePokerPlayer
 from gamehub.games.chinese_poker.status import ChinesePokerStatus
 from gamehub.games.chinese_poker.views import (
+    ChinesePokerPlayerResult,
     ChinesePokerPrivateView,
+    ChinesePokerResult,
     ChinesePokerSharedView,
 )
 from gamehub.games.playing_cards import PlayingCard
@@ -55,6 +57,7 @@ class ChinesePokerState:
             players=map(lambda player: player.shared_view(), self.players),
             current_player_id=self.current_player_id(),
             move_history=self.move_history,
+            result=self._result(),
         )
 
     def max_points(self) -> int:
@@ -88,3 +91,17 @@ class ChinesePokerState:
         for move in reversed(self.move_history):
             if not move.is_pass:
                 return move
+
+    def _player_results(self) -> Iterator[ChinesePokerPlayerResult]:
+        avg_points = sum(player.num_points for player in self.players) / len(
+            self.players
+        )
+        for player in self.players:
+            yield ChinesePokerPlayerResult(
+                player_id=player.player_id,
+                dist_to_avg=player.num_points - avg_points,
+            )
+
+    def _result(self) -> Optional[ChinesePokerResult]:
+        if self.status == ChinesePokerStatus.END_GAME:
+            return ChinesePokerResult(players=list(self._player_results()))

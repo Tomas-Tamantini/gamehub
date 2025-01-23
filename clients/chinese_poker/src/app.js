@@ -110,7 +110,7 @@ socket_service.subscribe(msg => {
             }
             else if (sharedView.status == "END_GAME") {
                 state_store.action(state => {
-                    const statusMsg = "Game over";
+                    const statusMsg = `Game over. Results: ${sharedView.result.players.map(p => `${p.player_id}: ${p.dist_to_avg}`).join(' / ')}`;
                     return { ...state, players: sharedView.players, statusMsg, currentPlayerId: sharedView.current_player_id, myCards: [] }
                 })
             }
