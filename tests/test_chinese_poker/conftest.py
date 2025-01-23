@@ -37,19 +37,19 @@ def moves_first_match():
         ChinesePokerMove(player_id="Alice", cards=_parse_hand("3s 4h 5d 6s 7d")),
         ChinesePokerMove(player_id="Bob", cards=_parse_hand("5c 6c 7c 8c Jc")),
         ChinesePokerMove(player_id="Charlie", cards=_parse_hand("4s 9s Ts Js As")),
-        ChinesePokerMove(player_id="Dean", cards=_parse_hand("")),
+        ChinesePokerMove(player_id="Diana", cards=_parse_hand("")),
         ChinesePokerMove(player_id="Alice", cards=_parse_hand("")),
         ChinesePokerMove(player_id="Bob", cards=_parse_hand("")),
         ChinesePokerMove(player_id="Charlie", cards=_parse_hand("3h 3c")),
-        ChinesePokerMove(player_id="Dean", cards=_parse_hand("8h 8s")),
+        ChinesePokerMove(player_id="Diana", cards=_parse_hand("8h 8s")),
         ChinesePokerMove(player_id="Alice", cards=_parse_hand("Qh Qs")),
         ChinesePokerMove(player_id="Bob", cards=_parse_hand("")),
         ChinesePokerMove(player_id="Charlie", cards=_parse_hand("")),
-        ChinesePokerMove(player_id="Dean", cards=_parse_hand("")),
+        ChinesePokerMove(player_id="Diana", cards=_parse_hand("")),
         ChinesePokerMove(player_id="Alice", cards=_parse_hand("5h")),
         ChinesePokerMove(player_id="Bob", cards=_parse_hand("2d")),
         ChinesePokerMove(player_id="Charlie", cards=_parse_hand("2h")),
-        ChinesePokerMove(player_id="Dean", cards=_parse_hand("2c")),
+        ChinesePokerMove(player_id="Diana", cards=_parse_hand("2c")),
     ]
 
 

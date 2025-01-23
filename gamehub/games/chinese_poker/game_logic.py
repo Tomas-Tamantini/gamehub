@@ -42,6 +42,8 @@ class ChinesePokerGameLogic:
     ) -> ChinesePokerState:
         if state.status != ChinesePokerStatus.AWAIT_PLAYER_ACTION:
             raise InvalidMoveError("Cannot make move at this time")
+        elif state.current_player_id() != move.player_id:
+            raise InvalidMoveError("It is not your turn")
         else:
             return ChinesePokerState(
                 status=ChinesePokerStatus.END_TURN,

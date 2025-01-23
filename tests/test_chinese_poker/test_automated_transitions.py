@@ -86,7 +86,7 @@ def test_end_match_transitions_to_update_points(game_logic, end_match):
 
 
 def test_points_are_updated_after_match_end(update_points):
-    expected_points = [0, 7, 5, 8]
+    expected_points = [0, 7, 5, 5]
     assert [
         player.num_points for player in update_points.shared_view().players
     ] == expected_points

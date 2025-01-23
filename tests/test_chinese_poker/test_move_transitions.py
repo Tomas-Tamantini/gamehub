@@ -1,6 +1,7 @@
 import pytest
 
 from gamehub.core.exceptions import InvalidMoveError
+from gamehub.games.chinese_poker import ChinesePokerMove
 from gamehub.games.chinese_poker.status import ChinesePokerStatus
 
 
@@ -35,3 +36,10 @@ def test_move_history_is_updated_after_valid_move(game_logic, await_action, firs
     next_state = game_logic.make_move(await_action, first_move)
     shared_view = next_state.shared_view()
     assert shared_view.move_history == (first_move,)
+
+
+def test_player_cannot_play_out_of_turn(game_logic, await_action):
+    with pytest.raises(InvalidMoveError, match="not your turn"):
+        game_logic.make_move(
+            await_action, ChinesePokerMove(player_id="Alice", cards=())
+        )
