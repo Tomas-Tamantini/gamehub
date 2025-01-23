@@ -45,6 +45,14 @@ def test_player_cannot_play_out_of_turn(game_logic, await_action):
         )
 
 
+def test_player_cannot_use_cards_they_do_not_own(game_logic, await_action, parse_hand):
+    with pytest.raises(InvalidMoveError, match="do not have those cards"):
+        game_logic.make_move(
+            await_action,
+            ChinesePokerMove(player_id="Diana", cards=(parse_hand("3d 3s"))),
+        )
+
+
 def test_first_player_of_the_round_cannot_pass(game_logic, await_action):
     with pytest.raises(InvalidMoveError, match="cannot pass"):
         game_logic.make_move(

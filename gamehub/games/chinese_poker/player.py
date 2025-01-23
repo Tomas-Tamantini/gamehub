@@ -42,6 +42,9 @@ class ChinesePokerPlayer:
     def smallest_card(self) -> PlayingCard:
         return min(self.cards, key=card_value)
 
+    def has_cards(self, cards: tuple[PlayingCard, ...]) -> bool:
+        return all(card in self.cards for card in cards)
+
 
 def player_initial_state(player_id: str) -> ChinesePokerPlayer:
     return ChinesePokerPlayer(player_id=player_id, num_points=0, cards=tuple())

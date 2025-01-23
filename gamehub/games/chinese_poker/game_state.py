@@ -41,9 +41,13 @@ class ChinesePokerState:
             key=lambda idx: card_value(self.players[idx].smallest_card()),
         )
 
-    def current_player_id(self) -> Optional[str]:
+    def current_player(self) -> Optional[ChinesePokerPlayer]:
         if self.current_player_idx >= 0:
-            return self.players[self.current_player_idx].player_id
+            return self.players[self.current_player_idx]
+
+    def current_player_id(self) -> Optional[str]:
+        if current_player := self.current_player():
+            return current_player.player_id
 
     def shared_view(self) -> ChinesePokerSharedView:
         return ChinesePokerSharedView(
