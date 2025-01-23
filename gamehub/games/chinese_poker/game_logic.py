@@ -3,6 +3,7 @@ from typing import Optional
 from gamehub.core.exceptions import InvalidMoveError
 from gamehub.games.chinese_poker.configuration import ChinesePokerConfiguration
 from gamehub.games.chinese_poker.game_state import ChinesePokerState
+from gamehub.games.chinese_poker.hand_value import hand_value
 from gamehub.games.chinese_poker.move import ChinesePokerMove
 from gamehub.games.chinese_poker.player import player_initial_state
 from gamehub.games.chinese_poker.status import ChinesePokerStatus
@@ -62,13 +63,21 @@ class ChinesePokerGameLogic:
             raise InvalidMoveError(
                 "Must use the same number of cards as the hand to beat"
             )
-        else:
-            return ChinesePokerState(
-                status=ChinesePokerStatus.END_TURN,
-                players=tuple(ChinesePokerGameLogic._players_after_move(state, move)),
-                current_player_idx=state.current_player_idx,
-                move_history=state.move_history + (move,),
-            )
+        if not move.is_pass:
+            try:
+                move_value = hand_value(move.cards)
+            except ValueError as e:
+                raise InvalidMoveError(str(e))
+
+            if hand_to_beat and move_value <= hand_value(hand_to_beat.cards):
+                raise InvalidMoveError("Hand does not beat previous hand")
+
+        return ChinesePokerState(
+            status=ChinesePokerStatus.END_TURN,
+            players=tuple(ChinesePokerGameLogic._players_after_move(state, move)),
+            current_player_idx=state.current_player_idx,
+            move_history=state.move_history + (move,),
+        )
 
     def next_automated_state(
         self, state: ChinesePokerState

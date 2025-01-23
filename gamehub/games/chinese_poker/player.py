@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 
-from gamehub.games.chinese_poker.card_value import card_value
+from gamehub.games.chinese_poker.hand_value import card_value
 from gamehub.games.chinese_poker.views import ChinesePokerPlayerSharedView
 from gamehub.games.playing_cards import PlayingCard
 

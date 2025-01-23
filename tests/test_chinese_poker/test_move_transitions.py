@@ -78,3 +78,21 @@ def test_player_must_use_same_number_of_cards_as_hand_to_beat(
     ]
     with pytest.raises(InvalidMoveError, match="Must use the same number of cards"):
         make_moves(await_action, moves)
+
+
+def test_player_must_play_valid_hand(game_logic, await_action, parse_hand):
+    with pytest.raises(InvalidMoveError, match="Invalid hand"):
+        game_logic.make_move(
+            await_action,
+            ChinesePokerMove(player_id="Diana", cards=(parse_hand("3d 4c"))),
+        )
+
+
+def test_player_must_beat_previous_hand(await_action, parse_hand, make_moves):
+    moves = [
+        ChinesePokerMove(player_id="Diana", cards=(parse_hand("3d"))),
+        ChinesePokerMove(player_id="Alice", cards=(parse_hand("Kc"))),
+        ChinesePokerMove(player_id="Bob", cards=(parse_hand("Ks"))),
+    ]
+    with pytest.raises(InvalidMoveError, match="does not beat previous hand"):
+        make_moves(await_action, moves)
