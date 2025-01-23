@@ -1,5 +1,6 @@
 from dataclasses import dataclass
 
+from gamehub.games.chinese_poker.card_value import card_value
 from gamehub.games.chinese_poker.views import ChinesePokerPlayerSharedView
 from gamehub.games.playing_cards import PlayingCard
 
@@ -37,6 +38,9 @@ class ChinesePokerPlayer:
             num_points=self.num_points + len(self.cards),
             cards=tuple(),
         )
+
+    def smallest_card(self) -> PlayingCard:
+        return min(self.cards, key=card_value)
 
 
 def player_initial_state(player_id: str) -> ChinesePokerPlayer:

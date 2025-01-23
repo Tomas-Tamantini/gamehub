@@ -9,6 +9,7 @@ from gamehub.games.chinese_poker.views import (
     ChinesePokerPrivateView,
     ChinesePokerSharedView,
 )
+from gamehub.games.playing_cards import PlayingCard
 
 
 @dataclass(frozen=True)
@@ -37,7 +38,7 @@ class ChinesePokerState:
     def idx_of_player_with_smallest_card(self) -> int:
         return min(
             range(len(self.players)),
-            key=lambda idx: min(card_value(card) for card in self.players[idx].cards),
+            key=lambda idx: card_value(self.players[idx].smallest_card()),
         )
 
     def current_player_id(self) -> Optional[str]:
@@ -72,3 +73,9 @@ class ChinesePokerState:
 
     def is_terminal(self) -> bool:
         return self.status == ChinesePokerStatus.END_GAME
+
+    def is_first_turn_of_match(self, num_cards_per_player) -> bool:
+        return all(len(player.cards) == num_cards_per_player for player in self.players)
+
+    def smallest_card(self) -> PlayingCard:
+        return min((player.smallest_card() for player in self.players), key=card_value)

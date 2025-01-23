@@ -50,3 +50,12 @@ def test_first_player_of_the_round_cannot_pass(game_logic, await_action):
         game_logic.make_move(
             await_action, ChinesePokerMove(player_id="Diana", cards=())
         )
+
+
+def test_first_player_of_the_match_must_use_smallest_card(
+    game_logic, await_action, parse_hand
+):
+    with pytest.raises(InvalidMoveError, match="must use smallest card"):
+        game_logic.make_move(
+            await_action, ChinesePokerMove(player_id="Diana", cards=(parse_hand("4c")))
+        )

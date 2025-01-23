@@ -36,9 +36,8 @@ class ChinesePokerGameLogic:
             else:
                 yield player
 
-    @staticmethod
     def make_move(
-        state: ChinesePokerState, move: ChinesePokerMove
+        self, state: ChinesePokerState, move: ChinesePokerMove
     ) -> ChinesePokerState:
         if state.status != ChinesePokerStatus.AWAIT_PLAYER_ACTION:
             raise InvalidMoveError("Cannot make move at this time")
@@ -46,6 +45,11 @@ class ChinesePokerGameLogic:
             raise InvalidMoveError("It is not your turn")
         elif move.is_pass and not state.move_history:
             raise InvalidMoveError("First player of the round cannot pass")
+        elif (
+            state.is_first_turn_of_match(self._configuration.cards_per_player)
+            and state.smallest_card() not in move.cards
+        ):
+            raise InvalidMoveError("First player of the match must use smallest card")
         else:
             return ChinesePokerState(
                 status=ChinesePokerStatus.END_TURN,
