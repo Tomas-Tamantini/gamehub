@@ -119,7 +119,13 @@ class ChinesePokerGameLogic:
                 players=tuple(p.increment_points() for p in state.players),
             )
         elif state.status == ChinesePokerStatus.UPDATE_POINTS:
-            return ChinesePokerState(
-                status=ChinesePokerStatus.START_MATCH,
-                players=state.players,
-            )
+            if state.max_points() < self._configuration.game_over_point_threshold:
+                return ChinesePokerState(
+                    status=ChinesePokerStatus.START_MATCH,
+                    players=state.players,
+                )
+            else:
+                return ChinesePokerState(
+                    status=ChinesePokerStatus.END_GAME,
+                    players=state.players,
+                )

@@ -34,7 +34,9 @@ def game_manager(event_bus: EventBus) -> RoomManager:
             GameRoom(
                 room_id=3,
                 game_logic=ChinesePokerGameLogic(
-                    ChinesePokerConfiguration(num_players=2, cards_per_player=13)
+                    ChinesePokerConfiguration(
+                        num_players=2, cards_per_player=13, game_over_point_threshold=15
+                    )
                 ),
                 move_parser=ChinesePokerMove.model_validate,
                 event_bus=event_bus,

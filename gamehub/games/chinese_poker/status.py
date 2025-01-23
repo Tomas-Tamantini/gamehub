@@ -12,3 +12,4 @@ class ChinesePokerStatus(Enum):
     END_ROUND = "END_ROUND"
     END_MATCH = "END_MATCH"
     UPDATE_POINTS = "UPDATE_POINTS"
+    END_GAME = "END_GAME"

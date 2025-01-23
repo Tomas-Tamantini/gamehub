@@ -99,6 +99,13 @@ def test_update_points_transitions_to_start_match_if_not_end_game(
     assert start_match.shared_view().status == ChinesePokerStatus.START_MATCH
 
 
+def test_update_points_transitions_to_end_game_if_some_player_reached_point_threshold(
+    game_logic, last_points_update
+):
+    end_game = game_logic.next_automated_state(last_points_update)
+    assert end_game.shared_view().status == ChinesePokerStatus.END_GAME
+
+
 def test_cards_are_reset_after_match_end(update_points):
     assert all(player.num_cards == 0 for player in update_points.shared_view().players)
 

@@ -52,6 +52,9 @@ class ChinesePokerState:
             move_history=self.move_history,
         )
 
+    def max_points(self) -> int:
+        return max(player.num_points for player in self.players)
+
     def _players_to_send_private_view(self) -> Iterator[ChinesePokerPlayer]:
         if self.status == ChinesePokerStatus.DEAL_CARDS:
             yield from self.players

@@ -74,7 +74,9 @@ def _make_moves(state, moves, game_logic):
 
 @pytest.fixture
 def default_config():
-    return ChinesePokerConfiguration(num_players=4, cards_per_player=13)
+    return ChinesePokerConfiguration(
+        num_players=4, cards_per_player=13, game_over_point_threshold=25
+    )
 
 
 @pytest.fixture
@@ -158,3 +160,15 @@ def end_match(game_logic, end_last_round):
 @pytest.fixture
 def update_points(game_logic, end_match):
     return game_logic.next_automated_state(end_match)
+
+
+@pytest.fixture
+def last_points_update(player_ids):
+    points = [11, 13, 25, 17]
+    return ChinesePokerState(
+        status=ChinesePokerStatus.UPDATE_POINTS,
+        players=[
+            ChinesePokerPlayer(player_id=player_id, num_points=num_points, cards=())
+            for player_id, num_points in zip(player_ids, points)
+        ],
+    )
