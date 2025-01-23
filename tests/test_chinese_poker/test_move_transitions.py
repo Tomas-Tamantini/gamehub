@@ -43,3 +43,10 @@ def test_player_cannot_play_out_of_turn(game_logic, await_action):
         game_logic.make_move(
             await_action, ChinesePokerMove(player_id="Alice", cards=())
         )
+
+
+def test_first_player_of_the_round_cannot_pass(game_logic, await_action):
+    with pytest.raises(InvalidMoveError, match="cannot pass"):
+        game_logic.make_move(
+            await_action, ChinesePokerMove(player_id="Diana", cards=())
+        )

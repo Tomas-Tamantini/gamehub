@@ -44,6 +44,8 @@ class ChinesePokerGameLogic:
             raise InvalidMoveError("Cannot make move at this time")
         elif state.current_player_id() != move.player_id:
             raise InvalidMoveError("It is not your turn")
+        elif move.is_pass and not state.move_history:
+            raise InvalidMoveError("First player of the round cannot pass")
         else:
             return ChinesePokerState(
                 status=ChinesePokerStatus.END_TURN,
