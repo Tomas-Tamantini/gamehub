@@ -71,5 +71,4 @@ class ChinesePokerState:
             )
 
     def is_terminal(self) -> bool:
-        # TODO: Implement
-        return False
+        return self.status == ChinesePokerStatus.END_GAME

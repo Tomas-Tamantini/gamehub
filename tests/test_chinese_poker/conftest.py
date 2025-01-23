@@ -172,3 +172,8 @@ def last_points_update(player_ids):
             for player_id, num_points in zip(player_ids, points)
         ],
     )
+
+
+@pytest.fixture
+def end_game(game_logic, last_points_update):
+    return game_logic.next_automated_state(last_points_update)

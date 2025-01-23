@@ -3,7 +3,9 @@ import pytest
 from gamehub.games.chinese_poker.status import ChinesePokerStatus
 
 
-@pytest.mark.parametrize("state", ["start_game", "start_match", "start_round"])
+@pytest.mark.parametrize(
+    "state", ["start_game", "start_match", "start_round", "end_game"]
+)
 def test_state_doesnt_have_private_views(request, state):
     state = request.getfixturevalue(state)
     assert not list(state.private_views())
@@ -52,3 +54,13 @@ def test_state_doesnt_have_current_player(request, state):
 def test_state_has_current_player(request, state):
     state = request.getfixturevalue(state)
     assert state.shared_view().current_player_id == "Diana"
+
+
+@pytest.mark.parametrize("state", ["start_round", "start_turn", "await_action"])
+def test_state_is_not_terminal_if_not_game_over(request, state):
+    state = request.getfixturevalue(state)
+    assert not state.is_terminal()
+
+
+def test_state_is_terminal_if_game_over(request, end_game):
+    assert end_game.is_terminal()
