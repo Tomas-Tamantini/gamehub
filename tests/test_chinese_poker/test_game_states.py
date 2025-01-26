@@ -4,7 +4,19 @@ from gamehub.games.chinese_poker.status import ChinesePokerStatus
 
 
 @pytest.mark.parametrize(
-    "state", ["start_game", "start_match", "start_round", "end_game"]
+    "state",
+    [
+        "start_game",
+        "start_match",
+        "start_round",
+        "start_turn",
+        "end_round",
+        "end_last_round",
+        "end_match",
+        "update_points",
+        "last_points_update",
+        "end_game",
+    ],
 )
 def test_state_doesnt_have_private_views(request, state):
     state = request.getfixturevalue(state)
@@ -44,16 +56,18 @@ def test_player_receives_their_private_cards_after_their_turn(
     assert view.status == ChinesePokerStatus.END_TURN
 
 
-@pytest.mark.parametrize("state", ["start_game", "start_match", "deal_cards"])
-def test_state_doesnt_have_current_player(request, state):
-    state = request.getfixturevalue(state)
-    assert state.shared_view().current_player_id is None
-
-
-@pytest.mark.parametrize("state", ["start_round", "start_turn", "await_action"])
-def test_state_has_current_player(request, state):
+@pytest.mark.parametrize(
+    "state", ["start_round", "start_turn", "await_action", "end_turn"]
+)
+def test_state_maintains_current_player(request, state):
     state = request.getfixturevalue(state)
     assert state.shared_view().current_player_id == "Diana"
+
+
+@pytest.mark.parametrize("state", ["end_round"])
+def test_state_increments_current_player(request, state):
+    state = request.getfixturevalue(state)
+    assert state.shared_view().current_player_id == "Alice"
 
 
 @pytest.mark.parametrize("state", ["start_round", "start_turn", "await_action"])
