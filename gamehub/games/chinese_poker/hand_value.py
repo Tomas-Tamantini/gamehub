@@ -38,7 +38,7 @@ def _last_card_in_straight(cards: set[PlayingCard]) -> Optional[PlayingCard]:
         return sorted_cards[2]
 
 
-def _pair_and_three_of_a_kind_hand_value(cards: set[PlayingCard]) -> int:
+def _high_card_to_three_of_a_kink_value(cards: set[PlayingCard]) -> int:
     num_ranks = len({card.rank for card in cards})
     if num_ranks == 1:
         return max(card_value(card) for card in cards)
@@ -89,10 +89,8 @@ def _five_card_hand_value(cards: set[PlayingCard]) -> tuple[int, ...]:
 
 def hand_value(hand: tuple[PlayingCard, ...]) -> tuple[int, ...]:
     cards = set(hand)
-    if len(cards) == 1:
-        return (card_value(next(iter(cards))),)
-    elif 2 <= len(cards) <= 3:
-        return (_pair_and_three_of_a_kind_hand_value(cards),)
+    if 1 <= len(cards) <= 3:
+        return (_high_card_to_three_of_a_kink_value(cards),)
     elif len(cards) == 5:
         return _five_card_hand_value(cards)
     else:
