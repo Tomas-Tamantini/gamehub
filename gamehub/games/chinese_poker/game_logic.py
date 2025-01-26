@@ -121,7 +121,6 @@ class ChinesePokerGameLogic:
                     status=ChinesePokerStatus.END_ROUND,
                     players=state.players,
                     current_player_idx=state.next_player_idx(),
-                    move_history=state.move_history,
                 )
             else:
                 return ChinesePokerState(

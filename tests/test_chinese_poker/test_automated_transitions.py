@@ -34,42 +34,6 @@ def test_state_does_not_transition_automatically(request, game_logic, state):
     assert game_logic.next_automated_state(no_transition) is None
 
 
-def test_each_player_receives_dealt_cards(game_logic, start_match):
-    deal_cards = game_logic.next_automated_state(start_match)
-    assert all(len(player.cards) == 13 for player in deal_cards.players)
-
-
-def test_players_receive_cards_without_repetition(game_logic, start_match):
-    deal_cards = game_logic.next_automated_state(start_match)
-    cards = {card for player in deal_cards.players for card in player.cards}
-    assert len(cards) == 52
-
-
-def test_end_turn_increments_turn_if_not_round_end(game_logic, end_turn):
-    start_turn = game_logic.next_automated_state(end_turn)
-    assert start_turn.shared_view().current_player_id == "Alice"
-
-
-def test_player_who_won_last_round_starts_next_one(game_logic, end_last_turn):
-    end_round = game_logic.next_automated_state(end_last_turn)
-    assert end_round.shared_view().current_player_id == "Alice"
-
-
-def test_points_are_updated_after_match_end(update_points):
-    expected_points = [0, 7, 5, 5]
-    assert [
-        player.num_points for player in update_points.shared_view().players
-    ] == expected_points
-
-
-def test_cards_are_reset_after_match_end(update_points):
-    assert all(player.num_cards == 0 for player in update_points.shared_view().players)
-
-
-def test_player_with_the_smallest_card_starts_first_round(start_round):
-    assert start_round.current_player_id() == "Diana"
-
-
 @pytest.mark.parametrize(
     "state_before",
     [
@@ -81,8 +45,10 @@ def test_player_with_the_smallest_card_starts_first_round(start_round):
         "end_turn",
         "end_last_turn",
         "end_round",
+        "end_last_round",
         "end_match",
         "update_points",
+        "last_points_update",
     ],
 )
 def test_transition_preserves_players_order(request, game_logic, state_before):
@@ -105,10 +71,12 @@ def test_transition_preserves_players_order(request, game_logic, state_before):
         "end_turn",
         "end_last_turn",
         "end_round",
+        "end_last_round",
         "update_points",
+        "last_points_update",
     ],
 )
-def test_transition_preserves_players_num_points(request, game_logic, state_before):
+def test_transition_preserves_players_points(request, game_logic, state_before):
     state_before = request.getfixturevalue(state_before)
     next_state = game_logic.next_automated_state(state_before)
     assert all(
@@ -118,15 +86,30 @@ def test_transition_preserves_players_num_points(request, game_logic, state_befo
 
 
 @pytest.mark.parametrize(
+    ("state_before", "expected_increment"),
+    [("end_match", [0, 7, 5, 5])],
+)
+def test_transition_increments_players_points(
+    request, game_logic, state_before, expected_increment
+):
+    state_before = request.getfixturevalue(state_before)
+    next_state = game_logic.next_automated_state(state_before)
+    assert [
+        after.num_points - before.num_points
+        for before, after in zip(state_before.players, next_state.players)
+    ] == expected_increment
+
+
+@pytest.mark.parametrize(
     "state_before",
     [
-        "start_game",
         "deal_cards",
         "start_round",
         "start_turn",
         "end_turn",
         "end_last_turn",
         "end_round",
+        "end_last_round",
     ],
 )
 def test_transition_preserves_players_cards(request, game_logic, state_before):
@@ -140,30 +123,12 @@ def test_transition_preserves_players_cards(request, game_logic, state_before):
 
 @pytest.mark.parametrize(
     "state_before",
-    ["start_game", "start_match", "end_match", "update_points"],
+    ["start_game", "end_match", "update_points", "last_points_update"],
 )
-def test_transition_resets_current_turn(request, game_logic, state_before):
+def test_transition_resets_players_cards(request, game_logic, state_before):
     state_before = request.getfixturevalue(state_before)
     next_state = game_logic.next_automated_state(state_before)
-    assert next_state.current_player_id() is None
-
-
-@pytest.mark.parametrize(
-    "state_before",
-    [
-        "start_game",
-        "start_match",
-        "deal_cards",
-        "start_round",
-        "end_round",
-        "end_match",
-        "update_points",
-    ],
-)
-def test_transition_resets_move_history(request, game_logic, state_before):
-    state_before = request.getfixturevalue(state_before)
-    next_state = game_logic.next_automated_state(state_before)
-    assert not next_state.move_history
+    assert all(len(player.cards) == 0 for player in next_state.players)
 
 
 @pytest.mark.parametrize("state_before", ["start_round", "start_turn", "end_round"])
@@ -173,8 +138,68 @@ def test_transition_preserves_current_turn(request, game_logic, state_before):
     assert state_before.current_player_id() == next_state.current_player_id()
 
 
-@pytest.mark.parametrize("state_before", ["start_turn", "end_turn", "end_last_turn"])
+@pytest.mark.parametrize("state_before", ["end_turn", "end_last_turn"])
+def test_transition_increments_current_turn(request, game_logic, state_before):
+    state_before = request.getfixturevalue(state_before)
+    next_state = game_logic.next_automated_state(state_before)
+    assert next_state.current_player_idx == (state_before.current_player_idx + 1) % 4
+
+
+@pytest.mark.parametrize(
+    "state_before",
+    [
+        "start_game",
+        "start_match",
+        "end_last_round",
+        "end_match",
+        "update_points",
+        "last_points_update",
+    ],
+)
+def test_transition_resets_current_turn(request, game_logic, state_before):
+    state_before = request.getfixturevalue(state_before)
+    next_state = game_logic.next_automated_state(state_before)
+    assert next_state.current_player_id() is None
+
+
+@pytest.mark.parametrize("state_before", ["start_turn", "end_turn"])
 def test_transition_preserves_move_history(request, game_logic, state_before):
     state_before = request.getfixturevalue(state_before)
     next_state = game_logic.next_automated_state(state_before)
     assert state_before.move_history == next_state.move_history
+
+
+@pytest.mark.parametrize(
+    "state_before",
+    [
+        "start_game",
+        "start_match",
+        "deal_cards",
+        "start_round",
+        "end_last_turn",
+        "end_round",
+        "end_last_round",
+        "end_match",
+        "update_points",
+        "last_points_update",
+    ],
+)
+def test_transition_resets_move_history(request, game_logic, state_before):
+    state_before = request.getfixturevalue(state_before)
+    next_state = game_logic.next_automated_state(state_before)
+    assert not next_state.move_history
+
+
+def test_each_player_receives_dealt_cards(game_logic, start_match):
+    deal_cards = game_logic.next_automated_state(start_match)
+    assert all(len(player.cards) == 13 for player in deal_cards.players)
+
+
+def test_players_receive_cards_without_repetition(game_logic, start_match):
+    deal_cards = game_logic.next_automated_state(start_match)
+    cards = {card for player in deal_cards.players for card in player.cards}
+    assert len(cards) == 52
+
+
+def test_player_with_the_smallest_card_starts_first_round(start_round):
+    assert start_round.current_player_id() == "Diana"
