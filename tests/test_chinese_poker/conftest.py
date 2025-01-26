@@ -22,6 +22,13 @@ def parse_hand(parse_card) -> tuple[PlayingCard, ...]:
 
 
 @pytest.fixture
+def parse_move(parse_hand) -> ChinesePokerMove:
+    return lambda player_id, cards: ChinesePokerMove(
+        player_id=player_id, cards=parse_hand(cards)
+    )
+
+
+@pytest.fixture
 def initial_cards(parse_hand):
     hands_str = {
         "Alice": "3s 4h 5d 5h 6s 7d 9d 9c Qh Qs Kd Kh Kc",
@@ -33,30 +40,31 @@ def initial_cards(parse_hand):
 
 
 @pytest.fixture
-def moves_first_match(parse_hand):
-    return [
-        ChinesePokerMove(player_id="Diana", cards=parse_hand("3d 4c 5s 6d 7h")),
-        ChinesePokerMove(player_id="Alice", cards=parse_hand("9d 9c Kd Kh Kc")),
-        ChinesePokerMove(player_id="Bob", cards=parse_hand("")),
-        ChinesePokerMove(player_id="Charlie", cards=parse_hand("")),
-        ChinesePokerMove(player_id="Diana", cards=parse_hand("")),
-        ChinesePokerMove(player_id="Alice", cards=parse_hand("3s 4h 5d 6s 7d")),
-        ChinesePokerMove(player_id="Bob", cards=parse_hand("5c 6c 7c 8c Jc")),
-        ChinesePokerMove(player_id="Charlie", cards=parse_hand("4s 9s Ts Js As")),
-        ChinesePokerMove(player_id="Diana", cards=parse_hand("")),
-        ChinesePokerMove(player_id="Alice", cards=parse_hand("")),
-        ChinesePokerMove(player_id="Bob", cards=parse_hand("")),
-        ChinesePokerMove(player_id="Charlie", cards=parse_hand("3h 3c")),
-        ChinesePokerMove(player_id="Diana", cards=parse_hand("8h 8s")),
-        ChinesePokerMove(player_id="Alice", cards=parse_hand("Qh Qs")),
-        ChinesePokerMove(player_id="Bob", cards=parse_hand("")),
-        ChinesePokerMove(player_id="Charlie", cards=parse_hand("")),
-        ChinesePokerMove(player_id="Diana", cards=parse_hand("")),
-        ChinesePokerMove(player_id="Alice", cards=parse_hand("5h")),
-        ChinesePokerMove(player_id="Bob", cards=parse_hand("2d")),
-        ChinesePokerMove(player_id="Charlie", cards=parse_hand("2h")),
-        ChinesePokerMove(player_id="Diana", cards=parse_hand("2c")),
-    ]
+def moves_first_match(parse_move):
+    moves = (
+        ("Diana", "3d 4c 5s 6d 7h"),
+        ("Alice", "9d 9c Kd Kh Kc"),
+        ("Bob", ""),
+        ("Charlie", ""),
+        ("Diana", ""),
+        ("Alice", "3s 4h 5d 6s 7d"),
+        ("Bob", "5c 6c 7c 8c Jc"),
+        ("Charlie", "4s 9s Ts Js As"),
+        ("Diana", ""),
+        ("Alice", ""),
+        ("Bob", ""),
+        ("Charlie", "3h 3c"),
+        ("Diana", "8h 8s"),
+        ("Alice", "Qh Qs"),
+        ("Bob", ""),
+        ("Charlie", ""),
+        ("Diana", ""),
+        ("Alice", "5h"),
+        ("Bob", "2d"),
+        ("Charlie", "2h"),
+        ("Diana", "2c"),
+    )
+    return [parse_move(*move) for move in moves]
 
 
 @pytest.fixture
@@ -67,6 +75,11 @@ def moves_first_round(moves_first_match):
 @pytest.fixture
 def first_move(moves_first_round):
     return moves_first_round[0]
+
+
+@pytest.fixture
+def second_move(moves_first_round):
+    return moves_first_round[1]
 
 
 @pytest.fixture
