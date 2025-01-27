@@ -1,6 +1,6 @@
 import pytest
 
-from gamehub.games.chinese_poker.hand_value import hand_value
+from gamehub.games.chinese_poker.hand import hand_value
 
 
 @pytest.mark.parametrize(

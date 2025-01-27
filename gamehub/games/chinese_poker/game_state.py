@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 from typing import Iterator, Optional
 
-from gamehub.games.chinese_poker.hand_value import card_value
+from gamehub.games.chinese_poker.hand import card_value
 from gamehub.games.chinese_poker.move import ChinesePokerMove
 from gamehub.games.chinese_poker.player import ChinesePokerPlayer
 from gamehub.games.chinese_poker.status import ChinesePokerStatus

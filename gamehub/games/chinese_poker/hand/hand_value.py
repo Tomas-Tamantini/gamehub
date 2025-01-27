@@ -1,35 +1,19 @@
 from collections import defaultdict
-from enum import Enum
 from typing import Optional
 
-from gamehub.games.playing_cards import PlayingCard, Suits
-
-
-def _rank_value(rank: chr) -> int:
-    special_ranks = {"T": 10, "J": 11, "Q": 12, "K": 13, "A": 14, "2": 15}
-    return special_ranks[rank] if rank in special_ranks else int(rank)
-
-
-def _suit_value(suit: Suits) -> int:
-    return [Suits.DIAMONDS, Suits.HEARTS, Suits.SPADES, Suits.CLUBS].index(suit)
-
-
-def card_value(card: PlayingCard) -> int:
-    return 4 * _rank_value(card.rank) + _suit_value(card.suit)
-
-
-class _HandType(int, Enum):
-    STRAIGHT = 1
-    FLUSH = 2
-    FULL_HOUSE = 3
-    FOUR_OF_A_KIND = 4
-    STRAIGHT_FLUSH = 5
+from gamehub.games.chinese_poker.hand.card_value import (
+    card_value,
+    rank_value,
+    suit_value,
+)
+from gamehub.games.chinese_poker.hand.hand_type import HandType
+from gamehub.games.playing_cards import PlayingCard
 
 
 def _last_card_in_straight(cards: set[PlayingCard]) -> Optional[PlayingCard]:
-    sorted_cards = sorted(cards, key=lambda card: _rank_value(card.rank))
+    sorted_cards = sorted(cards, key=lambda card: rank_value(card.rank))
     ranks = tuple(card.rank for card in sorted_cards)
-    if _rank_value(ranks[-1]) - _rank_value(ranks[0]) == 4:
+    if rank_value(ranks[-1]) - rank_value(ranks[0]) == 4:
         if ranks[-1] != "2":
             return sorted_cards[-1]
     elif ranks == ("3", "4", "5", "6", "2"):
@@ -49,26 +33,26 @@ def _high_card_to_three_of_a_kink_value(cards: set[PlayingCard]) -> int:
 def _full_house_and_four_hand_value(rank_count: dict[int, int]) -> tuple[int, ...]:
     dominant_rank = max(rank_count, key=rank_count.get)
     if rank_count[dominant_rank] == 4:
-        return _HandType.FOUR_OF_A_KIND, _rank_value(dominant_rank)
+        return HandType.FOUR_OF_A_KIND, rank_value(dominant_rank)
     else:
-        return _HandType.FULL_HOUSE, _rank_value(dominant_rank)
+        return HandType.FULL_HOUSE, rank_value(dominant_rank)
 
 
 def _straight_and_flush_hand_value(cards: set[PlayingCard]) -> tuple[int, ...]:
     is_flush = len({card.suit for card in cards}) == 1
     if last_card_in_straight := _last_card_in_straight(cards):
         if is_flush:
-            return _HandType.STRAIGHT_FLUSH, card_value(last_card_in_straight)
+            return HandType.STRAIGHT_FLUSH, card_value(last_card_in_straight)
         else:
-            return _HandType.STRAIGHT, card_value(last_card_in_straight)
+            return HandType.STRAIGHT, card_value(last_card_in_straight)
     elif is_flush:
         sorted_rank_values = sorted(
-            (_rank_value(card.rank) for card in cards), reverse=True
+            (rank_value(card.rank) for card in cards), reverse=True
         )
         return (
-            _HandType.FLUSH,
+            HandType.FLUSH,
             sorted_rank_values,
-            _suit_value(next(iter(cards)).suit),
+            suit_value(next(iter(cards)).suit),
         )
     else:
         raise ValueError("Invalid hand")

@@ -3,7 +3,7 @@ from typing import Optional
 from gamehub.core.exceptions import InvalidMoveError
 from gamehub.games.chinese_poker.configuration import ChinesePokerConfiguration
 from gamehub.games.chinese_poker.game_state import ChinesePokerState
-from gamehub.games.chinese_poker.hand_value import hand_value
+from gamehub.games.chinese_poker.hand import hand_value
 from gamehub.games.chinese_poker.move import ChinesePokerMove
 from gamehub.games.chinese_poker.player import player_initial_state
 from gamehub.games.chinese_poker.status import ChinesePokerStatus
