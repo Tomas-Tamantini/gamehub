@@ -74,8 +74,9 @@ class ChinesePokerState:
 
     def private_views(self):
         for player in self._players_to_send_private_view():
-            yield player.player_id, ChinesePokerPrivateView(
-                status=self.status, cards=player.cards
+            yield (
+                player.player_id,
+                ChinesePokerPrivateView(status=self.status, cards=player.cards),
             )
 
     def is_terminal(self) -> bool:
