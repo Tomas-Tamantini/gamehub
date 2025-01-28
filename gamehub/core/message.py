@@ -1,4 +1,3 @@
-from dataclasses import dataclass
 from enum import Enum
 
 from pydantic import BaseModel
@@ -13,12 +12,6 @@ class MessageType(Enum):
 class Message(BaseModel):
     message_type: MessageType
     payload: dict
-
-
-@dataclass(frozen=True)
-class MessageEvent:
-    player_id: str
-    message: Message
 
 
 def error_message(payload: str) -> Message:

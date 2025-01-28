@@ -5,8 +5,9 @@ import pytest
 from gamehub.core.event_bus import EventBus
 from gamehub.core.events.join_game import JoinGameById, JoinGameByType
 from gamehub.core.events.make_move import MakeMove
+from gamehub.core.events.outgoing_message import OutgoingMessage
 from gamehub.core.game_room import GameRoom
-from gamehub.core.message import MessageEvent, MessageType
+from gamehub.core.message import MessageType
 from gamehub.core.room_manager import RoomManager
 
 
@@ -32,7 +33,7 @@ async def test_room_manager_returns_error_message_if_bad_room_id_when_joining_ga
     messages_spy = []
     event_bus = EventBus()
     room_manager = RoomManager([spy_room()], event_bus)
-    event_bus.subscribe(MessageEvent, messages_spy.append)
+    event_bus.subscribe(OutgoingMessage, messages_spy.append)
     await room_manager.join_game_by_id(request)
     assert len(messages_spy) == 1
     assert messages_spy[0].player_id == "Ana"
@@ -48,7 +49,7 @@ async def test_room_manager_returns_error_message_if_bad_room_id_when_making_mov
     messages_spy = []
     event_bus = EventBus()
     room_manager = RoomManager([spy_room()], event_bus)
-    event_bus.subscribe(MessageEvent, messages_spy.append)
+    event_bus.subscribe(OutgoingMessage, messages_spy.append)
     await room_manager.make_move(request)
     assert len(messages_spy) == 1
     assert messages_spy[0].player_id == "Ana"
@@ -64,7 +65,7 @@ async def test_room_manager_returns_error_message_if_bad_game_type_when_joining_
     messages_spy = []
     event_bus = EventBus()
     room_manager = RoomManager([spy_room(is_full=True)], event_bus)
-    event_bus.subscribe(MessageEvent, messages_spy.append)
+    event_bus.subscribe(OutgoingMessage, messages_spy.append)
     await room_manager.join_game_by_type(request)
     assert len(messages_spy) == 1
     assert messages_spy[0].player_id == "Ana"

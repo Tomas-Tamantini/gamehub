@@ -1,8 +1,9 @@
 from gamehub.core.event_bus import EventBus
 from gamehub.core.events.join_game import JoinGameById, JoinGameByType
 from gamehub.core.events.make_move import MakeMove
+from gamehub.core.events.outgoing_message import OutgoingMessage
 from gamehub.core.game_room import GameRoom
-from gamehub.core.message import MessageEvent, error_message
+from gamehub.core.message import error_message
 
 
 class RoomManager:
@@ -12,7 +13,7 @@ class RoomManager:
 
     async def _respond_error(self, player_id: str, payload: str) -> None:
         await self._event_bus.publish(
-            MessageEvent(player_id=player_id, message=error_message(payload))
+            OutgoingMessage(player_id=player_id, message=error_message(payload))
         )
 
     async def join_game_by_id(self, join_game: JoinGameById) -> None:

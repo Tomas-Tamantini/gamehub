@@ -1,6 +1,7 @@
 from dataclasses import dataclass
 
-from gamehub.core.message import MessageEvent, MessageType
+from gamehub.core.events.outgoing_message import OutgoingMessage
+from gamehub.core.message import MessageType
 
 
 @dataclass(frozen=True)
@@ -9,14 +10,14 @@ class ExpectedBroadcast:
     message_type: MessageType
     payload: dict
 
-    def check_messages(self, messages: list[MessageEvent]) -> None:
+    def check_messages(self, messages: list[OutgoingMessage]) -> None:
         assert all(m.message.message_type == self.message_type for m in messages)
         assert all(m.message.payload == self.payload for m in messages)
         assert [m.player_id for m in messages] == self.recipients
 
 
 def check_messages(
-    messages: list[MessageEvent], expected_broadcasts: list[ExpectedBroadcast]
+    messages: list[OutgoingMessage], expected_broadcasts: list[ExpectedBroadcast]
 ) -> None:
     current_idx = 0
     for expected in expected_broadcasts:

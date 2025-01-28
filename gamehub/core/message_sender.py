@@ -1,7 +1,7 @@
 from typing import Protocol
 
-from gamehub.core.message import MessageEvent
+from gamehub.core.events.outgoing_message import OutgoingMessage
 
 
 class MessageSender(Protocol):
-    async def send(self, message: MessageEvent) -> None: ...
+    async def send(self, message: OutgoingMessage) -> None: ...

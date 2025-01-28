@@ -1,8 +1,9 @@
 import pytest
 
 from gamehub.core.event_bus import EventBus
+from gamehub.core.events.outgoing_message import OutgoingMessage
 from gamehub.core.game_room import GameRoom
-from gamehub.core.message import MessageEvent, MessageType
+from gamehub.core.message import MessageType
 from gamehub.core.request import Request, RequestType
 from gamehub.core.room_manager import RoomManager
 from gamehub.core.setup_bus import setup_event_bus
@@ -14,7 +15,7 @@ class _MessageSenderSpy:
     def __init__(self):
         self.messages = []
 
-    async def send(self, message: MessageEvent) -> None:
+    async def send(self, message: OutgoingMessage) -> None:
         self.messages.append(message)
 
 

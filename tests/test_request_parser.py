@@ -3,7 +3,8 @@ import pytest
 from gamehub.core.event_bus import EventBus
 from gamehub.core.events.join_game import JoinGameById, JoinGameByType
 from gamehub.core.events.make_move import MakeMove
-from gamehub.core.message import MessageEvent, MessageType
+from gamehub.core.events.outgoing_message import OutgoingMessage
+from gamehub.core.message import MessageType
 from gamehub.core.request import Request, RequestType
 from gamehub.core.request_parser import RequestParser
 
@@ -14,7 +15,7 @@ def output_events():
         event_bus = EventBus()
         parser = RequestParser(event_bus)
         events = []
-        for event_type in (MessageEvent, JoinGameById, MakeMove, JoinGameByType):
+        for event_type in (OutgoingMessage, JoinGameById, MakeMove, JoinGameByType):
             event_bus.subscribe(event_type, events.append)
         await parser.parse_request(request)
         return events

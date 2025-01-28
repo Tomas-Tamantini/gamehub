@@ -2,7 +2,8 @@ from unittest.mock import AsyncMock
 
 import pytest
 
-from gamehub.core.message import Message, MessageEvent, MessageType
+from gamehub.core.events.outgoing_message import OutgoingMessage
+from gamehub.core.message import Message, MessageType
 from gamehub.socket_server import ClientManager, SocketMessageSender
 
 
@@ -10,7 +11,7 @@ from gamehub.socket_server import ClientManager, SocketMessageSender
 async def test_message_sender_does_not_send_message_if_client_not_found():
     client_manager = ClientManager()
     message_sender = SocketMessageSender(client_manager)
-    msg = MessageEvent(
+    msg = OutgoingMessage(
         player_id="Alice",
         message=Message(message_type=MessageType.GAME_STATE, payload={"key": "value"}),
     )
@@ -23,7 +24,7 @@ async def test_message_sender_sends_message_if_client_found():
     client = AsyncMock()
     client_manager.associate_player_id("Alice", client)
     message_sender = SocketMessageSender(client_manager)
-    msg = MessageEvent(
+    msg = OutgoingMessage(
         player_id="Alice",
         message=Message(message_type=MessageType.GAME_STATE, payload={"key": "value"}),
     )

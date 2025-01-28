@@ -2,8 +2,9 @@ import pytest
 from pydantic import BaseModel
 
 from gamehub.core.event_bus import EventBus
+from gamehub.core.events.outgoing_message import OutgoingMessage
 from gamehub.core.game_room import GameRoom
-from gamehub.core.message import MessageEvent, MessageType
+from gamehub.core.message import MessageType
 from gamehub.games.rock_paper_scissors import RPSGameLogic, RPSMove
 from tests.utils import ExpectedBroadcast, check_messages
 
@@ -16,7 +17,7 @@ def event_bus():
 @pytest.fixture
 def messages_spy(event_bus):
     messages = []
-    event_bus.subscribe(MessageEvent, messages.append)
+    event_bus.subscribe(OutgoingMessage, messages.append)
     return messages
 
 

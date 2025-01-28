@@ -3,7 +3,8 @@ from pydantic import ValidationError
 from gamehub.core.event_bus import EventBus
 from gamehub.core.events.join_game import JoinGameById, JoinGameByType
 from gamehub.core.events.make_move import MakeMove
-from gamehub.core.message import MessageEvent, error_message
+from gamehub.core.events.outgoing_message import OutgoingMessage
+from gamehub.core.message import error_message
 from gamehub.core.request import (
     JoinGameByIdPayload,
     JoinGameByTypePayload,
@@ -55,7 +56,7 @@ class RequestParser:
 
     async def _respond_error(self, player_id: str, payload: str) -> None:
         await self._event_bus.publish(
-            MessageEvent(player_id=player_id, message=error_message(payload))
+            OutgoingMessage(player_id=player_id, message=error_message(payload))
         )
 
     async def parse_request(self, request: Request) -> None:

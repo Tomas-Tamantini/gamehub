@@ -3,10 +3,11 @@ from typing import Generic, Optional, TypeVar
 from pydantic import ValidationError
 
 from gamehub.core.event_bus import EventBus
+from gamehub.core.events.outgoing_message import OutgoingMessage
 from gamehub.core.exceptions import InvalidMoveError
 from gamehub.core.game_logic import GameLogic
 from gamehub.core.game_state import GameState
-from gamehub.core.message import Message, MessageEvent, MessageType, error_message
+from gamehub.core.message import Message, MessageType, error_message
 from gamehub.core.move_parser import MoveParser
 
 T = TypeVar("T")
@@ -57,13 +58,13 @@ class GameRoom(Generic[T]):
 
     async def _send_error_message(self, player_id: str, payload: str) -> None:
         await self._event_bus.publish(
-            MessageEvent(player_id=player_id, message=error_message(payload))
+            OutgoingMessage(player_id=player_id, message=error_message(payload))
         )
 
     async def _broadcast_message(self, message: Message) -> None:
         for player in self._players:
             await self._event_bus.publish(
-                MessageEvent(player_id=player, message=message)
+                OutgoingMessage(player_id=player, message=message)
             )
 
     async def _broadcast_shared_view(self) -> None:
@@ -88,7 +89,7 @@ class GameRoom(Generic[T]):
                 },
             )
             await self._event_bus.publish(
-                MessageEvent(player_id=player_id, message=message)
+                OutgoingMessage(player_id=player_id, message=message)
             )
 
     async def _start_game(self) -> None:
