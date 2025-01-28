@@ -2,8 +2,11 @@ from enum import Enum
 
 
 class HandType(int, Enum):
-    STRAIGHT = 1
-    FLUSH = 2
-    FULL_HOUSE = 3
-    FOUR_OF_A_KIND = 4
-    STRAIGHT_FLUSH = 5
+    SINGLE_CARD = 1
+    PAIR = 2
+    THREE_OF_A_KIND = 3
+    STRAIGHT = 4
+    FLUSH = 5
+    FULL_HOUSE = 6
+    FOUR_OF_A_KIND = 7
+    STRAIGHT_FLUSH = 8
