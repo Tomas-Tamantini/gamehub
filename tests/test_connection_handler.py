@@ -5,8 +5,8 @@ from unittest.mock import AsyncMock, Mock
 import pytest
 
 from gamehub.core.event_bus import EventBus
+from gamehub.core.events.request import Request, RequestType
 from gamehub.core.message import Message, MessageType
-from gamehub.core.request import Request, RequestType
 from gamehub.socket_server import ClientManager, ConnectionHandler
 
 

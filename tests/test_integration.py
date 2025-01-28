@@ -2,9 +2,9 @@ import pytest
 
 from gamehub.core.event_bus import EventBus
 from gamehub.core.events.outgoing_message import OutgoingMessage
+from gamehub.core.events.request import Request, RequestType
 from gamehub.core.game_room import GameRoom
 from gamehub.core.message import MessageType
-from gamehub.core.request import Request, RequestType
 from gamehub.core.room_manager import RoomManager
 from gamehub.core.setup_bus import setup_event_bus
 from gamehub.games.rock_paper_scissors import RPSGameLogic, RPSMove

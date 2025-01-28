@@ -6,9 +6,9 @@ from websockets import ConnectionClosed
 from websockets.asyncio.server import ServerConnection
 
 from gamehub.core.event_bus import EventBus
+from gamehub.core.events.request import Request
 from gamehub.core.exceptions import AmbiguousPlayerIdError
 from gamehub.core.message import error_message
-from gamehub.core.request import Request
 from gamehub.socket_server.client_manager import ClientManager
 
 

@@ -4,14 +4,14 @@ from gamehub.core.event_bus import EventBus
 from gamehub.core.events.join_game import JoinGameById, JoinGameByType
 from gamehub.core.events.make_move import MakeMove
 from gamehub.core.events.outgoing_message import OutgoingMessage
-from gamehub.core.message import error_message
-from gamehub.core.request import (
+from gamehub.core.events.request import (
     JoinGameByIdPayload,
     JoinGameByTypePayload,
     MakeMovePayload,
     Request,
     RequestType,
 )
+from gamehub.core.message import error_message
 
 
 class _JoinByIdParser:
