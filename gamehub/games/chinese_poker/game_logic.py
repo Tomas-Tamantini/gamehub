@@ -7,7 +7,7 @@ from gamehub.games.chinese_poker.hand import hand_value
 from gamehub.games.chinese_poker.move import ChinesePokerMove
 from gamehub.games.chinese_poker.player import player_initial_state
 from gamehub.games.chinese_poker.status import ChinesePokerStatus
-from gamehub.games.playing_cards import deal_hands
+from gamehub.games.chinese_poker.transitions import next_automated_state
 
 
 class ChinesePokerGameLogic:
@@ -82,78 +82,4 @@ class ChinesePokerGameLogic:
     def next_automated_state(
         self, state: ChinesePokerState
     ) -> Optional[ChinesePokerState]:
-        if state.status == ChinesePokerStatus.START_GAME:
-            return ChinesePokerState(
-                status=ChinesePokerStatus.START_MATCH,
-                players=state.players,
-            )
-        elif state.status == ChinesePokerStatus.START_MATCH:
-            hands = deal_hands(
-                num_hands=self.num_players,
-                hand_size=self._configuration.cards_per_player,
-            )
-            return ChinesePokerState(
-                status=ChinesePokerStatus.DEAL_CARDS,
-                players=[p.deal_cards(hand) for p, hand in zip(state.players, hands)],
-            )
-        elif state.status == ChinesePokerStatus.DEAL_CARDS:
-            return ChinesePokerState(
-                status=ChinesePokerStatus.START_ROUND,
-                players=state.players,
-                current_player_idx=state.idx_of_player_with_smallest_card(),
-            )
-        elif state.status == ChinesePokerStatus.START_ROUND:
-            return ChinesePokerState(
-                status=ChinesePokerStatus.START_TURN,
-                players=state.players,
-                current_player_idx=state.current_player_idx,
-            )
-        elif state.status == ChinesePokerStatus.START_TURN:
-            return ChinesePokerState(
-                status=ChinesePokerStatus.AWAIT_PLAYER_ACTION,
-                players=state.players,
-                current_player_idx=state.current_player_idx,
-                move_history=state.move_history,
-            )
-        elif state.status == ChinesePokerStatus.END_TURN:
-            if state.last_players_passed() or state.next_player_has_zero_cards():
-                return ChinesePokerState(
-                    status=ChinesePokerStatus.END_ROUND,
-                    players=state.players,
-                    current_player_idx=state.next_player_idx(),
-                )
-            else:
-                return ChinesePokerState(
-                    status=ChinesePokerStatus.START_TURN,
-                    players=state.players,
-                    current_player_idx=state.next_player_idx(),
-                    move_history=state.move_history,
-                )
-        elif state.status == ChinesePokerStatus.END_ROUND:
-            if state.some_player_has_zero_cards():
-                return ChinesePokerState(
-                    status=ChinesePokerStatus.END_MATCH,
-                    players=state.players,
-                )
-            else:
-                return ChinesePokerState(
-                    status=ChinesePokerStatus.START_ROUND,
-                    players=state.players,
-                    current_player_idx=state.current_player_idx,
-                )
-        elif state.status == ChinesePokerStatus.END_MATCH:
-            return ChinesePokerState(
-                status=ChinesePokerStatus.UPDATE_POINTS,
-                players=tuple(p.increment_points() for p in state.players),
-            )
-        elif state.status == ChinesePokerStatus.UPDATE_POINTS:
-            if state.max_points() < self._configuration.game_over_point_threshold:
-                return ChinesePokerState(
-                    status=ChinesePokerStatus.START_MATCH,
-                    players=state.players,
-                )
-            else:
-                return ChinesePokerState(
-                    status=ChinesePokerStatus.END_GAME,
-                    players=state.players,
-                )
+        return next_automated_state(state, self._configuration)
