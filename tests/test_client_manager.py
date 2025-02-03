@@ -32,15 +32,17 @@ def test_player_id_cannot_have_two_clients():
         client_manager.associate_player_id("id_1", client_b)
 
 
-def test_client_manager_removes_client():
+def test_client_manager_removes_client_if_exists():
     client_manager = ClientManager()
     mock_client = AsyncMock()
     client_manager.associate_player_id("test_id", mock_client)
-    client_manager.remove(mock_client)
+    removed = client_manager.remove(mock_client)
+    assert removed == "test_id"
     assert client_manager.get_client("test_id") is None
 
 
 def test_removing_inexistent_client_does_nothing():
     client_manager = ClientManager()
     mock_client = AsyncMock()
-    client_manager.remove(mock_client)
+    removed = client_manager.remove(mock_client)
+    assert removed is None

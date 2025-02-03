@@ -29,10 +29,11 @@ class ClientManager:
                 "This client is already associated with another id"
             )
 
-    def remove(self, client: ServerConnection):
+    def remove(self, client: ServerConnection) -> Optional[str]:
         player_id = self._client_to_player_id.pop(client, None)
         if player_id:
             self._player_id_to_client.pop(player_id, None)
+            return player_id
 
     def get_client(self, player_id: str) -> Optional[ServerConnection]:
         return self._player_id_to_client.get(player_id)
