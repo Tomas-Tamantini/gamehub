@@ -251,7 +251,7 @@ async def test_players_get_notified_of_player_rejoining(rps_room, messages_spy):
 
 
 @pytest.mark.asyncio
-async def test_players_get_notified_of_public_game_state_when_rejoining(
+async def test_players_get_notified_of_full_game_state_when_rejoining(
     rps_room, messages_spy
 ):
     await rps_room.join("Alice")
@@ -272,6 +272,7 @@ async def test_players_get_notified_of_public_game_state_when_rejoining(
                         {"player_id": "Bob", "selected": False},
                     ]
                 },
+                "private_view": {"selection": "ROCK"},
             },
         )
     ]
