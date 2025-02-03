@@ -1,7 +1,7 @@
 from pydantic import ValidationError
 
 from gamehub.core.event_bus import EventBus
-from gamehub.core.events.join_game import JoinGameById, JoinGameByType
+from gamehub.core.events.join_game import JoinGameById, JoinGameByType, RejoinGame
 from gamehub.core.events.make_move import MakeMove
 from gamehub.core.events.outgoing_message import OutgoingMessage
 from gamehub.core.events.query_rooms import QueryRooms
@@ -10,6 +10,7 @@ from gamehub.core.events.request import (
     JoinGameByTypePayload,
     MakeMovePayload,
     QueryRoomsPayload,
+    RejoinGamePayload,
     Request,
     RequestType,
 )
@@ -35,9 +36,21 @@ class _JoinByTypeParser:
 
     @staticmethod
     def create_new_event(
-        player_id: str, parsed_payload: JoinGameByType
+        player_id: str, parsed_payload: JoinGameByTypePayload
     ) -> JoinGameByType:
         return JoinGameByType(player_id, parsed_payload.game_type)
+
+
+class _RejoinGameParser:
+    @property
+    def model(self):
+        return RejoinGamePayload
+
+    @staticmethod
+    def create_new_event(
+        player_id: str, parsed_payload: RejoinGamePayload
+    ) -> RejoinGame:
+        return RejoinGame(player_id, parsed_payload.room_id)
 
 
 class _MakeMoveParser:
@@ -58,7 +71,9 @@ class _QueryRoomParser:
         return QueryRoomsPayload
 
     @staticmethod
-    def create_new_event(player_id: str, parsed_payload: QueryRooms) -> QueryRooms:
+    def create_new_event(
+        player_id: str, parsed_payload: QueryRoomsPayload
+    ) -> QueryRooms:
         return QueryRooms(player_id, parsed_payload.game_type)
 
 
@@ -77,6 +92,7 @@ class RequestParser:
             RequestType.JOIN_GAME_BY_TYPE: _JoinByTypeParser,
             RequestType.MAKE_MOVE: _MakeMoveParser,
             RequestType.QUERY_ROOMS: _QueryRoomParser,
+            RequestType.REJOIN_GAME: _RejoinGameParser,
         }[request.request_type]()
         try:
             payload = parser.model.model_validate(request.payload)

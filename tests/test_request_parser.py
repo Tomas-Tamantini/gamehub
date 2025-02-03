@@ -1,7 +1,7 @@
 import pytest
 
 from gamehub.core.event_bus import EventBus
-from gamehub.core.events.join_game import JoinGameById, JoinGameByType
+from gamehub.core.events.join_game import JoinGameById, JoinGameByType, RejoinGame
 from gamehub.core.events.make_move import MakeMove
 from gamehub.core.events.outgoing_message import OutgoingMessage
 from gamehub.core.events.query_rooms import QueryRooms
@@ -22,6 +22,7 @@ def output_events():
             MakeMove,
             JoinGameByType,
             QueryRooms,
+            RejoinGame,
         ):
             event_bus.subscribe(event_type, events.append)
         await parser.parse_request(request)
@@ -54,6 +55,18 @@ async def test_request_parser_raises_join_game_by_id_event(output_events):
     output_events = await output_events(request)
     assert len(output_events) == 1
     assert output_events[0] == JoinGameById(player_id="Ana", room_id=123)
+
+
+@pytest.mark.asyncio
+async def test_request_parser_raises_rejoin_game_event(output_events):
+    request = Request(
+        player_id="Ana",
+        request_type=RequestType.REJOIN_GAME,
+        payload={"room_id": 123},
+    )
+    output_events = await output_events(request)
+    assert len(output_events) == 1
+    assert output_events[0] == RejoinGame(player_id="Ana", room_id=123)
 
 
 @pytest.mark.asyncio

@@ -5,6 +5,7 @@ from pydantic import BaseModel, Field
 
 class RequestType(Enum):
     JOIN_GAME_BY_ID = "JOIN_GAME_BY_ID"
+    REJOIN_GAME = "REJOIN_GAME"
     JOIN_GAME_BY_TYPE = "JOIN_GAME_BY_TYPE"
     MAKE_MOVE = "MAKE_MOVE"
     QUERY_ROOMS = "QUERY_ROOMS"
@@ -16,7 +17,12 @@ class Request(BaseModel):
     payload: dict = dict()
 
 
+# TODO : Merge JoinGameByIdPayload and RejoinGamePayload into one class
 class JoinGameByIdPayload(BaseModel):
+    room_id: int
+
+
+class RejoinGamePayload(BaseModel):
     room_id: int
 
 
