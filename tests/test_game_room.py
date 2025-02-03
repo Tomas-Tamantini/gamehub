@@ -99,7 +99,7 @@ async def test_player_can_join_empty_room(rps_room, messages_spy):
     expected = [
         ExpectedBroadcast(
             ["Alice"],
-            MessageType.PLAYER_JOINED,
+            MessageType.GAME_ROOM_UPDATE,
             {"room_id": 0, "player_ids": ["Alice"], "offline_players": []},
         )
     ]
@@ -113,7 +113,7 @@ async def test_players_get_informed_when_new_one_joins(rps_room, messages_spy):
     expected = [
         ExpectedBroadcast(
             ["Alice", "Bob"],
-            MessageType.PLAYER_JOINED,
+            MessageType.GAME_ROOM_UPDATE,
             {"room_id": 0, "player_ids": ["Alice", "Bob"], "offline_players": []},
         )
     ]
@@ -140,7 +140,7 @@ async def test_room_notifies_other_players_if_one_disconnects(
     expected = [
         ExpectedBroadcast(
             ["Alice", "Bob"],
-            MessageType.PLAYER_DISCONNECTED,
+            MessageType.GAME_ROOM_UPDATE,
             {"room_id": 1, "player_ids": ["Alice", "Bob"], "offline_players": []},
         )
     ]
@@ -159,7 +159,7 @@ async def test_room_does_not_remove_disconnected_player_if_game_has_started(
     expected = [
         ExpectedBroadcast(
             ["Alice", "Bob", "Charlie", "Diana"],
-            MessageType.PLAYER_DISCONNECTED,
+            MessageType.GAME_ROOM_UPDATE,
             {
                 "room_id": 1,
                 "player_ids": ["Alice", "Bob", "Charlie", "Diana"],
@@ -305,7 +305,7 @@ async def test_game_room_resets_after_game_over_and_new_players_can_join(
     expected = [
         ExpectedBroadcast(
             ["Charlie"],
-            MessageType.PLAYER_JOINED,
+            MessageType.GAME_ROOM_UPDATE,
             {"room_id": 0, "player_ids": ["Charlie"], "offline_players": []},
         )
     ]

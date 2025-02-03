@@ -73,6 +73,12 @@ class GameRoom(Generic[T]):
                 OutgoingMessage(player_id=player, message=message)
             )
 
+    async def _broadcast_room_state(self) -> None:
+        message = Message(
+            message_type=MessageType.GAME_ROOM_UPDATE, payload=self._room_state()
+        )
+        await self._broadcast_message(message)
+
     async def _broadcast_shared_view(self) -> None:
         message = Message(
             message_type=MessageType.GAME_STATE,
@@ -112,10 +118,7 @@ class GameRoom(Generic[T]):
             )
         else:
             self._players.append(player_id)
-            message = Message(
-                message_type=MessageType.PLAYER_JOINED, payload=self._room_state()
-            )
-            await self._broadcast_message(message)
+            await self._broadcast_room_state()
             if self.is_full:
                 await self._start_game()
 
@@ -152,7 +155,4 @@ class GameRoom(Generic[T]):
                 self._players.remove(player_id)
             else:
                 self._offline_players.add(player_id)
-            message = Message(
-                message_type=MessageType.PLAYER_DISCONNECTED, payload=self._room_state()
-            )
-            await self._broadcast_message(message)
+            await self._broadcast_room_state()
