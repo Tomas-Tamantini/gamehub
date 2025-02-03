@@ -100,7 +100,7 @@ async def test_player_can_join_empty_room(rps_room, messages_spy):
         ExpectedBroadcast(
             ["Alice"],
             MessageType.PLAYER_JOINED,
-            {"room_id": 0, "player_ids": ["Alice"]},
+            {"room_id": 0, "player_ids": ["Alice"], "offline_players": []},
         )
     ]
     check_messages(messages_spy, expected)
@@ -114,7 +114,7 @@ async def test_players_get_informed_when_new_one_joins(rps_room, messages_spy):
         ExpectedBroadcast(
             ["Alice", "Bob"],
             MessageType.PLAYER_JOINED,
-            {"room_id": 0, "player_ids": ["Alice", "Bob"]},
+            {"room_id": 0, "player_ids": ["Alice", "Bob"], "offline_players": []},
         )
     ]
     check_messages(messages_spy[1:3], expected)
@@ -141,13 +141,33 @@ async def test_room_notifies_other_players_if_one_disconnects(
         ExpectedBroadcast(
             ["Alice", "Bob"],
             MessageType.PLAYER_DISCONNECTED,
-            {
-                "disconnected_player_id": "Charlie",
-                "room": {"room_id": 1, "player_ids": ["Alice", "Bob"]},
-            },
+            {"room_id": 1, "player_ids": ["Alice", "Bob"], "offline_players": []},
         )
     ]
     check_messages(messages_spy[6:], expected)
+
+
+@pytest.mark.asyncio
+async def test_room_does_not_remove_disconnected_player_if_game_has_started(
+    chinese_poker_room, messages_spy
+):
+    await chinese_poker_room.join("Alice")
+    await chinese_poker_room.join("Bob")
+    await chinese_poker_room.join("Charlie")
+    await chinese_poker_room.join("Diana")
+    await chinese_poker_room.handle_player_disconnected("Alice")
+    expected = [
+        ExpectedBroadcast(
+            ["Alice", "Bob", "Charlie", "Diana"],
+            MessageType.PLAYER_DISCONNECTED,
+            {
+                "room_id": 1,
+                "player_ids": ["Alice", "Bob", "Charlie", "Diana"],
+                "offline_players": ["Alice"],
+            },
+        )
+    ]
+    check_messages(messages_spy[-4:], expected)
 
 
 @pytest.mark.asyncio
@@ -286,7 +306,7 @@ async def test_game_room_resets_after_game_over_and_new_players_can_join(
         ExpectedBroadcast(
             ["Charlie"],
             MessageType.PLAYER_JOINED,
-            {"room_id": 0, "player_ids": ["Charlie"]},
+            {"room_id": 0, "player_ids": ["Charlie"], "offline_players": []},
         )
     ]
     check_messages(messages_spy[-1:], expected)

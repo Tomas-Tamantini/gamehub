@@ -25,6 +25,7 @@ class GameRoom(Generic[T]):
         self._logic = game_logic
         self._event_bus = event_bus
         self._players = list()
+        self._offline_players = set()
         self._game_state = None
         self._parse_move = move_parser
 
@@ -38,6 +39,7 @@ class GameRoom(Generic[T]):
 
     def _reset(self) -> None:
         self._players = list()
+        self._offline_players = set()
         self._game_state = None
 
     async def _set_state(self, state: GameState) -> None:
@@ -54,7 +56,11 @@ class GameRoom(Generic[T]):
         return self._room_id
 
     def _room_state(self) -> dict:
-        return {"room_id": self._room_id, "player_ids": self._players[:]}
+        return {
+            "room_id": self._room_id,
+            "player_ids": self._players[:],
+            "offline_players": list(self._offline_players),
+        }
 
     async def _send_error_message(self, player_id: str, payload: str) -> None:
         await self._event_bus.publish(
@@ -142,12 +148,11 @@ class GameRoom(Generic[T]):
 
     async def handle_player_disconnected(self, player_id: str) -> None:
         if player_id in self._players:
-            self._players.remove(player_id)
+            if self._game_state is None:
+                self._players.remove(player_id)
+            else:
+                self._offline_players.add(player_id)
             message = Message(
-                message_type=MessageType.PLAYER_DISCONNECTED,
-                payload={
-                    "disconnected_player_id": player_id,
-                    "room": self._room_state(),
-                },
+                message_type=MessageType.PLAYER_DISCONNECTED, payload=self._room_state()
             )
             await self._broadcast_message(message)
