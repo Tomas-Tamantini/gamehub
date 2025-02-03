@@ -139,3 +139,7 @@ class GameRoom(Generic[T]):
         elif parsed_move := await self._parsed_move(player_id, move):
             if new_state := await self._state_after_move(player_id, parsed_move):
                 await self._set_state(new_state)
+
+    def handle_player_disconnected(self, player_id: str) -> None:
+        # TODO: Implement
+        pass

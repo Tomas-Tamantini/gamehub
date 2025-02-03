@@ -2,6 +2,7 @@ from gamehub.core.event_bus import EventBus
 from gamehub.core.events.join_game import JoinGameById, JoinGameByType
 from gamehub.core.events.make_move import MakeMove
 from gamehub.core.events.outgoing_message import OutgoingMessage
+from gamehub.core.events.player_disconnected import PlayerDisconnected
 from gamehub.core.game_room import GameRoom
 from gamehub.core.message import error_message
 
@@ -42,3 +43,9 @@ class RoomManager:
             )
         else:
             await room.make_move(make_move.player_id, make_move.move)
+
+    def handle_player_disconnected(
+        self, player_disconnected: PlayerDisconnected
+    ) -> None:
+        for room in self._rooms.values():
+            room.handle_player_disconnected(player_disconnected.player_id)
