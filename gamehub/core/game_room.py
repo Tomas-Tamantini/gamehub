@@ -9,6 +9,7 @@ from gamehub.core.game_logic import GameLogic
 from gamehub.core.game_state import GameState
 from gamehub.core.message import Message, MessageType, error_message
 from gamehub.core.move_parser import MoveParser
+from gamehub.core.room_state import RoomState
 
 T = TypeVar("T")
 
@@ -55,12 +56,12 @@ class GameRoom(Generic[T]):
     def room_id(self) -> int:
         return self._room_id
 
-    def _room_state(self) -> dict:
-        return {
-            "room_id": self._room_id,
-            "player_ids": self._players[:],
-            "offline_players": list(self._offline_players),
-        }
+    def _room_state(self) -> RoomState:
+        return RoomState(
+            room_id=self._room_id,
+            player_ids=self._players[:],
+            offline_players=list(self._offline_players),
+        )
 
     async def _send_error_message(self, player_id: str, payload: str) -> None:
         await self._event_bus.publish(
@@ -75,7 +76,8 @@ class GameRoom(Generic[T]):
 
     async def _broadcast_room_state(self) -> None:
         message = Message(
-            message_type=MessageType.GAME_ROOM_UPDATE, payload=self._room_state()
+            message_type=MessageType.GAME_ROOM_UPDATE,
+            payload=self._room_state().model_dump(),
         )
         await self._broadcast_message(message)
 
