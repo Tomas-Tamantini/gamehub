@@ -140,6 +140,14 @@ class GameRoom(Generic[T]):
             if new_state := await self._state_after_move(player_id, parsed_move):
                 await self._set_state(new_state)
 
-    def handle_player_disconnected(self, player_id: str) -> None:
-        # TODO: Implement
-        pass
+    async def handle_player_disconnected(self, player_id: str) -> None:
+        if player_id in self._players:
+            self._players.remove(player_id)
+            message = Message(
+                message_type=MessageType.PLAYER_DISCONNECTED,
+                payload={
+                    "disconnected_player_id": player_id,
+                    "room": self._room_state(),
+                },
+            )
+            await self._broadcast_message(message)

@@ -106,9 +106,12 @@ async def test_room_manager_finds_first_non_full_room_of_given_game_type(spy_roo
     room_c.join.assert_called_once_with("Ana")
 
 
-def test_room_manager_notifies_rooms_with_given_player_when_they_disconnect(spy_room):
+@pytest.mark.asyncio
+async def test_room_manager_notifies_rooms_with_given_player_when_they_disconnect(
+    spy_room,
+):
     request = PlayerDisconnected(player_id="Ana")
     room = spy_room(room_id=1)
     room_manager = RoomManager([room], EventBus())
-    room_manager.handle_player_disconnected(request)
+    await room_manager.handle_player_disconnected(request)
     room.handle_player_disconnected.assert_called_once_with("Ana")

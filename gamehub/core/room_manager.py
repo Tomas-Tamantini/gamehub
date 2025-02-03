@@ -44,8 +44,8 @@ class RoomManager:
         else:
             await room.make_move(make_move.player_id, make_move.move)
 
-    def handle_player_disconnected(
+    async def handle_player_disconnected(
         self, player_disconnected: PlayerDisconnected
     ) -> None:
         for room in self._rooms.values():
-            room.handle_player_disconnected(player_disconnected.player_id)
+            await room.handle_player_disconnected(player_disconnected.player_id)

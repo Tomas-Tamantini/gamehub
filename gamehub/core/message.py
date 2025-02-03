@@ -6,6 +6,7 @@ from pydantic import BaseModel
 class MessageType(Enum):
     ERROR = "ERROR"
     PLAYER_JOINED = "PLAYER_JOINED"
+    PLAYER_DISCONNECTED = "PLAYER_DISCONNECTED"
     GAME_STATE = "GAME_STATE"
 
 

@@ -5,6 +5,11 @@ from gamehub.core.event_bus import EventBus
 from gamehub.core.events.outgoing_message import OutgoingMessage
 from gamehub.core.game_room import GameRoom
 from gamehub.core.message import MessageType
+from gamehub.games.chinese_poker import (
+    ChinesePokerConfiguration,
+    ChinesePokerGameLogic,
+    ChinesePokerMove,
+)
 from gamehub.games.rock_paper_scissors import RPSGameLogic, RPSMove
 from tests.utils import ExpectedBroadcast, check_messages
 
@@ -32,6 +37,19 @@ def rps_room(event_bus):
 
 
 @pytest.fixture
+def chinese_poker_room(event_bus):
+    config = ChinesePokerConfiguration(
+        num_players=4, cards_per_player=13, game_over_point_threshold=10
+    )
+    return GameRoom(
+        room_id=1,
+        game_logic=ChinesePokerGameLogic(config),
+        move_parser=ChinesePokerMove.model_validate,
+        event_bus=event_bus,
+    )
+
+
+@pytest.fixture
 def automated_transition_logic():
     class MockState(BaseModel):
         status: str
@@ -53,7 +71,7 @@ def automated_transition_logic():
         def initial_state(self, *_, **__):
             return MockState(status="START")
 
-        def make_move(self, state, *_, **__):
+        def make_move(self, *_, **__):
             return MockState(status="MOVE")
 
         def next_automated_state(self, state, *_, **__):
@@ -100,6 +118,36 @@ async def test_players_get_informed_when_new_one_joins(rps_room, messages_spy):
         )
     ]
     check_messages(messages_spy[1:3], expected)
+
+
+@pytest.mark.asyncio
+async def test_room_ignores_disconnected_player_if_not_inside_room(
+    rps_room, messages_spy
+):
+    await rps_room.join("Alice")
+    await rps_room.handle_player_disconnected("Bob")
+    assert len(messages_spy) == 1
+
+
+@pytest.mark.asyncio
+async def test_room_notifies_other_players_if_one_disconnects(
+    chinese_poker_room, messages_spy
+):
+    await chinese_poker_room.join("Alice")
+    await chinese_poker_room.join("Bob")
+    await chinese_poker_room.join("Charlie")
+    await chinese_poker_room.handle_player_disconnected("Charlie")
+    expected = [
+        ExpectedBroadcast(
+            ["Alice", "Bob"],
+            MessageType.PLAYER_DISCONNECTED,
+            {
+                "disconnected_player_id": "Charlie",
+                "room": {"room_id": 1, "player_ids": ["Alice", "Bob"]},
+            },
+        )
+    ]
+    check_messages(messages_spy[6:], expected)
 
 
 @pytest.mark.asyncio
