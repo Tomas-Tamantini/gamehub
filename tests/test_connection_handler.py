@@ -5,6 +5,7 @@ from unittest.mock import AsyncMock, Mock
 import pytest
 
 from gamehub.core.event_bus import EventBus
+from gamehub.core.events.player_disconnected import PlayerDisconnected
 from gamehub.core.events.request import Request, RequestType
 from gamehub.core.message import Message, MessageType
 from gamehub.socket_server import ClientManager, ConnectionHandler
@@ -80,6 +81,18 @@ async def test_handler_discards_disconnected_clients(connection_handler, client)
     client_manager_spy = Mock(spec=ClientManager)
     await connection_handler(client_manager_spy).handle_client(client)
     client_manager_spy.remove.assert_called_once_with(client)
+
+
+@pytest.mark.asyncio
+async def test_handler_raises_disconnected_client_event(connection_handler, client):
+    client_manager_spy = Mock(spec=ClientManager)
+    client_manager_spy.remove.return_value = "test_id"
+    events = []
+    event_bus = EventBus()
+    event_bus.subscribe(PlayerDisconnected, events.append)
+    handler = connection_handler(client_manager_spy, event_bus=event_bus)
+    await handler.handle_client(client)
+    assert events == [PlayerDisconnected(player_id="test_id")]
 
 
 @pytest.mark.asyncio

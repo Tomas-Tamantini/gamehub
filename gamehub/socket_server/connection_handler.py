@@ -6,6 +6,7 @@ from websockets import ConnectionClosed
 from websockets.asyncio.server import ServerConnection
 
 from gamehub.core.event_bus import EventBus
+from gamehub.core.events.player_disconnected import PlayerDisconnected
 from gamehub.core.events.request import Request
 from gamehub.core.exceptions import AmbiguousPlayerIdError
 from gamehub.core.message import error_message
@@ -49,4 +50,5 @@ class ConnectionHandler:
         except Exception as e:
             logging.error(f"Unexpected error: {e}", exc_info=True)
         finally:
-            self._client_manager.remove(client)
+            if player_id := self._client_manager.remove(client):
+                await self._event_bus.publish(PlayerDisconnected(player_id))
