@@ -251,6 +251,34 @@ async def test_players_get_notified_of_player_rejoining(rps_room, messages_spy):
 
 
 @pytest.mark.asyncio
+async def test_players_get_notified_of_public_game_state_when_rejoining(
+    rps_room, messages_spy
+):
+    await rps_room.join("Alice")
+    await rps_room.join("Bob")
+    await rps_room.make_move("Alice", {"selection": "ROCK"})
+    await rps_room.handle_player_disconnected("Alice")
+    await rps_room.rejoin("Alice")
+
+    expected = [
+        ExpectedBroadcast(
+            ["Alice"],
+            MessageType.GAME_STATE,
+            {
+                "room_id": 0,
+                "shared_view": {
+                    "players": [
+                        {"player_id": "Alice", "selected": True},
+                        {"player_id": "Bob", "selected": False},
+                    ]
+                },
+            },
+        )
+    ]
+    check_messages(messages_spy[12:], expected)
+
+
+@pytest.mark.asyncio
 async def test_player_cannot_make_move_before_game_start(rps_room, messages_spy):
     await rps_room.join("Alice")
     await rps_room.make_move("Alice", {"selection": "ROCK"})

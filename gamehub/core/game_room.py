@@ -82,15 +82,15 @@ class GameRoom(Generic[T]):
         )
         await self._broadcast_message(message)
 
+    def _shared_view_payload(self) -> dict:
+        return {
+            "room_id": self._room_id,
+            "shared_view": self._game_state.shared_view().model_dump(exclude_none=True),
+        }
+
     async def _broadcast_shared_view(self) -> None:
         message = Message(
-            message_type=MessageType.GAME_STATE,
-            payload={
-                "room_id": self._room_id,
-                "shared_view": self._game_state.shared_view().model_dump(
-                    exclude_none=True
-                ),
-            },
+            message_type=MessageType.GAME_STATE, payload=self._shared_view_payload()
         )
         await self._broadcast_message(message)
 
@@ -137,6 +137,14 @@ class GameRoom(Generic[T]):
         else:
             self._offline_players.remove(player_id)
             await self._broadcast_room_state()
+            if self._game_state is not None:
+                message = Message(
+                    message_type=MessageType.GAME_STATE,
+                    payload=self._shared_view_payload(),
+                )
+                await self._event_bus.publish(
+                    OutgoingMessage(player_id=player_id, message=message)
+                )
 
     async def _parsed_move(self, player_id: str, raw_move: dict) -> Optional[T]:
         try:
