@@ -1,10 +1,13 @@
+from typing import Iterator
+
 from gamehub.core.event_bus import EventBus
 from gamehub.core.events.join_game import JoinGameById, JoinGameByType
 from gamehub.core.events.make_move import MakeMove
 from gamehub.core.events.outgoing_message import OutgoingMessage
 from gamehub.core.events.player_disconnected import PlayerDisconnected
+from gamehub.core.events.query_rooms import QueryRooms
 from gamehub.core.game_room import GameRoom
-from gamehub.core.message import error_message
+from gamehub.core.message import Message, MessageType, error_message
 
 
 class RoomManager:
@@ -25,9 +28,14 @@ class RoomManager:
         else:
             await room.join(join_game.player_id)
 
-    async def join_game_by_type(self, join_game: JoinGameByType) -> None:
+    def _rooms_by_game_type(self, game_type: str) -> Iterator[GameRoom]:
         for room in self._rooms.values():
-            if room.game_type == join_game.game_type and not room.is_full:
+            if room.game_type == game_type:
+                yield room
+
+    async def join_game_by_type(self, join_game: JoinGameByType) -> None:
+        for room in self._rooms_by_game_type(join_game.game_type):
+            if not room.is_full:
                 await room.join(join_game.player_id)
                 return
 
@@ -49,3 +57,19 @@ class RoomManager:
     ) -> None:
         for room in self._rooms.values():
             await room.handle_player_disconnected(player_disconnected.player_id)
+
+    async def query_rooms(self, query: QueryRooms) -> None:
+        await self._event_bus.publish(
+            OutgoingMessage(
+                player_id=query.player_id,
+                message=Message(
+                    message_type=MessageType.GAME_ROOMS,
+                    payload={
+                        "rooms": [
+                            r.room_state().model_dump()
+                            for r in self._rooms_by_game_type(query.game_type)
+                        ]
+                    },
+                ),
+            )
+        )

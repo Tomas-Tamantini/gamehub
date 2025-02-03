@@ -7,9 +7,11 @@ from gamehub.core.events.join_game import JoinGameById, JoinGameByType
 from gamehub.core.events.make_move import MakeMove
 from gamehub.core.events.outgoing_message import OutgoingMessage
 from gamehub.core.events.player_disconnected import PlayerDisconnected
+from gamehub.core.events.query_rooms import QueryRooms
 from gamehub.core.game_room import GameRoom
 from gamehub.core.message import MessageType
 from gamehub.core.room_manager import RoomManager
+from gamehub.core.room_state import RoomState
 
 
 @pytest.fixture
@@ -21,6 +23,11 @@ def spy_room():
         room.room_id = room_id
         room.is_full = is_full
         room.game_type = game_type
+        room.room_state.return_value = RoomState(
+            room_id=room_id,
+            player_ids=["Ana", "Bob"],
+            offline_players=[],
+        )
         return room
 
     return _spy_room
@@ -115,3 +122,30 @@ async def test_room_manager_notifies_rooms_with_given_player_when_they_disconnec
     room_manager = RoomManager([room], EventBus())
     await room_manager.handle_player_disconnected(request)
     room.handle_player_disconnected.assert_called_once_with("Ana")
+
+
+@pytest.mark.asyncio
+async def test_room_manager_returns_room_states_filtered_by_game_type_after_query(
+    spy_room,
+):
+    request = QueryRooms(player_id="Ana", game_type="tic-tac-toe")
+    messages_spy = []
+    event_bus = EventBus()
+    room_manager = RoomManager(
+        [
+            spy_room(room_id=1, game_type="tic-tac-toe"),
+            spy_room(room_id=2, game_type="rock-paper-scissors"),
+            spy_room(room_id=3, game_type="tic-tac-toe"),
+        ],
+        event_bus,
+    )
+    event_bus.subscribe(OutgoingMessage, messages_spy.append)
+    await room_manager.query_rooms(request)
+    assert len(messages_spy) == 1
+    assert messages_spy[0].player_id == "Ana"
+    assert messages_spy[0].message.message_type == MessageType.GAME_ROOMS
+    room_states = messages_spy[0].message.payload["rooms"]
+    assert room_states == [
+        {"room_id": 1, "player_ids": ["Ana", "Bob"], "offline_players": []},
+        {"room_id": 3, "player_ids": ["Ana", "Bob"], "offline_players": []},
+    ]

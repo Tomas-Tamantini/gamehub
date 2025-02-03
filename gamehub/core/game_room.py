@@ -56,7 +56,7 @@ class GameRoom(Generic[T]):
     def room_id(self) -> int:
         return self._room_id
 
-    def _room_state(self) -> RoomState:
+    def room_state(self) -> RoomState:
         return RoomState(
             room_id=self._room_id,
             player_ids=self._players[:],
@@ -77,7 +77,7 @@ class GameRoom(Generic[T]):
     async def _broadcast_room_state(self) -> None:
         message = Message(
             message_type=MessageType.GAME_ROOM_UPDATE,
-            payload=self._room_state().model_dump(),
+            payload=self.room_state().model_dump(),
         )
         await self._broadcast_message(message)
 
