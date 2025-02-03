@@ -125,6 +125,9 @@ class GameRoom(Generic[T]):
             if self.is_full:
                 await self._start_game()
 
+    async def rejoin(self, player_id: str) -> None:
+        raise NotImplementedError()
+
     async def _parsed_move(self, player_id: str, raw_move: dict) -> Optional[T]:
         try:
             return self._parse_move({"player_id": player_id, **raw_move})

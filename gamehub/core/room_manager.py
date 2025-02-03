@@ -1,7 +1,7 @@
 from typing import Iterator
 
 from gamehub.core.event_bus import EventBus
-from gamehub.core.events.join_game import JoinGameById, JoinGameByType
+from gamehub.core.events.join_game import JoinGameById, JoinGameByType, RejoinGame
 from gamehub.core.events.make_move import MakeMove
 from gamehub.core.events.outgoing_message import OutgoingMessage
 from gamehub.core.events.player_disconnected import PlayerDisconnected
@@ -27,6 +27,14 @@ class RoomManager:
             )
         else:
             await room.join(join_game.player_id)
+
+    async def rejoin_game(self, join_game: RejoinGame) -> None:
+        if not (room := self._rooms.get(join_game.room_id)):
+            await self._respond_error(
+                join_game.player_id, f"Room with id {join_game.room_id} does not exist"
+            )
+        else:
+            await room.rejoin(join_game.player_id)
 
     def _rooms_by_game_type(self, game_type: str) -> Iterator[GameRoom]:
         for room in self._rooms.values():

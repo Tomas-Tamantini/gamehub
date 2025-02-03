@@ -3,7 +3,7 @@ from unittest.mock import Mock
 import pytest
 
 from gamehub.core.event_bus import EventBus
-from gamehub.core.events.join_game import JoinGameById, JoinGameByType
+from gamehub.core.events.join_game import JoinGameById, JoinGameByType, RejoinGame
 from gamehub.core.events.make_move import MakeMove
 from gamehub.core.events.outgoing_message import OutgoingMessage
 from gamehub.core.events.player_disconnected import PlayerDisconnected
@@ -34,32 +34,24 @@ def spy_room():
     return _spy_room
 
 
+@pytest.mark.parametrize(
+    ("event", "method_name"),
+    [
+        (JoinGameById(player_id="Ana", room_id=2), "join_game_by_id"),
+        (RejoinGame(player_id="Ana", room_id=2), "rejoin_game"),
+        (MakeMove(player_id="Ana", room_id=2, move={}), "make_move"),
+    ],
+)
 @pytest.mark.asyncio
-async def test_room_manager_returns_error_message_if_bad_room_id_when_joining_game(
-    spy_room,
+async def test_room_manager_returns_error_message_if_bad_room_id(
+    spy_room, event, method_name
 ):
-    request = JoinGameById(player_id="Ana", room_id=2)
+    request = event
     messages_spy = []
     event_bus = EventBus()
     room_manager = RoomManager([spy_room()], event_bus)
     event_bus.subscribe(OutgoingMessage, messages_spy.append)
-    await room_manager.join_game_by_id(request)
-    assert len(messages_spy) == 1
-    assert messages_spy[0].player_id == "Ana"
-    assert messages_spy[0].message.message_type == MessageType.ERROR
-    assert "id 2 does not exist" in messages_spy[0].message.payload["error"]
-
-
-@pytest.mark.asyncio
-async def test_room_manager_returns_error_message_if_bad_room_id_when_making_move(
-    spy_room,
-):
-    request = MakeMove(player_id="Ana", room_id=2, move={})
-    messages_spy = []
-    event_bus = EventBus()
-    room_manager = RoomManager([spy_room()], event_bus)
-    event_bus.subscribe(OutgoingMessage, messages_spy.append)
-    await room_manager.make_move(request)
+    await getattr(room_manager, method_name)(request)
     assert len(messages_spy) == 1
     assert messages_spy[0].player_id == "Ana"
     assert messages_spy[0].message.message_type == MessageType.ERROR
@@ -89,6 +81,15 @@ async def test_room_manager_forwards_join_game_request_to_proper_room(spy_room):
     room_manager = RoomManager([room], EventBus())
     await room_manager.join_game_by_id(request)
     room.join.assert_called_once_with("Ana")
+
+
+@pytest.mark.asyncio
+async def test_room_manager_forwards_rejoin_game_request_to_proper_room(spy_room):
+    request = RejoinGame(player_id="Ana", room_id=1)
+    room = spy_room()
+    room_manager = RoomManager([room], EventBus())
+    await room_manager.rejoin_game(request)
+    room.rejoin.assert_called_once_with("Ana")
 
 
 @pytest.mark.asyncio
