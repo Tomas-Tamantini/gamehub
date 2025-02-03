@@ -126,7 +126,17 @@ class GameRoom(Generic[T]):
                 await self._start_game()
 
     async def rejoin(self, player_id: str) -> None:
-        raise NotImplementedError()
+        if player_id not in self._players:
+            await self._send_error_message(
+                player_id=player_id, payload="Player not in room"
+            )
+        elif player_id not in self._offline_players:
+            await self._send_error_message(
+                player_id=player_id, payload="Player is not offline"
+            )
+        else:
+            self._offline_players.remove(player_id)
+            await self._broadcast_room_state()
 
     async def _parsed_move(self, player_id: str, raw_move: dict) -> Optional[T]:
         try:

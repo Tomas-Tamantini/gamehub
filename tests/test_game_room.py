@@ -208,6 +208,49 @@ async def test_player_cannot_join_room_twice(rps_room, messages_spy):
 
 
 @pytest.mark.asyncio
+async def test_player_cannot_rejoin_room_they_are_not_in(rps_room, messages_spy):
+    await rps_room.rejoin("Alice")
+
+    assert messages_spy[-1].player_id == "Alice"
+    assert messages_spy[-1].message.message_type == MessageType.ERROR
+    assert messages_spy[-1].message.payload["error"] == "Player not in room"
+
+
+@pytest.mark.asyncio
+async def test_player_cannot_rejoin_room_if_they_were_not_offline(
+    rps_room, messages_spy
+):
+    await rps_room.join("Alice")
+    await rps_room.rejoin("Alice")
+
+    assert messages_spy[-1].player_id == "Alice"
+    assert messages_spy[-1].message.message_type == MessageType.ERROR
+    assert messages_spy[-1].message.payload["error"] == "Player is not offline"
+
+
+@pytest.mark.asyncio
+async def test_players_get_notified_of_player_rejoining(rps_room, messages_spy):
+    await rps_room.join("Alice")
+    await rps_room.join("Bob")
+    await rps_room.handle_player_disconnected("Alice")
+    await rps_room.rejoin("Alice")
+
+    expected = [
+        ExpectedBroadcast(
+            ["Alice", "Bob"],
+            MessageType.GAME_ROOM_UPDATE,
+            {
+                "room_id": 0,
+                "player_ids": ["Alice", "Bob"],
+                "offline_players": [],
+                "is_full": True,
+            },
+        )
+    ]
+    check_messages(messages_spy[7:9], expected)
+
+
+@pytest.mark.asyncio
 async def test_player_cannot_make_move_before_game_start(rps_room, messages_spy):
     await rps_room.join("Alice")
     await rps_room.make_move("Alice", {"selection": "ROCK"})
