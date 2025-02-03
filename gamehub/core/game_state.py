@@ -1,4 +1,4 @@
-from typing import Iterator, Protocol
+from typing import Iterator, Optional, Protocol
 
 
 class _View(Protocol):
@@ -9,5 +9,7 @@ class GameState(Protocol):
     def shared_view(self) -> _View: ...
 
     def private_views(self) -> Iterator[tuple[str, _View]]: ...
+
+    def query_private_view(self, player_id: str) -> Optional[_View]: ...
 
     def is_terminal(self) -> bool: ...

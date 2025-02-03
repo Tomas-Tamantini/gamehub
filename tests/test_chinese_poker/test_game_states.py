@@ -18,9 +18,31 @@ from gamehub.games.chinese_poker.status import ChinesePokerStatus
         "end_game",
     ],
 )
-def test_state_doesnt_have_private_views(request, state):
+def test_state_doesnt_yield_private_views(request, state):
     state = request.getfixturevalue(state)
     assert not list(state.private_views())
+
+
+@pytest.mark.parametrize(
+    "state",
+    [
+        "start_game",
+        "start_match",
+        "start_round",
+        "start_turn",
+        "end_round",
+        "end_last_round",
+        "end_match",
+        "update_points",
+        "last_points_update",
+        "end_game",
+    ],
+)
+def test_state_can_be_queried_for_its_private_views(request, state):
+    state = request.getfixturevalue(state)
+    private_view = state.query_private_view("Alice")
+    assert private_view.status == state.status
+    assert private_view.cards == state.players[0].cards
 
 
 def test_each_player_receives_their_private_cards_after_dealing(

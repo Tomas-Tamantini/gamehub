@@ -72,12 +72,17 @@ class ChinesePokerState:
         }:
             yield self.players[self.current_player_idx]
 
-    def private_views(self):
+    def private_views(self) -> Iterator[tuple[str, ChinesePokerPrivateView]]:
         for player in self._players_to_send_private_view():
             yield (
                 player.player_id,
                 ChinesePokerPrivateView(status=self.status, cards=player.cards),
             )
+
+    def query_private_view(self, player_id: str) -> Optional[ChinesePokerPrivateView]:
+        for player in self.players:
+            if player.player_id == player_id:
+                return ChinesePokerPrivateView(status=self.status, cards=player.cards)
 
     def is_terminal(self) -> bool:
         return self.status == ChinesePokerStatus.END_GAME

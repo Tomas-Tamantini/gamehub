@@ -122,3 +122,8 @@ def test_players_cannot_make_move_after_game_over():
         _ = TicTacToeGameLogic().make_move(
             state, TicTacToeMove(player_id="Bob", cell_index=5)
         )
+
+
+def test_tic_tac_toe_has_no_private_views(initial_state):
+    assert list(initial_state.private_views()) == []
+    assert initial_state.query_private_view("Alice") is None

@@ -24,6 +24,10 @@ class TicTacToeState:
     def private_views():
         yield from []
 
+    @staticmethod
+    def query_private_view(player_id: str):
+        return None
+
     def is_terminal(self) -> bool:
         return len(self.selected_cells()) == 9 or self._winner() is not None
 

@@ -56,3 +56,8 @@ class RPSGameState:
             for player in self.players:
                 if player.selection is not None:
                     yield player.player_id, RPSPrivateView(selection=player.selection)
+
+    def query_private_view(self, player_id: str) -> Optional[RPSPrivateView]:
+        for player in self.players:
+            if player.player_id == player_id and player.selection is not None:
+                return RPSPrivateView(selection=player.selection)

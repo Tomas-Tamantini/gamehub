@@ -66,6 +66,12 @@ def test_rock_paper_scissors_informs_private_selection(after_first_move):
     assert private_views == [("Alice", RPSPrivateView(selection=RPSSelection.ROCK))]
 
 
+def test_rock_paper_scissors_can_query_private_selection(after_first_move):
+    private_view = after_first_move.query_private_view("Alice")
+    assert private_view == RPSPrivateView(selection=RPSSelection.ROCK)
+    assert after_first_move.query_private_view("Bob") is None
+
+
 def test_rock_paper_scissors_informs_result_after_both_selected(after_first_move):
     game_over_state = RPSGameLogic().make_move(
         after_first_move, RPSMove(player_id="Bob", selection=RPSSelection.PAPER)
