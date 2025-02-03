@@ -100,7 +100,12 @@ async def test_player_can_join_empty_room(rps_room, messages_spy):
         ExpectedBroadcast(
             ["Alice"],
             MessageType.GAME_ROOM_UPDATE,
-            {"room_id": 0, "player_ids": ["Alice"], "offline_players": []},
+            {
+                "room_id": 0,
+                "player_ids": ["Alice"],
+                "offline_players": [],
+                "is_full": False,
+            },
         )
     ]
     check_messages(messages_spy, expected)
@@ -114,7 +119,12 @@ async def test_players_get_informed_when_new_one_joins(rps_room, messages_spy):
         ExpectedBroadcast(
             ["Alice", "Bob"],
             MessageType.GAME_ROOM_UPDATE,
-            {"room_id": 0, "player_ids": ["Alice", "Bob"], "offline_players": []},
+            {
+                "room_id": 0,
+                "player_ids": ["Alice", "Bob"],
+                "offline_players": [],
+                "is_full": True,
+            },
         )
     ]
     check_messages(messages_spy[1:3], expected)
@@ -141,7 +151,12 @@ async def test_room_notifies_other_players_if_one_disconnects(
         ExpectedBroadcast(
             ["Alice", "Bob"],
             MessageType.GAME_ROOM_UPDATE,
-            {"room_id": 1, "player_ids": ["Alice", "Bob"], "offline_players": []},
+            {
+                "room_id": 1,
+                "player_ids": ["Alice", "Bob"],
+                "offline_players": [],
+                "is_full": False,
+            },
         )
     ]
     check_messages(messages_spy[6:], expected)
@@ -164,6 +179,7 @@ async def test_room_does_not_remove_disconnected_player_if_game_has_started(
                 "room_id": 1,
                 "player_ids": ["Alice", "Bob", "Charlie", "Diana"],
                 "offline_players": ["Alice"],
+                "is_full": True,
             },
         )
     ]
@@ -306,7 +322,12 @@ async def test_game_room_resets_after_game_over_and_new_players_can_join(
         ExpectedBroadcast(
             ["Charlie"],
             MessageType.GAME_ROOM_UPDATE,
-            {"room_id": 0, "player_ids": ["Charlie"], "offline_players": []},
+            {
+                "room_id": 0,
+                "player_ids": ["Charlie"],
+                "offline_players": [],
+                "is_full": False,
+            },
         )
     ]
     check_messages(messages_spy[-1:], expected)

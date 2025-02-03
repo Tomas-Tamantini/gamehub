@@ -63,12 +63,22 @@ async def test_integration():
         ExpectedBroadcast(
             ["Alice"],
             MessageType.GAME_ROOM_UPDATE,
-            {"room_id": 1, "player_ids": ["Alice"], "offline_players": []},
+            {
+                "room_id": 1,
+                "player_ids": ["Alice"],
+                "offline_players": [],
+                "is_full": False,
+            },
         ),
         ExpectedBroadcast(
             ["Alice", "Bob"],
             MessageType.GAME_ROOM_UPDATE,
-            {"room_id": 1, "player_ids": ["Alice", "Bob"], "offline_players": []},
+            {
+                "room_id": 1,
+                "player_ids": ["Alice", "Bob"],
+                "offline_players": [],
+                "is_full": True,
+            },
         ),
         ExpectedBroadcast(
             ["Alice", "Bob"],

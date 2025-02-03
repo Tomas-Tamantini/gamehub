@@ -27,6 +27,7 @@ def spy_room():
             room_id=room_id,
             player_ids=["Ana", "Bob"],
             offline_players=[],
+            is_full=is_full,
         )
         return room
 
@@ -146,6 +147,16 @@ async def test_room_manager_returns_room_states_filtered_by_game_type_after_quer
     assert messages_spy[0].message.message_type == MessageType.GAME_ROOMS
     room_states = messages_spy[0].message.payload["rooms"]
     assert room_states == [
-        {"room_id": 1, "player_ids": ["Ana", "Bob"], "offline_players": []},
-        {"room_id": 3, "player_ids": ["Ana", "Bob"], "offline_players": []},
+        {
+            "room_id": 1,
+            "player_ids": ["Ana", "Bob"],
+            "offline_players": [],
+            "is_full": False,
+        },
+        {
+            "room_id": 3,
+            "player_ids": ["Ana", "Bob"],
+            "offline_players": [],
+            "is_full": False,
+        },
     ]

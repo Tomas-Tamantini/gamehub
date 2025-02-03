@@ -61,6 +61,7 @@ class GameRoom(Generic[T]):
             room_id=self._room_id,
             player_ids=self._players[:],
             offline_players=list(self._offline_players),
+            is_full=self.is_full,
         )
 
     async def _send_error_message(self, player_id: str, payload: str) -> None:
