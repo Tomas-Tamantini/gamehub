@@ -22,8 +22,8 @@ python -m http.server
 Then open the browser at one of the following URLs:
 
 - `http://localhost:8000/clients/chinese_poker/` 
-- `http://localhost:8000/clients/tic-tac-toe/`
-- `http://localhost:8000/clients/tic-tac-toe/`
+- `http://localhost:8000/clients/tic_tac_toe/`
+- `http://localhost:8000/clients/rock_paper_scissors/`
 
 
 ## Running the tests
