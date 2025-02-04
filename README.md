@@ -11,9 +11,9 @@ Run it with UV
 uv run .\server.py
 ```
 
-## Running the client
+## Running the sample clients
 
-There are three sample HTML files in the `client` folder. You can run them with a simple HTTP server.
+There are three sample HTML files in the `clients` folder. You can run them with a simple HTTP server.
 
 ```bash
 python -m http.server
@@ -25,6 +25,10 @@ Then open the browser at one of the following URLs:
 - `http://localhost:8000/clients/tic_tac_toe/`
 - `http://localhost:8000/clients/rock_paper_scissors/`
 
+
+## Chinese poker client
+
+There is a much more advanced Chinese Poker client project at the [gamehub-client](https://github.com/Tomas-Tamantini/gamehub-client) project. It is also hosted with github pages [here](https://tomas-tamantini.github.io/gamehub-client/).
 
 ## Running the tests
 
