@@ -8,7 +8,7 @@ A python server for multiplayer online games.
 Run it with UV
 
 ```bash
-uv run .\server.py
+uv run task serve
 ```
 
 ## Running the sample clients
