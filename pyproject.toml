@@ -29,7 +29,7 @@ ignore = ["PLR2004"]
 pythonpath = "."
 
 [tool.taskipy.tasks]
-serve = "fastapi dev ./server.py"
+serve = "uvicorn gamehub.server:app --reload"
 pre_format = "ruff check . --fix"
 format = "ruff format ."
 test = "pytest -s -x --cov=gamehub --cov-config=.coveragerc -vv"

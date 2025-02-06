@@ -56,6 +56,7 @@ def game_manager(event_bus: EventBus) -> RoomManager:
     )
 
 
+# TODO: Inject as dependencies
 event_bus = EventBus()
 client_manager = ClientManager()
 message_sender = SocketMessageSender(client_manager)
