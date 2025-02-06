@@ -1,6 +1,4 @@
-import asyncio
-
-import websockets
+from fastapi import FastAPI, WebSocket
 
 from gamehub.core.event_bus import EventBus
 from gamehub.core.game_room import GameRoom
@@ -14,6 +12,8 @@ from gamehub.games.chinese_poker import (
 from gamehub.games.rock_paper_scissors import RPSGameLogic, RPSMove
 from gamehub.games.tic_tac_toe import TicTacToeGameLogic, TicTacToeMove
 from gamehub.socket_server import ClientManager, ConnectionHandler, SocketMessageSender
+
+app = FastAPI()
 
 
 def game_manager(event_bus: EventBus) -> RoomManager:
@@ -56,15 +56,13 @@ def game_manager(event_bus: EventBus) -> RoomManager:
     )
 
 
-async def main():
-    event_bus = EventBus()
-    client_manager = ClientManager()
-    message_sender = SocketMessageSender(client_manager)
-    setup_event_bus(event_bus, message_sender, game_manager(event_bus))
-    connection_handler = ConnectionHandler(client_manager, event_bus)
-    server = await websockets.serve(connection_handler.handle_client, "localhost", 8765)
-    await server.wait_closed()
+event_bus = EventBus()
+client_manager = ClientManager()
+message_sender = SocketMessageSender(client_manager)
+setup_event_bus(event_bus, message_sender, game_manager(event_bus))
+connection_handler = ConnectionHandler(client_manager, event_bus)
 
 
-if __name__ == "__main__":
-    asyncio.run(main())
+@app.websocket("/")
+async def websocket_endpoint(websocket: WebSocket):
+    await connection_handler.handle_client(websocket)

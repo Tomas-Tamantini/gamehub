@@ -8,4 +8,4 @@ class SocketMessageSender:
 
     async def send(self, message_event: OutgoingMessage) -> None:
         if client := self._client_manager.get_client(message_event.player_id):
-            await client.send(message_event.message.model_dump_json())
+            await client.send_text(message_event.message.model_dump_json())

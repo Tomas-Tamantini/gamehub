@@ -1,11 +1,8 @@
 from typing import Optional
 
-from websockets.asyncio.server import ServerConnection
+from fastapi import WebSocket
 
 from gamehub.core.exceptions import AmbiguousPlayerIdError
-
-# TODO:
-# Handle client disconnect
 
 
 class ClientManager:
@@ -13,7 +10,7 @@ class ClientManager:
         self._player_id_to_client = {}
         self._client_to_player_id = {}
 
-    def associate_player_id(self, player_id: str, client: ServerConnection):
+    def associate_player_id(self, player_id: str, client: WebSocket):
         existing_id = self._client_to_player_id.get(client)
         if not existing_id:
             existing_client = self._player_id_to_client.get(player_id)
@@ -29,11 +26,11 @@ class ClientManager:
                 "This client is already associated with another id"
             )
 
-    def remove(self, client: ServerConnection) -> Optional[str]:
+    def remove(self, client: WebSocket) -> Optional[str]:
         player_id = self._client_to_player_id.pop(client, None)
         if player_id:
             self._player_id_to_client.pop(player_id, None)
             return player_id
 
-    def get_client(self, player_id: str) -> Optional[ServerConnection]:
+    def get_client(self, player_id: str) -> Optional[WebSocket]:
         return self._player_id_to_client.get(player_id)

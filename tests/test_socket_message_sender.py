@@ -29,6 +29,6 @@ async def test_message_sender_sends_message_if_client_found():
         message=Message(message_type=MessageType.GAME_STATE, payload={"key": "value"}),
     )
     await message_sender.send(msg)
-    client.send.assert_called_once_with(
+    client.send_text.assert_called_once_with(
         '{"message_type":"GAME_STATE","payload":{"key":"value"}}'
     )
