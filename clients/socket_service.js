@@ -39,4 +39,4 @@ class SocketService {
 }
 
 
-export default new SocketService("ws://localhost:8765");
+export default new SocketService("ws://localhost:8000");
