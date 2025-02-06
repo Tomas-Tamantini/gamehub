@@ -5,11 +5,11 @@ from unittest.mock import AsyncMock, Mock
 import pytest
 from fastapi import WebSocket, WebSocketDisconnect
 
+from gamehub.api.socket_server import ClientManager, ConnectionHandler
 from gamehub.core.event_bus import EventBus
 from gamehub.core.events.player_disconnected import PlayerDisconnected
 from gamehub.core.events.request import Request, RequestType
 from gamehub.core.message import Message, MessageType
-from gamehub.socket_server import ClientManager, ConnectionHandler
 
 
 @pytest.fixture

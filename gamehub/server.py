@@ -1,5 +1,10 @@
 from fastapi import FastAPI, WebSocket
 
+from gamehub.api.socket_server import (
+    ClientManager,
+    ConnectionHandler,
+    SocketMessageSender,
+)
 from gamehub.core.event_bus import EventBus
 from gamehub.core.game_room import GameRoom
 from gamehub.core.room_manager import RoomManager
@@ -11,7 +16,6 @@ from gamehub.games.chinese_poker import (
 )
 from gamehub.games.rock_paper_scissors import RPSGameLogic, RPSMove
 from gamehub.games.tic_tac_toe import TicTacToeGameLogic, TicTacToeMove
-from gamehub.socket_server import ClientManager, ConnectionHandler, SocketMessageSender
 
 app = FastAPI()
 

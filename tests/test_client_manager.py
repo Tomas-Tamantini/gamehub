@@ -2,8 +2,8 @@ from unittest.mock import AsyncMock
 
 import pytest
 
+from gamehub.api.socket_server import ClientManager
 from gamehub.core.exceptions import AmbiguousPlayerIdError
-from gamehub.socket_server import ClientManager
 
 
 def test_client_manager_associates_client_with_player_id():

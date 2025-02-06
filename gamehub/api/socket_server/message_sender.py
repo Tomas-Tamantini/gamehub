@@ -1,5 +1,5 @@
+from gamehub.api.socket_server.client_manager import ClientManager
 from gamehub.core.events.outgoing_message import OutgoingMessage
-from gamehub.socket_server.client_manager import ClientManager
 
 
 class SocketMessageSender:

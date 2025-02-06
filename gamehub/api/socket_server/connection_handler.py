@@ -4,12 +4,12 @@ from typing import Optional
 from fastapi import WebSocket, WebSocketDisconnect
 from pydantic import ValidationError
 
+from gamehub.api.socket_server.client_manager import ClientManager
 from gamehub.core.event_bus import EventBus
 from gamehub.core.events.player_disconnected import PlayerDisconnected
 from gamehub.core.events.request import Request
 from gamehub.core.exceptions import AmbiguousPlayerIdError
 from gamehub.core.message import error_message
-from gamehub.socket_server.client_manager import ClientManager
 
 
 class ConnectionHandler:

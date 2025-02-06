@@ -2,9 +2,9 @@ from unittest.mock import AsyncMock
 
 import pytest
 
+from gamehub.api.socket_server import ClientManager, SocketMessageSender
 from gamehub.core.events.outgoing_message import OutgoingMessage
 from gamehub.core.message import Message, MessageType
-from gamehub.socket_server import ClientManager, SocketMessageSender
 
 
 @pytest.mark.asyncio
