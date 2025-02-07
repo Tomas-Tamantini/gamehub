@@ -1,12 +1,21 @@
 from http import HTTPStatus
 
 from fastapi import Depends, FastAPI, WebSocket
+from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 
 from gamehub.api.dependencies import T_ConnectionHandler, T_RoomManager
 from gamehub.core.room_state import RoomState
 
 app = FastAPI()
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 
 @app.websocket("/ws")
