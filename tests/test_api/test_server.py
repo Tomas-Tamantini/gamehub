@@ -73,3 +73,8 @@ def test_getting_game_rooms_returns_list_of_game_rooms(get_rooms_response):
             },
         ]
     }
+
+
+def test_getting_game_rooms_without_game_type_returns_status_422(client):
+    response = client.get("/rooms")
+    assert response.status_code == 422

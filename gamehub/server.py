@@ -25,17 +25,11 @@ async def websocket_endpoint(
     await connection_handler.handle_client(websocket)
 
 
-class GetRoomsQueryParameters(BaseModel):
-    game_type: str = None
-
-
 class GetRoomsResponse(BaseModel):
     items: list[RoomState]
 
 
 @app.get("/rooms", status_code=HTTPStatus.OK, response_model=GetRoomsResponse)
-async def get_rooms(
-    room_manager: T_RoomManager, query_parameters: GetRoomsQueryParameters = Depends()
-):
-    rooms = list(room_manager.room_states(query_parameters.game_type))
+async def get_rooms(room_manager: T_RoomManager, game_type: str):
+    rooms = list(room_manager.room_states(game_type))
     return GetRoomsResponse(items=rooms)
