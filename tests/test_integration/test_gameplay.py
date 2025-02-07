@@ -11,19 +11,21 @@ from gamehub.games.rock_paper_scissors import RPSGameLogic, RPSMove
 from tests.utils import ExpectedBroadcast, check_messages
 
 
-class _MessageSenderSpy:
-    def __init__(self):
-        self.messages = []
+@pytest.fixture
+def message_spy():
+    class _MessageSenderSpy:
+        def __init__(self):
+            self.messages = []
 
-    async def send(self, message: OutgoingMessage) -> None:
-        self.messages.append(message)
+        async def send(self, message: OutgoingMessage) -> None:
+            self.messages.append(message)
+
+    return _MessageSenderSpy()
 
 
-@pytest.mark.asyncio
-async def test_integration():
-    message_spy = _MessageSenderSpy()
+@pytest.fixture
+def event_bus(message_spy):
     event_bus = EventBus()
-
     game_room = GameRoom(
         room_id=1,
         game_logic=RPSGameLogic(),
@@ -32,7 +34,11 @@ async def test_integration():
     )
     room_manager = RoomManager([game_room], event_bus)
     setup_event_bus(event_bus, message_spy, room_manager)
+    return event_bus
 
+
+@pytest.mark.asyncio
+async def test_full_gameplay(message_spy, event_bus):
     requests = (
         Request(
             player_id="Alice",
