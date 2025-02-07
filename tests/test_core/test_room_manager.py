@@ -127,6 +127,35 @@ async def test_room_manager_notifies_rooms_with_given_player_when_they_disconnec
 
 
 @pytest.mark.asyncio
+async def test_room_manager_returns_room_states_filtered_by_game_type(spy_room):
+    event_bus = EventBus()
+    room_manager = RoomManager(
+        [
+            spy_room(room_id=1, game_type="tic-tac-toe"),
+            spy_room(room_id=2, game_type="rock-paper-scissors"),
+            spy_room(room_id=3, game_type="tic-tac-toe"),
+        ],
+        event_bus,
+    )
+    room_states = list(room_manager.room_states(game_type="tic-tac-toe"))
+    assert room_states == [
+        RoomState(
+            room_id=1,
+            player_ids=["Ana", "Bob"],
+            offline_players=[],
+            is_full=False,
+        ),
+        RoomState(
+            room_id=3,
+            player_ids=["Ana", "Bob"],
+            offline_players=[],
+            is_full=False,
+        ),
+    ]
+
+
+# TODO: Delete this test
+@pytest.mark.asyncio
 async def test_room_manager_returns_room_states_filtered_by_game_type_after_query(
     spy_room,
 ):
