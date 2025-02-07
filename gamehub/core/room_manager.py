@@ -5,9 +5,8 @@ from gamehub.core.events.join_game import JoinGameById, JoinGameByType, RejoinGa
 from gamehub.core.events.make_move import MakeMove
 from gamehub.core.events.outgoing_message import OutgoingMessage
 from gamehub.core.events.player_disconnected import PlayerDisconnected
-from gamehub.core.events.query_rooms import QueryRooms
 from gamehub.core.game_room import GameRoom
-from gamehub.core.message import Message, MessageType, error_message
+from gamehub.core.message import error_message
 from gamehub.core.room_state import RoomState
 
 
@@ -70,20 +69,3 @@ class RoomManager:
     def room_states(self, game_type: str) -> Iterator[RoomState]:
         for room in self._rooms_by_game_type(game_type):
             yield room.room_state()
-
-    async def query_rooms(self, query: QueryRooms) -> None:
-        # TODO: Delete this method (rooms will be queried via HTTP)
-        await self._event_bus.publish(
-            OutgoingMessage(
-                player_id=query.player_id,
-                message=Message(
-                    message_type=MessageType.GAME_ROOMS,
-                    payload={
-                        "rooms": [
-                            state.model_dump()
-                            for state in self.room_states(query.game_type)
-                        ]
-                    },
-                ),
-            )
-        )

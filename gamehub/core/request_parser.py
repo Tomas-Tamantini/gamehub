@@ -4,12 +4,10 @@ from gamehub.core.event_bus import EventBus
 from gamehub.core.events.join_game import JoinGameById, JoinGameByType, RejoinGame
 from gamehub.core.events.make_move import MakeMove
 from gamehub.core.events.outgoing_message import OutgoingMessage
-from gamehub.core.events.query_rooms import QueryRooms
 from gamehub.core.events.request import (
     JoinGameByIdPayload,
     JoinGameByTypePayload,
     MakeMovePayload,
-    QueryRoomsPayload,
     RejoinGamePayload,
     Request,
     RequestType,
@@ -65,18 +63,6 @@ class _MakeMoveParser:
         return MakeMove(player_id, parsed_payload.room_id, parsed_payload.move)
 
 
-class _QueryRoomParser:
-    @property
-    def model(self):
-        return QueryRoomsPayload
-
-    @staticmethod
-    def create_new_event(
-        player_id: str, parsed_payload: QueryRoomsPayload
-    ) -> QueryRooms:
-        return QueryRooms(player_id, parsed_payload.game_type)
-
-
 class RequestParser:
     def __init__(self, event_bus: EventBus):
         self._event_bus = event_bus
@@ -91,7 +77,6 @@ class RequestParser:
             RequestType.JOIN_GAME_BY_ID: _JoinByIdParser,
             RequestType.JOIN_GAME_BY_TYPE: _JoinByTypeParser,
             RequestType.MAKE_MOVE: _MakeMoveParser,
-            RequestType.QUERY_ROOMS: _QueryRoomParser,
             RequestType.REJOIN_GAME: _RejoinGameParser,
         }[request.request_type]()
         try:

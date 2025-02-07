@@ -3,7 +3,6 @@ from gamehub.core.events.join_game import JoinGameById, JoinGameByType, RejoinGa
 from gamehub.core.events.make_move import MakeMove
 from gamehub.core.events.outgoing_message import OutgoingMessage
 from gamehub.core.events.player_disconnected import PlayerDisconnected
-from gamehub.core.events.query_rooms import QueryRooms
 from gamehub.core.events.request import Request
 from gamehub.core.message_sender import MessageSender
 from gamehub.core.request_parser import RequestParser
@@ -20,5 +19,4 @@ def setup_event_bus(
     event_bus.subscribe(RejoinGame, room_manager.rejoin_game)
     event_bus.subscribe(JoinGameByType, room_manager.join_game_by_type)
     event_bus.subscribe(MakeMove, room_manager.make_move)
-    event_bus.subscribe(QueryRooms, room_manager.query_rooms)
     event_bus.subscribe(PlayerDisconnected, room_manager.handle_player_disconnected)
