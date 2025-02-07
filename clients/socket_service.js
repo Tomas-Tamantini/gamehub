@@ -1,7 +1,7 @@
 class SocketService {
     constructor(url) {
         this.subscribers = [];
-        this.ws = new WebSocket(url);
+        this.ws = new WebSocket(url + "/ws");
         this.ws.onopen = () => {
             console.log("Connected to server");
         }
