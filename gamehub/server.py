@@ -30,7 +30,7 @@ class GetRoomsQueryParameters(BaseModel):
 
 
 class GetRoomsResponse(BaseModel):
-    rooms: list[RoomState]
+    items: list[RoomState]
 
 
 @app.get("/rooms", status_code=HTTPStatus.OK, response_model=GetRoomsResponse)
@@ -38,4 +38,4 @@ async def get_rooms(
     room_manager: T_RoomManager, query_parameters: GetRoomsQueryParameters = Depends()
 ):
     rooms = list(room_manager.room_states(query_parameters.game_type))
-    return GetRoomsResponse(rooms=rooms)
+    return GetRoomsResponse(items=rooms)

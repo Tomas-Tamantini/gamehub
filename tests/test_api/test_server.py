@@ -58,7 +58,7 @@ def test_getting_game_rooms_filters_room_by_game_type(
 
 def test_getting_game_rooms_returns_list_of_game_rooms(get_rooms_response):
     assert get_rooms_response.json() == {
-        "rooms": [
+        "items": [
             {
                 "room_id": 1,
                 "player_ids": ["Ana", "Bob"],
