@@ -29,20 +29,25 @@ class ConnectionHandler:
             error_msg = f"Unable to parse request: {e}"
             await ConnectionHandler._send_error_message(client, error_msg)
 
+    async def run_message_loop(self, client: WebSocket) -> None:
+        while True:
+            message = await client.receive_text()
+            if request := await self._parse_request(client, message):
+                try:
+                    await self._event_bus.publish(request)
+                except InvalidPlayerIdError as e:
+                    await ConnectionHandler._send_error_message(client, str(e))
+
     async def handle_client(self, client: WebSocket, player_id: str) -> None:
-        # TODO: Remove player id from request class
         try:
             await client.accept()
-            while True:
-                message = await client.receive_text()
-                if request := await self._parse_request(client, message):
-                    try:
-                        self._client_manager.associate_player_id(
-                            request.player_id, client
-                        )
-                        await self._event_bus.publish(request)
-                    except InvalidPlayerIdError as e:
-                        await ConnectionHandler._send_error_message(client, str(e))
+            try:
+                self._client_manager.associate_player_id(player_id, client)
+                await self.run_message_loop(client)
+            except InvalidPlayerIdError as e:
+                await ConnectionHandler._send_error_message(client, str(e))
+                await client.close()
+
         except WebSocketDisconnect:
             logging.warning(f"Client disconnected: {client.url}")
         except Exception as e:
