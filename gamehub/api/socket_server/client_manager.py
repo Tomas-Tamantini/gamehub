@@ -16,9 +16,11 @@ class ClientManager:
             existing_client = self._player_id_to_client.get(player_id)
             if existing_client:
                 raise InvalidPlayerIdError("Player id already in use by another client")
-            else:
+            elif player_id.strip():
                 self._player_id_to_client[player_id] = client
                 self._client_to_player_id[client] = player_id
+            else:
+                raise InvalidPlayerIdError("Player id cannot be empty")
         elif existing_id != player_id:
             raise InvalidPlayerIdError(
                 "This client is already associated with another id"

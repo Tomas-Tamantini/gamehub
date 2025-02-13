@@ -23,6 +23,13 @@ def test_client_cannot_have_two_player_ids():
         client_manager.associate_player_id("id_2", mock_client)
 
 
+def test_client_cannot_have_empty_player_id():
+    client_manager = ClientManager()
+    mock_client = AsyncMock()
+    with pytest.raises(InvalidPlayerIdError, match="cannot be empty"):
+        client_manager.associate_player_id(" ", mock_client)
+
+
 def test_player_id_cannot_have_two_clients():
     client_manager = ClientManager()
     client_a = AsyncMock()
