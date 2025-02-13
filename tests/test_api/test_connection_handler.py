@@ -9,7 +9,7 @@ from fastapi import WebSocket, WebSocketDisconnect
 from gamehub.api.socket_server import ClientManager, ConnectionHandler
 from gamehub.core.event_bus import EventBus
 from gamehub.core.events.player_disconnected import PlayerDisconnected
-from gamehub.core.events.request import Request, RequestType
+from gamehub.core.events.socket_request import SocketRequest
 from gamehub.core.message import Message, MessageType
 
 
@@ -34,14 +34,6 @@ def valid_client(mock_client, valid_request):
 
 
 @pytest.fixture
-def bad_request_client(mock_client):
-    mock_client.receive_text = AsyncMock(
-        side_effect=["bad_request", WebSocketDisconnect]
-    )
-    return mock_client
-
-
-@pytest.fixture
 def infinite_loop_client(mock_client, valid_request):
     mock_client.receive_text = AsyncMock(side_effect=cycle([valid_request]))
     return mock_client
@@ -58,17 +50,6 @@ def connection_handler():
         return ConnectionHandler(client_manager, event_bus)
 
     return _handler
-
-
-@pytest.mark.asyncio
-async def test_handler_responds_when_unable_to_parse_request(
-    connection_handler, bad_request_client
-):
-    await connection_handler().handle_client(bad_request_client, "Alice")
-    error_msg = bad_request_client.send_text.call_args.args[0]
-    parsed_error_msg = Message.model_validate_json(error_msg)
-    assert parsed_error_msg.message_type == MessageType.ERROR
-    assert "Invalid JSON" in parsed_error_msg.payload["error"]
 
 
 @pytest.mark.asyncio
@@ -104,14 +85,16 @@ async def test_handler_raises_disconnected_client_event(
 
 
 @pytest.mark.asyncio
-async def test_handler_publishes_request_in_event_bus(connection_handler, valid_client):
+async def test_handler_publishes_request_in_event_bus(
+    connection_handler, valid_client, valid_request
+):
     event_bus = EventBus()
     requests = []
-    event_bus.subscribe(Request, requests.append)
+    event_bus.subscribe(SocketRequest, requests.append)
     await connection_handler(event_bus=event_bus).handle_client(valid_client, "Alice")
     assert len(requests) == 1
-    assert requests[0].request_type == RequestType.JOIN_GAME_BY_ID
     assert requests[0].player_id == "Alice"
+    assert requests[0].raw_request == valid_request
 
 
 @pytest.mark.asyncio

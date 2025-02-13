@@ -7,7 +7,7 @@ from pydantic import ValidationError
 from gamehub.api.socket_server.client_manager import ClientManager
 from gamehub.core.event_bus import EventBus
 from gamehub.core.events.player_disconnected import PlayerDisconnected
-from gamehub.core.events.request import Request
+from gamehub.core.events.socket_request import SocketRequest
 from gamehub.core.exceptions import InvalidPlayerIdError
 from gamehub.core.message import error_message
 
@@ -21,29 +21,18 @@ class ConnectionHandler:
     async def _send_error_message(client: WebSocket, payload: str) -> None:
         await client.send_text(error_message(payload).model_dump_json())
 
-    @staticmethod
-    async def _parse_request(client: WebSocket, message: str) -> Optional[Request]:
-        try:
-            return Request.model_validate_json(message)
-        except ValidationError as e:
-            error_msg = f"Unable to parse request: {e}"
-            await ConnectionHandler._send_error_message(client, error_msg)
-
-    async def run_message_loop(self, client: WebSocket) -> None:
+    async def _listen_to_messages(self, client: WebSocket, player_id: str) -> None:
         while True:
             message = await client.receive_text()
-            if request := await self._parse_request(client, message):
-                try:
-                    await self._event_bus.publish(request)
-                except InvalidPlayerIdError as e:
-                    await ConnectionHandler._send_error_message(client, str(e))
+            request = SocketRequest(player_id=player_id, raw_request=message)
+            await self._event_bus.publish(request)
 
     async def handle_client(self, client: WebSocket, player_id: str) -> None:
         try:
             await client.accept()
             try:
                 self._client_manager.associate_player_id(player_id, client)
-                await self.run_message_loop(client)
+                await self._listen_to_messages(client, player_id)
             except InvalidPlayerIdError as e:
                 await ConnectionHandler._send_error_message(client, str(e))
                 await client.close()
