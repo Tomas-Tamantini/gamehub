@@ -115,6 +115,18 @@ async def test_handler_publishes_request_in_event_bus(connection_handler, valid_
 
 
 @pytest.mark.asyncio
+async def test_handler_informs_client_of_bad_player_id(
+    connection_handler, infinite_loop_client
+):
+    bad_player_id = " "
+    await connection_handler().handle_client(infinite_loop_client, bad_player_id)
+    error_msg = infinite_loop_client.send_text.call_args.args[0]
+    parsed_error_msg = Message.model_validate_json(error_msg)
+    assert parsed_error_msg.message_type == MessageType.ERROR
+    assert "cannot be empty" in parsed_error_msg.payload["error"]
+
+
+@pytest.mark.asyncio
 async def test_handler_closes_connection_if_bad_player_id(
     connection_handler, infinite_loop_client
 ):
