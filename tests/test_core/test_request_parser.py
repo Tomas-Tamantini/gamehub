@@ -1,3 +1,5 @@
+import json
+
 import pytest
 
 from gamehub.core.event_bus import EventBus
@@ -7,6 +9,17 @@ from gamehub.core.events.outgoing_message import OutgoingMessage
 from gamehub.core.events.request import Request, RequestType
 from gamehub.core.message import MessageType
 from gamehub.core.request_parser import RequestParser
+
+
+@pytest.fixture
+def socket_request():
+    def _build_request(player_id: str, request_type: RequestType, payload: dict):
+        raw_request = json.dumps(
+            {"request_type": request_type.value, "payload": payload}
+        )
+        return Request(player_id=player_id, raw_request=raw_request)
+
+    return _build_request
 
 
 @pytest.fixture
@@ -30,22 +43,32 @@ def output_events():
 
 
 @pytest.mark.asyncio
-async def test_request_parser_returns_error_message_if_bad_request(output_events):
-    request = Request(
-        player_id="Ana",
-        request_type=RequestType.JOIN_GAME_BY_ID,
-        payload={"bad_key": 1},
-    )
+async def test_request_parser_returns_error_message_if_request_is_not_json(
+    output_events,
+):
+    request = Request(player_id="Ana", raw_request="not json")
     output_events = await output_events(request)
     assert len(output_events) == 1
     assert output_events[0].player_id == "Ana"
     assert output_events[0].message.message_type == MessageType.ERROR
-    assert "bad_key" in output_events[0].message.payload["error"]
+    assert "not json" in output_events[0].message.payload["error"]
 
 
 @pytest.mark.asyncio
-async def test_request_parser_raises_join_game_by_id_event(output_events):
-    request = Request(
+async def test_request_parser_returns_error_message_if_bad_request_type(output_events):
+    request = Request(player_id="Ana", raw_request='{"request_type": "bad_type"}')
+    output_events = await output_events(request)
+    assert len(output_events) == 1
+    assert output_events[0].player_id == "Ana"
+    assert output_events[0].message.message_type == MessageType.ERROR
+    assert "validation error" in output_events[0].message.payload["error"]
+
+
+@pytest.mark.asyncio
+async def test_request_parser_raises_join_game_by_id_event(
+    output_events, socket_request
+):
+    request = socket_request(
         player_id="Ana",
         request_type=RequestType.JOIN_GAME_BY_ID,
         payload={"room_id": 123},
@@ -56,8 +79,8 @@ async def test_request_parser_raises_join_game_by_id_event(output_events):
 
 
 @pytest.mark.asyncio
-async def test_request_parser_raises_rejoin_game_event(output_events):
-    request = Request(
+async def test_request_parser_raises_rejoin_game_event(output_events, socket_request):
+    request = socket_request(
         player_id="Ana",
         request_type=RequestType.REJOIN_GAME,
         payload={"room_id": 123},
@@ -68,8 +91,10 @@ async def test_request_parser_raises_rejoin_game_event(output_events):
 
 
 @pytest.mark.asyncio
-async def test_request_parser_raises_join_game_by_type_event(output_events):
-    request = Request(
+async def test_request_parser_raises_join_game_by_type_event(
+    output_events, socket_request
+):
+    request = socket_request(
         player_id="Ana",
         request_type=RequestType.JOIN_GAME_BY_TYPE,
         payload={"game_type": "tic_tac_toe"},
@@ -80,8 +105,8 @@ async def test_request_parser_raises_join_game_by_type_event(output_events):
 
 
 @pytest.mark.asyncio
-async def test_request_parser_raises_make_move_event(output_events):
-    request = Request(
+async def test_request_parser_raises_make_move_event(output_events, socket_request):
+    request = socket_request(
         player_id="Ana",
         request_type=RequestType.MAKE_MOVE,
         payload={"room_id": 123, "move": {"mock": "move"}},

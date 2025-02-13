@@ -9,7 +9,7 @@ from fastapi import WebSocket, WebSocketDisconnect
 from gamehub.api.socket_server import ClientManager, ConnectionHandler
 from gamehub.core.event_bus import EventBus
 from gamehub.core.events.player_disconnected import PlayerDisconnected
-from gamehub.core.events.socket_request import SocketRequest
+from gamehub.core.events.request import Request
 from gamehub.core.message import Message, MessageType
 
 
@@ -90,7 +90,7 @@ async def test_handler_publishes_request_in_event_bus(
 ):
     event_bus = EventBus()
     requests = []
-    event_bus.subscribe(SocketRequest, requests.append)
+    event_bus.subscribe(Request, requests.append)
     await connection_handler(event_bus=event_bus).handle_client(valid_client, "Alice")
     assert len(requests) == 1
     assert requests[0].player_id == "Alice"

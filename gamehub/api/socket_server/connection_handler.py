@@ -1,13 +1,11 @@
 import logging
-from typing import Optional
 
 from fastapi import WebSocket, WebSocketDisconnect
-from pydantic import ValidationError
 
 from gamehub.api.socket_server.client_manager import ClientManager
 from gamehub.core.event_bus import EventBus
 from gamehub.core.events.player_disconnected import PlayerDisconnected
-from gamehub.core.events.socket_request import SocketRequest
+from gamehub.core.events.request import Request
 from gamehub.core.exceptions import InvalidPlayerIdError
 from gamehub.core.message import error_message
 
@@ -24,7 +22,7 @@ class ConnectionHandler:
     async def _listen_to_messages(self, client: WebSocket, player_id: str) -> None:
         while True:
             message = await client.receive_text()
-            request = SocketRequest(player_id=player_id, raw_request=message)
+            request = Request(player_id=player_id, raw_request=message)
             await self._event_bus.publish(request)
 
     async def handle_client(self, client: WebSocket, player_id: str) -> None:

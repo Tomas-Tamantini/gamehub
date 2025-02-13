@@ -12,23 +12,4 @@ class RequestType(Enum):
 
 class Request(BaseModel):
     player_id: str = Field(min_length=1)
-    request_type: RequestType
-    payload: dict = dict()
-
-
-# TODO : Merge JoinGameByIdPayload and RejoinGamePayload into one class
-class JoinGameByIdPayload(BaseModel):
-    room_id: int
-
-
-class RejoinGamePayload(BaseModel):
-    room_id: int
-
-
-class JoinGameByTypePayload(BaseModel):
-    game_type: str
-
-
-class MakeMovePayload(BaseModel):
-    room_id: int
-    move: dict
+    raw_request: str
