@@ -5,9 +5,10 @@ from fastapi import WebSocket
 from fastapi.testclient import TestClient
 
 from gamehub.api.dependencies.room_manager import get_room_manager
+from gamehub.api.routes.socket import websocket_endpoint
 from gamehub.core.room_manager import RoomManager
 from gamehub.core.room_state import RoomState
-from gamehub.server import app, websocket_endpoint
+from gamehub.server import app
 
 
 @pytest.mark.asyncio
