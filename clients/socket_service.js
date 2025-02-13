@@ -1,7 +1,9 @@
+import userService from "./user_service.js";
+
 class SocketService {
-    constructor(url) {
+    constructor(url, userService) {
         this.subscribers = [];
-        this.ws = new WebSocket(url + "/ws");
+        this.ws = new WebSocket(url + "/ws?player_id=" + userService.getPlayerId());
         this.ws.onopen = () => {
             console.log("Connected to server");
         }
@@ -38,5 +40,6 @@ class SocketService {
     }
 }
 
-
-export default new SocketService("ws://localhost:8000");
+const playerId = prompt("Enter your player ID");
+userService.setPlayerId(playerId);
+export default new SocketService("ws://localhost:8000", userService);
