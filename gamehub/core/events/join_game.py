@@ -1,19 +1,16 @@
-from dataclasses import dataclass
+from pydantic import BaseModel
 
 
-@dataclass(frozen=True)
-class JoinGameById:
+class JoinGameById(BaseModel):
     player_id: str
     room_id: int
 
 
-@dataclass(frozen=True)
-class RejoinGame:
+class RejoinGame(BaseModel):
     player_id: str
     room_id: int
 
 
-@dataclass(frozen=True)
-class JoinGameByType:
+class JoinGameByType(BaseModel):
     player_id: str
     game_type: str

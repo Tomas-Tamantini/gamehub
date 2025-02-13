@@ -1,8 +1,7 @@
-from dataclasses import dataclass
+from pydantic import BaseModel
 
 
-@dataclass(frozen=True)
-class MakeMove:
+class MakeMove(BaseModel):
     player_id: str
     room_id: int
     move: dict
