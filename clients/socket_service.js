@@ -26,7 +26,6 @@ class SocketService {
 
     joinGame(game_type) {
         this.send({
-            player_id: this.userService.getPlayerId(),
             request_type: "JOIN_GAME_BY_TYPE",
             payload: { game_type }
         });
@@ -34,7 +33,6 @@ class SocketService {
 
     makeMove(room_id, move) {
         this.send({
-            player_id: this.userService.getPlayerId(),
             request_type: "MAKE_MOVE",
             payload: { room_id, move }
         });
