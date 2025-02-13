@@ -29,7 +29,8 @@ class ConnectionHandler:
             error_msg = f"Unable to parse request: {e}"
             await ConnectionHandler._send_error_message(client, error_msg)
 
-    async def handle_client(self, client: WebSocket) -> None:
+    async def handle_client(self, client: WebSocket, player_id: str) -> None:
+        # TODO: Remove player id from request class
         try:
             await client.accept()
             while True:

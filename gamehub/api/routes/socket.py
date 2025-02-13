@@ -7,6 +7,6 @@ socket_router = APIRouter(prefix="/ws", tags=["websocket"])
 
 @socket_router.websocket("")
 async def websocket_endpoint(
-    websocket: WebSocket, connection_handler: T_ConnectionHandler
+    websocket: WebSocket, connection_handler: T_ConnectionHandler, player_id: str
 ):
-    await connection_handler.handle_client(websocket)
+    await connection_handler.handle_client(websocket, player_id)

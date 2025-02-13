@@ -58,7 +58,7 @@ async def test_handler_responds_when_unable_to_parse_request(
     connection_handler, client
 ):
     bad_request_client = client(["bad_request"])
-    await connection_handler().handle_client(bad_request_client)
+    await connection_handler().handle_client(bad_request_client, "Alice")
     error_msg = bad_request_client.send_text.call_args.args[0]
     parsed_error_msg = Message.model_validate_json(error_msg)
     assert parsed_error_msg.message_type == MessageType.ERROR
@@ -70,7 +70,7 @@ async def test_handler_keeps_track_of_connected_clients(
     connection_handler, valid_client
 ):
     client_manager_spy = Mock(spec=ClientManager)
-    await connection_handler(client_manager_spy).handle_client(valid_client)
+    await connection_handler(client_manager_spy).handle_client(valid_client, "Alice")
     client_manager_spy.associate_player_id.assert_called_once_with(
         "test_id", valid_client
     )
@@ -79,7 +79,7 @@ async def test_handler_keeps_track_of_connected_clients(
 @pytest.mark.asyncio
 async def test_handler_discards_disconnected_clients(connection_handler, valid_client):
     client_manager_spy = Mock(spec=ClientManager)
-    await connection_handler(client_manager_spy).handle_client(valid_client)
+    await connection_handler(client_manager_spy).handle_client(valid_client, "Alice")
     client_manager_spy.remove.assert_called_once_with(valid_client)
 
 
@@ -93,7 +93,7 @@ async def test_handler_raises_disconnected_client_event(
     event_bus = EventBus()
     event_bus.subscribe(PlayerDisconnected, events.append)
     handler = connection_handler(client_manager_spy, event_bus=event_bus)
-    await handler.handle_client(valid_client)
+    await handler.handle_client(valid_client, "Alice")
     assert events == [PlayerDisconnected(player_id="test_id")]
 
 
@@ -102,7 +102,7 @@ async def test_handler_publishes_request_in_event_bus(connection_handler, valid_
     event_bus = EventBus()
     requests = []
     event_bus.subscribe(Request, requests.append)
-    await connection_handler(event_bus=event_bus).handle_client(valid_client)
+    await connection_handler(event_bus=event_bus).handle_client(valid_client, "Alice")
     assert len(requests) == 1
     assert requests[0].request_type == RequestType.JOIN_GAME_BY_ID
     assert requests[0].player_id == "test_id"
@@ -113,7 +113,7 @@ async def test_handler_returns_error_if_same_client_has_two_ids(
     connection_handler, client, valid_request
 ):
     duplicate_id_client = client([valid_request("id_1"), valid_request("id_2")])
-    await connection_handler().handle_client(duplicate_id_client)
+    await connection_handler().handle_client(duplicate_id_client, "Alice")
     error_msg = duplicate_id_client.send_text.call_args.args[0]
     parsed_error_msg = Message.model_validate_json(error_msg)
     assert parsed_error_msg.message_type == MessageType.ERROR
