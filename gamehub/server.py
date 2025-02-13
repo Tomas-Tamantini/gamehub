@@ -1,11 +1,8 @@
-from http import HTTPStatus
-
 from fastapi import FastAPI, WebSocket
 from fastapi.middleware.cors import CORSMiddleware
-from pydantic import BaseModel
 
-from gamehub.api.dependencies import T_ConnectionHandler, T_RoomManager
-from gamehub.core.room_state import RoomState
+from gamehub.api.dependencies import T_ConnectionHandler
+from gamehub.api.routes.game_room import rooms_router
 
 app = FastAPI()
 
@@ -25,11 +22,4 @@ async def websocket_endpoint(
     await connection_handler.handle_client(websocket)
 
 
-class GetRoomsResponse(BaseModel):
-    items: list[RoomState]
-
-
-@app.get("/rooms", status_code=HTTPStatus.OK, response_model=GetRoomsResponse)
-async def get_rooms(room_manager: T_RoomManager, game_type: str):
-    rooms = list(room_manager.room_states(game_type))
-    return GetRoomsResponse(items=rooms)
+app.include_router(rooms_router)
