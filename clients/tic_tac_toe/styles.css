@@ -21,19 +21,9 @@ h1 {
     gap: 20px;
 }
 
-#name-input-section {
-    display: flex;
-    gap: 10px;
-}
 
-#name-input-section input {
-    padding: 10px;
-    font-size: 16px;
-    border: 1px solid #ccc;
-    border-radius: 5px;
-}
 
-#name-input-section button {
+#start-game {
     padding: 10px 20px;
     font-size: 16px;
     background-color: #007bff;
@@ -44,7 +34,7 @@ h1 {
     transition: background-color 0.3s;
 }
 
-#name-input-section button:hover {
+#start-game:hover {
     background-color: #0056b3;
 }
 
