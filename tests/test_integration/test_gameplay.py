@@ -1,28 +1,14 @@
-import json
-
 import pytest
 
 from gamehub.core.event_bus import EventBus
 from gamehub.core.events.outgoing_message import OutgoingMessage
-from gamehub.core.events.request import Request, RequestType
+from gamehub.core.events.request import RequestType
 from gamehub.core.game_room import GameRoom
 from gamehub.core.message import MessageType
 from gamehub.core.room_manager import RoomManager
 from gamehub.core.setup_bus import setup_event_bus
 from gamehub.games.rock_paper_scissors import RPSGameLogic, RPSMove
 from tests.utils import ExpectedBroadcast, check_messages
-
-
-# TODO: This fixture is duplicated here and in test_request_parser
-@pytest.fixture
-def socket_request():
-    def _build_request(player_id: str, request_type: RequestType, payload: dict):
-        raw_request = json.dumps(
-            {"request_type": request_type.value, "payload": payload}
-        )
-        return Request(player_id=player_id, raw_request=raw_request)
-
-    return _build_request
 
 
 @pytest.fixture
@@ -52,24 +38,24 @@ def event_bus(message_spy):
 
 
 @pytest.mark.asyncio
-async def test_full_gameplay(message_spy, event_bus, socket_request):
+async def test_full_gameplay(message_spy, event_bus, build_request):
     requests = (
-        socket_request(
+        build_request(
             player_id="Alice",
             request_type=RequestType.JOIN_GAME_BY_ID,
             payload={"room_id": 1},
         ),
-        socket_request(
+        build_request(
             player_id="Bob",
             request_type=RequestType.JOIN_GAME_BY_ID,
             payload={"room_id": 1},
         ),
-        socket_request(
+        build_request(
             player_id="Alice",
             request_type=RequestType.MAKE_MOVE,
             payload={"room_id": 1, "move": {"selection": "ROCK"}},
         ),
-        socket_request(
+        build_request(
             player_id="Bob",
             request_type=RequestType.MAKE_MOVE,
             payload={"room_id": 1, "move": {"selection": "SCISSORS"}},
