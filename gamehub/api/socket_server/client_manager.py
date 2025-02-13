@@ -2,7 +2,7 @@ from typing import Optional
 
 from fastapi import WebSocket
 
-from gamehub.core.exceptions import AmbiguousPlayerIdError
+from gamehub.core.exceptions import InvalidPlayerIdError
 
 
 class ClientManager:
@@ -15,14 +15,12 @@ class ClientManager:
         if not existing_id:
             existing_client = self._player_id_to_client.get(player_id)
             if existing_client:
-                raise AmbiguousPlayerIdError(
-                    "Player id already in use by another client"
-                )
+                raise InvalidPlayerIdError("Player id already in use by another client")
             else:
                 self._player_id_to_client[player_id] = client
                 self._client_to_player_id[client] = player_id
         elif existing_id != player_id:
-            raise AmbiguousPlayerIdError(
+            raise InvalidPlayerIdError(
                 "This client is already associated with another id"
             )
 

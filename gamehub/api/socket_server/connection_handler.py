@@ -8,7 +8,7 @@ from gamehub.api.socket_server.client_manager import ClientManager
 from gamehub.core.event_bus import EventBus
 from gamehub.core.events.player_disconnected import PlayerDisconnected
 from gamehub.core.events.request import Request
-from gamehub.core.exceptions import AmbiguousPlayerIdError
+from gamehub.core.exceptions import InvalidPlayerIdError
 from gamehub.core.message import error_message
 
 
@@ -41,7 +41,7 @@ class ConnectionHandler:
                             request.player_id, client
                         )
                         await self._event_bus.publish(request)
-                    except AmbiguousPlayerIdError as e:
+                    except InvalidPlayerIdError as e:
                         await ConnectionHandler._send_error_message(client, str(e))
         except WebSocketDisconnect:
             logging.warning(f"Client disconnected: {client.url}")

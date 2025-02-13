@@ -3,7 +3,7 @@ from unittest.mock import AsyncMock
 import pytest
 
 from gamehub.api.socket_server import ClientManager
-from gamehub.core.exceptions import AmbiguousPlayerIdError
+from gamehub.core.exceptions import InvalidPlayerIdError
 
 
 def test_client_manager_associates_client_with_player_id():
@@ -18,7 +18,7 @@ def test_client_cannot_have_two_player_ids():
     mock_client = AsyncMock()
     client_manager.associate_player_id("id_1", mock_client)
     with pytest.raises(
-        AmbiguousPlayerIdError, match="already associated with another id"
+        InvalidPlayerIdError, match="already associated with another id"
     ):
         client_manager.associate_player_id("id_2", mock_client)
 
@@ -28,7 +28,7 @@ def test_player_id_cannot_have_two_clients():
     client_a = AsyncMock()
     client_b = AsyncMock()
     client_manager.associate_player_id("id_1", client_a)
-    with pytest.raises(AmbiguousPlayerIdError, match="id already in use"):
+    with pytest.raises(InvalidPlayerIdError, match="id already in use"):
         client_manager.associate_player_id("id_1", client_b)
 
 
