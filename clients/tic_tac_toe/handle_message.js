@@ -1,6 +1,6 @@
 import gameContext from "../game_context.js";
 import { statusArea, gridCells } from "./dom.js";
-import player_id from "./user_service.js";
+import userService from "../user_service.js";
 
 function statusMsg(view) {
     if (view.is_over) {
@@ -8,7 +8,7 @@ function statusMsg(view) {
         else return "It's a tie!";
     }
     else {
-        if (player_id() == view.current_player) return "Make your move";
+        if (userService.getPlayerId() == view.current_player) return "Make your move";
         else return `Waiting for ${view.current_player} to make their move`;
     }
 }

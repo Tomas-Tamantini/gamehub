@@ -2,6 +2,7 @@ import userService from "./user_service.js";
 
 class SocketService {
     constructor(url, userService) {
+        this.userService = userService;
         this.subscribers = [];
         this.ws = new WebSocket(url + "/ws?player_id=" + userService.getPlayerId());
         this.ws.onopen = () => {
@@ -23,17 +24,17 @@ class SocketService {
         this.subscribers.push(callback);
     }
 
-    joinGame(player_id, game_type) {
+    joinGame(game_type) {
         this.send({
-            player_id,
+            player_id: this.userService.getPlayerId(),
             request_type: "JOIN_GAME_BY_TYPE",
             payload: { game_type }
         });
     }
 
-    makeMove(player_id, room_id, move) {
+    makeMove(room_id, move) {
         this.send({
-            player_id,
+            player_id: this.userService.getPlayerId(),
             request_type: "MAKE_MOVE",
             payload: { room_id, move }
         });
