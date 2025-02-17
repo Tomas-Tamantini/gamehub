@@ -12,9 +12,10 @@ from gamehub.core.room_state import RoomState
 from gamehub.server import app
 
 
-def test_health_check_returns_no_content(client):
+def test_health_check_returns_status_ok(client):
     response = client.get("/health")
-    assert response.status_code == HTTPStatus.NO_CONTENT
+    assert response.status_code == HTTPStatus.OK
+    assert response.json() == {"status": "ok"}
 
 
 @pytest.mark.asyncio
