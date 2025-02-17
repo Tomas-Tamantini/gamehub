@@ -1,3 +1,4 @@
+from http import HTTPStatus
 from unittest.mock import AsyncMock, Mock
 
 import pytest
@@ -9,6 +10,11 @@ from gamehub.api.routes.socket import websocket_endpoint
 from gamehub.core.room_manager import RoomManager
 from gamehub.core.room_state import RoomState
 from gamehub.server import app
+
+
+def test_health_check_returns_no_content(client):
+    response = client.get("/health")
+    assert response.status_code == HTTPStatus.NO_CONTENT
 
 
 @pytest.mark.asyncio
