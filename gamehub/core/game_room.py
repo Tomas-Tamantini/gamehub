@@ -59,6 +59,7 @@ class GameRoom(Generic[T]):
     def room_state(self) -> RoomState:
         return RoomState(
             room_id=self._room_id,
+            capacity=self._logic.num_players,
             player_ids=self._players[:],
             offline_players=list(self._offline_players),
             is_full=self.is_full,

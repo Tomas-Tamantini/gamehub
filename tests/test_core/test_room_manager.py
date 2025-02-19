@@ -24,6 +24,7 @@ def spy_room():
         room.game_type = game_type
         room.room_state.return_value = RoomState(
             room_id=room_id,
+            capacity=2,
             player_ids=["Ana", "Bob"],
             offline_players=[],
             is_full=is_full,
@@ -139,18 +140,21 @@ def expected_room_states():
     return [
         RoomState(
             room_id=1,
+            capacity=2,
             player_ids=["Ana", "Bob"],
             offline_players=[],
             is_full=False,
         ),
         RoomState(
             room_id=2,
+            capacity=2,
             player_ids=["Ana", "Bob"],
             offline_players=[],
             is_full=False,
         ),
         RoomState(
             room_id=3,
+            capacity=2,
             player_ids=["Ana", "Bob"],
             offline_players=[],
             is_full=False,

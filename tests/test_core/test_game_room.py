@@ -102,6 +102,7 @@ async def test_player_can_join_empty_room(rps_room, messages_spy):
             MessageType.GAME_ROOM_UPDATE,
             {
                 "room_id": 0,
+                "capacity": 2,
                 "player_ids": ["Alice"],
                 "offline_players": [],
                 "is_full": False,
@@ -121,6 +122,7 @@ async def test_players_get_informed_when_new_one_joins(rps_room, messages_spy):
             MessageType.GAME_ROOM_UPDATE,
             {
                 "room_id": 0,
+                "capacity": 2,
                 "player_ids": ["Alice", "Bob"],
                 "offline_players": [],
                 "is_full": True,
@@ -153,6 +155,7 @@ async def test_room_notifies_other_players_if_one_disconnects(
             MessageType.GAME_ROOM_UPDATE,
             {
                 "room_id": 1,
+                "capacity": 4,
                 "player_ids": ["Alice", "Bob"],
                 "offline_players": [],
                 "is_full": False,
@@ -177,6 +180,7 @@ async def test_room_does_not_remove_disconnected_player_if_game_has_started(
             MessageType.GAME_ROOM_UPDATE,
             {
                 "room_id": 1,
+                "capacity": 4,
                 "player_ids": ["Alice", "Bob", "Charlie", "Diana"],
                 "offline_players": ["Alice"],
                 "is_full": True,
@@ -241,6 +245,7 @@ async def test_players_get_notified_of_player_rejoining(rps_room, messages_spy):
             MessageType.GAME_ROOM_UPDATE,
             {
                 "room_id": 0,
+                "capacity": 2,
                 "player_ids": ["Alice", "Bob"],
                 "offline_players": [],
                 "is_full": True,
@@ -396,6 +401,7 @@ async def test_game_room_resets_after_game_over_and_new_players_can_join(
             MessageType.GAME_ROOM_UPDATE,
             {
                 "room_id": 0,
+                "capacity": 2,
                 "player_ids": ["Charlie"],
                 "offline_players": [],
                 "is_full": False,

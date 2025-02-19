@@ -31,10 +31,18 @@ def mock_room_manager():
     manager = Mock(spec=RoomManager)
     manager.room_states.return_value = [
         RoomState(
-            room_id=1, player_ids=["Ana", "Bob"], offline_players=[], is_full=True
+            room_id=1,
+            capacity=2,
+            player_ids=["Ana", "Bob"],
+            offline_players=[],
+            is_full=True,
         ),
         RoomState(
-            room_id=2, player_ids=["Alice"], offline_players=["Alice"], is_full=False
+            room_id=2,
+            capacity=3,
+            player_ids=["Alice"],
+            offline_players=["Alice"],
+            is_full=False,
         ),
     ]
     return manager
@@ -57,12 +65,14 @@ def test_getting_game_rooms_returns_list_of_game_rooms(client):
         "items": [
             {
                 "room_id": 1,
+                "capacity": 2,
                 "player_ids": ["Ana", "Bob"],
                 "offline_players": [],
                 "is_full": True,
             },
             {
                 "room_id": 2,
+                "capacity": 3,
                 "player_ids": ["Alice"],
                 "offline_players": ["Alice"],
                 "is_full": False,

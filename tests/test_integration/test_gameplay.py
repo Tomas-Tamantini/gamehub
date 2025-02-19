@@ -71,6 +71,7 @@ async def test_full_gameplay(message_spy, event_bus, build_request):
             MessageType.GAME_ROOM_UPDATE,
             {
                 "room_id": 1,
+                "capacity": 2,
                 "player_ids": ["Alice"],
                 "offline_players": [],
                 "is_full": False,
@@ -81,6 +82,7 @@ async def test_full_gameplay(message_spy, event_bus, build_request):
             MessageType.GAME_ROOM_UPDATE,
             {
                 "room_id": 1,
+                "capacity": 2,
                 "player_ids": ["Alice", "Bob"],
                 "offline_players": [],
                 "is_full": True,
