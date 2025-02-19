@@ -1,4 +1,5 @@
 from http import HTTPStatus
+from typing import Optional
 
 from fastapi import APIRouter
 from pydantic import BaseModel
@@ -14,6 +15,6 @@ class GetRoomsResponse(BaseModel):
 
 
 @rooms_router.get("/", status_code=HTTPStatus.OK, response_model=GetRoomsResponse)
-async def get_rooms(room_manager: T_RoomManager, game_type: str):
+async def get_rooms(room_manager: T_RoomManager, game_type: Optional[str] = None):
     rooms = list(room_manager.room_states(game_type))
     return GetRoomsResponse(items=rooms)

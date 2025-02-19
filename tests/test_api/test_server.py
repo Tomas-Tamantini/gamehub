@@ -48,24 +48,12 @@ def client(mock_room_manager):
         app.dependency_overrides.clear()
 
 
-@pytest.fixture
-def get_rooms_response(client):
-    return client.get("/rooms?game_type=rock-paper-scissors")
+def test_getting_game_rooms_returns_status_ok(client):
+    assert client.get("/rooms").status_code == 200
 
 
-def test_getting_game_rooms_returns_status_ok(get_rooms_response):
-    assert get_rooms_response.status_code == 200
-
-
-def test_getting_game_rooms_filters_room_by_game_type(
-    get_rooms_response, mock_room_manager
-):
-    _ = get_rooms_response
-    mock_room_manager.room_states.assert_called_once_with("rock-paper-scissors")
-
-
-def test_getting_game_rooms_returns_list_of_game_rooms(get_rooms_response):
-    assert get_rooms_response.json() == {
+def test_getting_game_rooms_returns_list_of_game_rooms(client):
+    assert client.get("/rooms").json() == {
         "items": [
             {
                 "room_id": 1,
@@ -83,6 +71,6 @@ def test_getting_game_rooms_returns_list_of_game_rooms(get_rooms_response):
     }
 
 
-def test_getting_game_rooms_without_game_type_returns_status_422(client):
-    response = client.get("/rooms")
-    assert response.status_code == 422
+def test_getting_game_rooms_can_filter_rooms_by_game_type(client, mock_room_manager):
+    _ = client.get("/rooms?game_type=rock-paper-scissors")
+    mock_room_manager.room_states.assert_called_once_with("rock-paper-scissors")

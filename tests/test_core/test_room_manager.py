@@ -125,21 +125,26 @@ async def test_room_manager_notifies_rooms_with_given_player_when_they_disconnec
     room.handle_player_disconnected.assert_called_once_with("Ana")
 
 
-@pytest.mark.asyncio
-async def test_room_manager_returns_room_states_filtered_by_game_type(spy_room):
-    event_bus = EventBus()
-    room_manager = RoomManager(
-        [
-            spy_room(room_id=1, game_type="tic-tac-toe"),
-            spy_room(room_id=2, game_type="rock-paper-scissors"),
-            spy_room(room_id=3, game_type="tic-tac-toe"),
-        ],
-        event_bus,
-    )
-    room_states = list(room_manager.room_states(game_type="tic-tac-toe"))
-    assert room_states == [
+@pytest.fixture
+def example_rooms(spy_room):
+    return [
+        spy_room(room_id=1, game_type="tic-tac-toe"),
+        spy_room(room_id=2, game_type="rock-paper-scissors"),
+        spy_room(room_id=3, game_type="tic-tac-toe"),
+    ]
+
+
+@pytest.fixture
+def expected_room_states():
+    return [
         RoomState(
             room_id=1,
+            player_ids=["Ana", "Bob"],
+            offline_players=[],
+            is_full=False,
+        ),
+        RoomState(
+            room_id=2,
             player_ids=["Ana", "Bob"],
             offline_players=[],
             is_full=False,
@@ -151,3 +156,23 @@ async def test_room_manager_returns_room_states_filtered_by_game_type(spy_room):
             is_full=False,
         ),
     ]
+
+
+@pytest.mark.asyncio
+async def test_room_manager_returns_all_room_states_if_no_filter(
+    example_rooms, expected_room_states
+):
+    event_bus = EventBus()
+    room_manager = RoomManager(example_rooms, event_bus)
+    room_states = list(room_manager.room_states())
+    assert room_states == expected_room_states
+
+
+@pytest.mark.asyncio
+async def test_room_manager_returns_room_states_filtered_by_game_type(
+    example_rooms, expected_room_states
+):
+    event_bus = EventBus()
+    room_manager = RoomManager(example_rooms, event_bus)
+    room_states = list(room_manager.room_states(game_type="tic-tac-toe"))
+    assert room_states == [expected_room_states[0], expected_room_states[2]]

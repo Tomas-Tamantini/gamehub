@@ -1,4 +1,4 @@
-from typing import Iterator
+from typing import Iterator, Optional
 
 from gamehub.core.event_bus import EventBus
 from gamehub.core.events.join_game import JoinGameById, JoinGameByType, RejoinGame
@@ -66,6 +66,10 @@ class RoomManager:
         for room in self._rooms.values():
             await room.handle_player_disconnected(player_disconnected.player_id)
 
-    def room_states(self, game_type: str) -> Iterator[RoomState]:
-        for room in self._rooms_by_game_type(game_type):
-            yield room.room_state()
+    def room_states(self, game_type: Optional[str] = None) -> Iterator[RoomState]:
+        if game_type is None:
+            for room in self._rooms.values():
+                yield room.room_state()
+        else:
+            for room in self._rooms_by_game_type(game_type):
+                yield room.room_state()
