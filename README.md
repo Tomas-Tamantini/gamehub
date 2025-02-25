@@ -28,7 +28,7 @@ Then open the browser at one of the following URLs:
 
 ## Chinese poker client
 
-There is a much more advanced Chinese Poker client project at the [gamehub-client](https://github.com/Tomas-Tamantini/gamehub-client) project. It is also hosted with github pages [here](https://tomas-tamantini.github.io/gamehub-client/).
+There is a much more advanced Chinese Poker client project at the [gamehub-front](https://github.com/Tomas-Tamantini/gamehub-front) project. It is also hosted with github pages [here](https://tomas-tamantini.github.io/gamehub-front/).
 
 ## Running the tests
 
