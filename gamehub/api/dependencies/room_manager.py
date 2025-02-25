@@ -51,10 +51,10 @@ def _chinese_poker_room(event_bus: EventBus, room_id: int) -> GameRoom:
 
 
 def _default_rooms(event_bus: EventBus) -> Iterator[GameRoom]:
-    yield _tic_tac_toe_room(event_bus, room_id=1)
-    yield _rps_room(event_bus, room_id=2)
-    yield _chinese_poker_room(event_bus, room_id=3)
-    yield _chinese_poker_room(event_bus, room_id=4)
+    yield _chinese_poker_room(event_bus, room_id=1)
+    yield _chinese_poker_room(event_bus, room_id=2)
+    yield _rps_room(event_bus, room_id=3)
+    yield _tic_tac_toe_room(event_bus, room_id=4)
 
 
 @lru_cache
