@@ -1,9 +1,10 @@
-from typing import Iterator, Optional
+from typing import Awaitable, Callable, Iterator, Optional
 
 from gamehub.core.event_bus import EventBus
 from gamehub.core.events.outgoing_message import OutgoingMessage
 from gamehub.core.events.player_disconnected import PlayerDisconnected
 from gamehub.core.events.request_events import (
+    DirectedRequest,
     JoinGameById,
     JoinGameByType,
     MakeMove,
@@ -25,30 +26,35 @@ class RoomManager:
             OutgoingMessage(player_id=player_id, message=error_message(payload))
         )
 
-    # TODO: Refactor nearly identical methods
-    async def join_game_by_id(self, request: JoinGameById) -> None:
+    async def _handle_directed_request(
+        self,
+        request: DirectedRequest,
+        handler: Callable[[GameRoom, str], Awaitable[None]],
+    ) -> None:
         if not (room := self._rooms.get(request.room_id)):
             await self._respond_error(
                 request.player_id, f"Room with id {request.room_id} does not exist"
             )
         else:
-            await room.join(request.player_id)
+            await handler(room, request.player_id)
+
+    async def join_game_by_id(self, request: JoinGameById) -> None:
+        async def handler(room, player_id):
+            await room.join(player_id)
+
+        await self._handle_directed_request(request, handler)
 
     async def rejoin_game(self, request: RejoinGame) -> None:
-        if not (room := self._rooms.get(request.room_id)):
-            await self._respond_error(
-                request.player_id, f"Room with id {request.room_id} does not exist"
-            )
-        else:
-            await room.rejoin(request.player_id)
+        async def handler(room, player_id):
+            await room.rejoin(player_id)
+
+        await self._handle_directed_request(request, handler)
 
     async def watch_game(self, request: WatchGame) -> None:
-        if not (room := self._rooms.get(request.room_id)):
-            await self._respond_error(
-                request.player_id, f"Room with id {request.room_id} does not exist"
-            )
-        else:
-            await room.add_spectator(request.player_id)
+        async def handler(room, player_id):
+            await room.add_spectator(player_id)
+
+        await self._handle_directed_request(request, handler)
 
     def _rooms_by_game_type(self, game_type: str) -> Iterator[GameRoom]:
         for room in self._rooms.values():

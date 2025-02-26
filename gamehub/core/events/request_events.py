@@ -1,21 +1,21 @@
 from pydantic import BaseModel
 
 
-class _DirectedRequest(BaseModel):
+class DirectedRequest(BaseModel):
     player_id: str
     room_id: int
 
 
-class JoinGameById(_DirectedRequest): ...
+class JoinGameById(DirectedRequest): ...
 
 
-class RejoinGame(_DirectedRequest): ...
+class RejoinGame(DirectedRequest): ...
 
 
-class WatchGame(_DirectedRequest): ...
+class WatchGame(DirectedRequest): ...
 
 
-class MakeMove(_DirectedRequest):
+class MakeMove(DirectedRequest):
     move: dict
 
 
