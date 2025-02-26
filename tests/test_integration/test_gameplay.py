@@ -41,6 +41,11 @@ def event_bus(message_spy):
 async def test_full_gameplay(message_spy, event_bus, build_request):
     requests = (
         build_request(
+            player_id="Spectator",
+            request_type=RequestType.WATCH_GAME,
+            payload={"room_id": 1},
+        ),
+        build_request(
             player_id="Alice",
             request_type=RequestType.JOIN_GAME_BY_ID,
             payload={"room_id": 1},
@@ -56,11 +61,6 @@ async def test_full_gameplay(message_spy, event_bus, build_request):
             payload={"room_id": 1, "move": {"selection": "ROCK"}},
         ),
         build_request(
-            player_id="Charlie",
-            request_type=RequestType.WATCH_GAME,
-            payload={"room_id": 1},
-        ),
-        build_request(
             player_id="Bob",
             request_type=RequestType.MAKE_MOVE,
             payload={"room_id": 1, "move": {"selection": "SCISSORS"}},
@@ -72,7 +72,18 @@ async def test_full_gameplay(message_spy, event_bus, build_request):
 
     expected_broadcasts = (
         ExpectedBroadcast(
-            ["Alice"],
+            ["Spectator"],
+            MessageType.GAME_ROOM_UPDATE,
+            {
+                "room_id": 1,
+                "capacity": 2,
+                "player_ids": [],
+                "offline_players": [],
+                "is_full": False,
+            },
+        ),
+        ExpectedBroadcast(
+            ["Alice", "Spectator"],
             MessageType.GAME_ROOM_UPDATE,
             {
                 "room_id": 1,
@@ -83,7 +94,7 @@ async def test_full_gameplay(message_spy, event_bus, build_request):
             },
         ),
         ExpectedBroadcast(
-            ["Alice", "Bob"],
+            ["Alice", "Bob", "Spectator"],
             MessageType.GAME_ROOM_UPDATE,
             {
                 "room_id": 1,
@@ -94,7 +105,7 @@ async def test_full_gameplay(message_spy, event_bus, build_request):
             },
         ),
         ExpectedBroadcast(
-            ["Alice", "Bob"],
+            ["Alice", "Bob", "Spectator"],
             MessageType.GAME_STATE,
             {
                 "room_id": 1,
@@ -115,7 +126,7 @@ async def test_full_gameplay(message_spy, event_bus, build_request):
             },
         ),
         ExpectedBroadcast(
-            ["Alice", "Bob"],
+            ["Alice", "Bob", "Spectator"],
             MessageType.GAME_STATE,
             {
                 "room_id": 1,
@@ -128,20 +139,7 @@ async def test_full_gameplay(message_spy, event_bus, build_request):
             },
         ),
         ExpectedBroadcast(
-            ["Charlie"],
-            MessageType.GAME_STATE,
-            {
-                "room_id": 1,
-                "shared_view": {
-                    "players": [
-                        {"player_id": "Alice", "selected": True},
-                        {"player_id": "Bob", "selected": False},
-                    ]
-                },
-            },
-        ),
-        ExpectedBroadcast(
-            ["Alice", "Bob", "Charlie"],
+            ["Alice", "Bob", "Spectator"],
             MessageType.GAME_STATE,
             {
                 "room_id": 1,

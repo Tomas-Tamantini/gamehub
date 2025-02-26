@@ -162,9 +162,8 @@ class GameRoom(Generic[T]):
             )
         else:
             self._spectators.add(player_id)
-            if self._game_state is None:
-                await self._send_message(player_id, self._room_state_message())
-            else:
+            await self._send_message(player_id, self._room_state_message())
+            if self._game_state:
                 await self._send_message(player_id, self._shared_view_message())
 
     async def _send_full_game_state(self, player_id: str) -> None:

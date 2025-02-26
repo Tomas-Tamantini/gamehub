@@ -471,6 +471,17 @@ async def test_spectator_can_watch_room_with_game_in_progress(rps_room, messages
     expected = [
         ExpectedBroadcast(
             ["Charlie"],
+            MessageType.GAME_ROOM_UPDATE,
+            {
+                "room_id": 0,
+                "capacity": 2,
+                "player_ids": ["Alice", "Bob"],
+                "offline_players": [],
+                "is_full": True,
+            },
+        ),
+        ExpectedBroadcast(
+            ["Charlie"],
             MessageType.GAME_STATE,
             {
                 "room_id": 0,
@@ -483,7 +494,7 @@ async def test_spectator_can_watch_room_with_game_in_progress(rps_room, messages
             },
         ),
     ]
-    check_messages(messages_spy[-1:], expected)
+    check_messages(messages_spy[-2:], expected)
 
 
 @pytest.mark.asyncio
@@ -528,7 +539,7 @@ async def test_spectators_get_notified_of_game_updates(rps_room, messages_spy):
             },
         ),
     ]
-    check_messages(messages_spy[7:], expected)
+    check_messages(messages_spy[8:], expected)
 
 
 @pytest.mark.asyncio
@@ -554,7 +565,7 @@ async def test_spectators_are_removed_if_they_disconnect(rps_room, messages_spy)
             },
         ),
     ]
-    check_messages(messages_spy[7:], expected)
+    check_messages(messages_spy[8:], expected)
 
 
 @pytest.mark.asyncio
