@@ -43,14 +43,14 @@ class GameRoom(Generic[T]):
         self._offline_players = set()
         self._game_state = None
 
-    async def _set_state(self, state: GameState) -> None:
+    async def _set_game_state(self, state: GameState) -> None:
         self._game_state = state
         await self._send_private_views()
         await self._broadcast_shared_view()
         if state.is_terminal():
             self._reset()
         elif new_state := self._logic.next_automated_state(state):
-            await self._set_state(new_state)
+            await self._set_game_state(new_state)
 
     @property
     def room_id(self) -> int:
@@ -65,16 +65,17 @@ class GameRoom(Generic[T]):
             is_full=self.is_full,
         )
 
-    async def _send_error_message(self, player_id: str, payload: str) -> None:
+    async def _send_message(self, player_id: str, message: Message) -> None:
         await self._event_bus.publish(
-            OutgoingMessage(player_id=player_id, message=error_message(payload))
+            OutgoingMessage(player_id=player_id, message=message)
         )
+
+    async def _send_error_message(self, player_id: str, payload: str) -> None:
+        await self._send_message(player_id, error_message(payload))
 
     async def _broadcast_message(self, message: Message) -> None:
         for player in self._players:
-            await self._event_bus.publish(
-                OutgoingMessage(player_id=player, message=message)
-            )
+            await self._send_message(player, message)
 
     async def _broadcast_room_state(self) -> None:
         message = Message(
@@ -109,7 +110,7 @@ class GameRoom(Generic[T]):
             )
 
     async def _start_game(self) -> None:
-        await self._set_state(self._logic.initial_state(*self._players))
+        await self._set_game_state(self._logic.initial_state(*self._players))
 
     async def join(self, player_id: str) -> None:
         if player_id in self._players:
@@ -138,12 +139,12 @@ class GameRoom(Generic[T]):
         else:
             self._offline_players.remove(player_id)
             await self._broadcast_room_state()
-            await self._send_full_state(player_id)
+            await self._send_full_game_state(player_id)
 
     async def add_spectator(self, player_id: str) -> None:
         raise NotImplementedError()
 
-    async def _send_full_state(self, player_id: str) -> None:
+    async def _send_full_game_state(self, player_id: str) -> None:
         if self._game_state is not None:
             payload = self._shared_view_payload()
             if private_view := self._game_state.query_private_view(player_id):
@@ -159,7 +160,7 @@ class GameRoom(Generic[T]):
         except ValidationError as e:
             await self._send_error_message(player_id=player_id, payload=str(e))
 
-    async def _state_after_move(
+    async def _game_state_after_move(
         self, player_id: str, parsed_move: T
     ) -> Optional[GameState]:
         try:
@@ -177,8 +178,8 @@ class GameRoom(Generic[T]):
                 player_id=player_id, payload="Game has not started yet"
             )
         elif parsed_move := await self._parsed_move(player_id, move):
-            if new_state := await self._state_after_move(player_id, parsed_move):
-                await self._set_state(new_state)
+            if new_state := await self._game_state_after_move(player_id, parsed_move):
+                await self._set_game_state(new_state)
 
     async def handle_player_disconnected(self, player_id: str) -> None:
         if player_id in self._players:
