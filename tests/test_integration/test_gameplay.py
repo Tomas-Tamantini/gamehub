@@ -56,6 +56,11 @@ async def test_full_gameplay(message_spy, event_bus, build_request):
             payload={"room_id": 1, "move": {"selection": "ROCK"}},
         ),
         build_request(
+            player_id="Charlie",
+            request_type=RequestType.WATCH_GAME,
+            payload={"room_id": 1},
+        ),
+        build_request(
             player_id="Bob",
             request_type=RequestType.MAKE_MOVE,
             payload={"room_id": 1, "move": {"selection": "SCISSORS"}},
@@ -123,7 +128,20 @@ async def test_full_gameplay(message_spy, event_bus, build_request):
             },
         ),
         ExpectedBroadcast(
-            ["Alice", "Bob"],
+            ["Charlie"],
+            MessageType.GAME_STATE,
+            {
+                "room_id": 1,
+                "shared_view": {
+                    "players": [
+                        {"player_id": "Alice", "selected": True},
+                        {"player_id": "Bob", "selected": False},
+                    ]
+                },
+            },
+        ),
+        ExpectedBroadcast(
+            ["Alice", "Bob", "Charlie"],
             MessageType.GAME_STATE,
             {
                 "room_id": 1,

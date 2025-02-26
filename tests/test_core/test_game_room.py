@@ -484,3 +484,95 @@ async def test_spectator_can_watch_room_with_game_in_progress(rps_room, messages
         ),
     ]
     check_messages(messages_spy[-1:], expected)
+
+
+@pytest.mark.asyncio
+async def test_spectators_get_notified_of_room_updates(rps_room, messages_spy):
+    await rps_room.add_spectator("Alice")
+    await rps_room.join("Bob")
+    expected = [
+        ExpectedBroadcast(
+            ["Bob", "Alice"],
+            MessageType.GAME_ROOM_UPDATE,
+            {
+                "room_id": 0,
+                "capacity": 2,
+                "player_ids": ["Bob"],
+                "offline_players": [],
+                "is_full": False,
+            },
+        )
+    ]
+    check_messages(messages_spy[-2:], expected)
+
+
+@pytest.mark.asyncio
+async def test_spectators_get_notified_of_game_updates(rps_room, messages_spy):
+    await rps_room.join("Alice")
+    await rps_room.join("Bob")
+    await rps_room.add_spectator("Charlie")
+    await rps_room.make_move("Alice", {"selection": "ROCK"})
+
+    expected = [
+        ExpectedBroadcast(
+            ["Alice", "Bob", "Charlie"],
+            MessageType.GAME_STATE,
+            {
+                "room_id": 0,
+                "shared_view": {
+                    "players": [
+                        {"player_id": "Alice", "selected": True},
+                        {"player_id": "Bob", "selected": False},
+                    ]
+                },
+            },
+        ),
+    ]
+    check_messages(messages_spy[7:], expected)
+
+
+@pytest.mark.asyncio
+async def test_spectators_are_removed_if_they_disconnect(rps_room, messages_spy):
+    await rps_room.join("Alice")
+    await rps_room.join("Bob")
+    await rps_room.add_spectator("Charlie")
+    await rps_room.handle_player_disconnected("Charlie")
+    await rps_room.make_move("Alice", {"selection": "ROCK"})
+
+    expected = [
+        ExpectedBroadcast(
+            ["Alice", "Bob"],
+            MessageType.GAME_STATE,
+            {
+                "room_id": 0,
+                "shared_view": {
+                    "players": [
+                        {"player_id": "Alice", "selected": True},
+                        {"player_id": "Bob", "selected": False},
+                    ]
+                },
+            },
+        ),
+    ]
+    check_messages(messages_spy[7:], expected)
+
+
+@pytest.mark.asyncio
+async def test_spectators_are_removed_if_they_become_players(rps_room, messages_spy):
+    await rps_room.add_spectator("Alice")
+    await rps_room.join("Alice")
+    assert len(messages_spy) == 2
+
+
+@pytest.mark.asyncio
+async def test_players_cannot_join_as_spectators(rps_room, messages_spy):
+    await rps_room.join("Alice")
+    await rps_room.add_spectator("Alice")
+    assert len(messages_spy) == 2
+
+    assert messages_spy[-1].player_id == "Alice"
+    assert messages_spy[-1].message.message_type == MessageType.ERROR
+    assert (
+        messages_spy[-1].message.payload["error"]
+        == "Already joined game. Cannot watch as spectator"
+    )

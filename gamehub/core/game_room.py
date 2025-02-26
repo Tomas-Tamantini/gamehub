@@ -26,6 +26,7 @@ class GameRoom(Generic[T]):
         self._logic = game_logic
         self._event_bus = event_bus
         self._players = list()
+        self._spectators = set()
         self._offline_players = set()
         self._game_state = None
         self._parse_move = move_parser
@@ -40,6 +41,7 @@ class GameRoom(Generic[T]):
 
     def _reset(self) -> None:
         self._players = list()
+        self._spectators = set()
         self._offline_players = set()
         self._game_state = None
 
@@ -76,6 +78,8 @@ class GameRoom(Generic[T]):
     async def _broadcast_message(self, message: Message) -> None:
         for player in self._players:
             await self._send_message(player, message)
+        for spectator in self._spectators:
+            await self._send_message(spectator, message)
 
     def _room_state_message(self) -> Message:
         return Message(
@@ -116,6 +120,11 @@ class GameRoom(Generic[T]):
     async def _start_game(self) -> None:
         await self._set_game_state(self._logic.initial_state(*self._players))
 
+    def _add_player(self, player_id: str) -> None:
+        self._players.append(player_id)
+        if player_id in self._spectators:
+            self._spectators.remove(player_id)
+
     async def join(self, player_id: str) -> None:
         if player_id in self._players:
             await self._send_error_message(
@@ -126,7 +135,7 @@ class GameRoom(Generic[T]):
                 player_id=player_id, payload="Unable to join: Room is full"
             )
         else:
-            self._players.append(player_id)
+            self._add_player(player_id)
             await self._broadcast_room_state()
             if self.is_full:
                 await self._start_game()
@@ -146,10 +155,17 @@ class GameRoom(Generic[T]):
             await self._send_full_game_state(player_id)
 
     async def add_spectator(self, player_id: str) -> None:
-        if self._game_state is None:
-            await self._send_message(player_id, self._room_state_message())
+        if player_id in self._players:
+            await self._send_error_message(
+                player_id=player_id,
+                payload="Already joined game. Cannot watch as spectator",
+            )
         else:
-            await self._send_message(player_id, self._shared_view_message())
+            self._spectators.add(player_id)
+            if self._game_state is None:
+                await self._send_message(player_id, self._room_state_message())
+            else:
+                await self._send_message(player_id, self._shared_view_message())
 
     async def _send_full_game_state(self, player_id: str) -> None:
         if self._game_state is not None:
@@ -195,3 +211,5 @@ class GameRoom(Generic[T]):
             else:
                 self._offline_players.add(player_id)
             await self._broadcast_room_state()
+        elif player_id in self._spectators:
+            self._spectators.remove(player_id)
