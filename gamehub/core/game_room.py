@@ -92,11 +92,13 @@ class GameRoom(Generic[T]):
             "shared_view": self._game_state.shared_view().model_dump(exclude_none=True),
         }
 
-    async def _broadcast_shared_view(self) -> None:
-        message = Message(
+    def _shared_view_message(self) -> Message:
+        return Message(
             message_type=MessageType.GAME_STATE, payload=self._shared_view_payload()
         )
-        await self._broadcast_message(message)
+
+    async def _broadcast_shared_view(self) -> None:
+        await self._broadcast_message(self._shared_view_message())
 
     async def _send_private_views(self) -> None:
         for player_id, private_view in self._game_state.private_views():
@@ -146,6 +148,8 @@ class GameRoom(Generic[T]):
     async def add_spectator(self, player_id: str) -> None:
         if self._game_state is None:
             await self._send_message(player_id, self._room_state_message())
+        else:
+            await self._send_message(player_id, self._shared_view_message())
 
     async def _send_full_game_state(self, player_id: str) -> None:
         if self._game_state is not None:

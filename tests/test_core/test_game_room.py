@@ -391,6 +391,7 @@ async def test_game_room_resets_after_game_over_and_new_players_can_join(
 ):
     await rps_room.join("Alice")
     await rps_room.join("Bob")
+    await rps_room.add_spectator("Spec")
     await rps_room.make_move("Alice", {"selection": "ROCK"})
     await rps_room.make_move("Bob", {"selection": "PAPER"})
     await rps_room.join("Charlie")
@@ -458,3 +459,28 @@ async def test_spectator_can_watch_room_before_game_starts(rps_room, messages_sp
         )
     ]
     check_messages(messages_spy, expected)
+
+
+@pytest.mark.asyncio
+async def test_spectator_can_watch_room_with_game_in_progress(rps_room, messages_spy):
+    await rps_room.join("Alice")
+    await rps_room.join("Bob")
+    await rps_room.make_move("Alice", {"selection": "ROCK"})
+    await rps_room.add_spectator("Charlie")
+
+    expected = [
+        ExpectedBroadcast(
+            ["Charlie"],
+            MessageType.GAME_STATE,
+            {
+                "room_id": 0,
+                "shared_view": {
+                    "players": [
+                        {"player_id": "Alice", "selected": True},
+                        {"player_id": "Bob", "selected": False},
+                    ]
+                },
+            },
+        ),
+    ]
+    check_messages(messages_spy[-1:], expected)
