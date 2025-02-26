@@ -77,12 +77,14 @@ class GameRoom(Generic[T]):
         for player in self._players:
             await self._send_message(player, message)
 
-    async def _broadcast_room_state(self) -> None:
-        message = Message(
+    def _room_state_message(self) -> Message:
+        return Message(
             message_type=MessageType.GAME_ROOM_UPDATE,
             payload=self.room_state().model_dump(),
         )
-        await self._broadcast_message(message)
+
+    async def _broadcast_room_state(self) -> None:
+        await self._broadcast_message(self._room_state_message())
 
     def _shared_view_payload(self) -> dict:
         return {
@@ -142,7 +144,8 @@ class GameRoom(Generic[T]):
             await self._send_full_game_state(player_id)
 
     async def add_spectator(self, player_id: str) -> None:
-        raise NotImplementedError()
+        if self._game_state is None:
+            await self._send_message(player_id, self._room_state_message())
 
     async def _send_full_game_state(self, player_id: str) -> None:
         if self._game_state is not None:

@@ -439,3 +439,22 @@ async def test_players_get_informed_of_new_game_state_after_automatic_transition
         )
     ]
     check_messages(messages_spy[3:], expected)
+
+
+@pytest.mark.asyncio
+async def test_spectator_can_watch_room_before_game_starts(rps_room, messages_spy):
+    await rps_room.add_spectator("Alice")
+    expected = [
+        ExpectedBroadcast(
+            ["Alice"],
+            MessageType.GAME_ROOM_UPDATE,
+            {
+                "room_id": 0,
+                "capacity": 2,
+                "player_ids": [],
+                "offline_players": [],
+                "is_full": False,
+            },
+        )
+    ]
+    check_messages(messages_spy, expected)
