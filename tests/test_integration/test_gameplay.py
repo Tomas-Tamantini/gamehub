@@ -37,34 +37,41 @@ def event_bus(message_spy):
     return event_bus
 
 
+@pytest.fixture
+def join_game(build_request):
+    return lambda player_id: build_request(
+        player_id=player_id,
+        request_type=RequestType.JOIN_GAME_BY_ID,
+        payload={"room_id": 1},
+    )
+
+
+@pytest.fixture
+def watch_game(build_request):
+    return lambda player_id: build_request(
+        player_id=player_id,
+        request_type=RequestType.WATCH_GAME,
+        payload={"room_id": 1},
+    )
+
+
+@pytest.fixture
+def make_move(build_request):
+    return lambda player_id, selection: build_request(
+        player_id=player_id,
+        request_type=RequestType.MAKE_MOVE,
+        payload={"room_id": 1, "move": {"selection": selection}},
+    )
+
+
 @pytest.mark.asyncio
-async def test_full_gameplay(message_spy, event_bus, build_request):
+async def test_full_gameplay(message_spy, event_bus, watch_game, make_move, join_game):
     requests = (
-        build_request(
-            player_id="Spectator",
-            request_type=RequestType.WATCH_GAME,
-            payload={"room_id": 1},
-        ),
-        build_request(
-            player_id="Alice",
-            request_type=RequestType.JOIN_GAME_BY_ID,
-            payload={"room_id": 1},
-        ),
-        build_request(
-            player_id="Bob",
-            request_type=RequestType.JOIN_GAME_BY_ID,
-            payload={"room_id": 1},
-        ),
-        build_request(
-            player_id="Alice",
-            request_type=RequestType.MAKE_MOVE,
-            payload={"room_id": 1, "move": {"selection": "ROCK"}},
-        ),
-        build_request(
-            player_id="Bob",
-            request_type=RequestType.MAKE_MOVE,
-            payload={"room_id": 1, "move": {"selection": "SCISSORS"}},
-        ),
+        watch_game("Spectator"),
+        join_game("Alice"),
+        join_game("Bob"),
+        make_move("Alice", "ROCK"),
+        make_move("Bob", "SCISSORS"),
     )
 
     for request in requests:
