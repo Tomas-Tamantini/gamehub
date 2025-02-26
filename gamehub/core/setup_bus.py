@@ -1,9 +1,13 @@
 from gamehub.core.event_bus import EventBus
-from gamehub.core.events.join_game import JoinGameById, JoinGameByType, RejoinGame
-from gamehub.core.events.make_move import MakeMove
 from gamehub.core.events.outgoing_message import OutgoingMessage
 from gamehub.core.events.player_disconnected import PlayerDisconnected
 from gamehub.core.events.request import Request
+from gamehub.core.events.request_events import (
+    JoinGameById,
+    JoinGameByType,
+    MakeMove,
+    RejoinGame,
+)
 from gamehub.core.message_sender import MessageSender
 from gamehub.core.request_parser import RequestParser
 from gamehub.core.room_manager import RoomManager

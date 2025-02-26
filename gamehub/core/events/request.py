@@ -6,6 +6,7 @@ from pydantic import BaseModel, Field
 class RequestType(Enum):
     JOIN_GAME_BY_ID = "JOIN_GAME_BY_ID"
     REJOIN_GAME = "REJOIN_GAME"
+    WATCH_GAME = "WATCH_GAME"
     JOIN_GAME_BY_TYPE = "JOIN_GAME_BY_TYPE"
     MAKE_MOVE = "MAKE_MOVE"
 

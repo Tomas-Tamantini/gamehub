@@ -3,10 +3,14 @@ from unittest.mock import Mock
 import pytest
 
 from gamehub.core.event_bus import EventBus
-from gamehub.core.events.join_game import JoinGameById, JoinGameByType, RejoinGame
-from gamehub.core.events.make_move import MakeMove
 from gamehub.core.events.outgoing_message import OutgoingMessage
 from gamehub.core.events.player_disconnected import PlayerDisconnected
+from gamehub.core.events.request_events import (
+    JoinGameById,
+    JoinGameByType,
+    MakeMove,
+    RejoinGame,
+)
 from gamehub.core.game_room import GameRoom
 from gamehub.core.message import MessageType
 from gamehub.core.room_manager import RoomManager

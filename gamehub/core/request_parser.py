@@ -3,10 +3,15 @@ from typing import Optional
 from pydantic import BaseModel, ValidationError
 
 from gamehub.core.event_bus import EventBus
-from gamehub.core.events.join_game import JoinGameById, JoinGameByType, RejoinGame
-from gamehub.core.events.make_move import MakeMove
 from gamehub.core.events.outgoing_message import OutgoingMessage
 from gamehub.core.events.request import Request, RequestType
+from gamehub.core.events.request_events import (
+    JoinGameById,
+    JoinGameByType,
+    MakeMove,
+    RejoinGame,
+    WatchGame,
+)
 from gamehub.core.message import error_message
 
 
@@ -37,6 +42,7 @@ class RequestParser:
             event_cls = {
                 RequestType.JOIN_GAME_BY_ID: JoinGameById,
                 RequestType.JOIN_GAME_BY_TYPE: JoinGameByType,
+                RequestType.WATCH_GAME: WatchGame,
                 RequestType.REJOIN_GAME: RejoinGame,
                 RequestType.MAKE_MOVE: MakeMove,
             }

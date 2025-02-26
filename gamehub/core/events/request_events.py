@@ -11,6 +11,17 @@ class RejoinGame(BaseModel):
     room_id: int
 
 
+class WatchGame(BaseModel):
+    player_id: str
+    room_id: int
+
+
 class JoinGameByType(BaseModel):
     player_id: str
     game_type: str
+
+
+class MakeMove(BaseModel):
+    player_id: str
+    room_id: int
+    move: dict
