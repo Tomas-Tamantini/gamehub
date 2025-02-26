@@ -1,27 +1,24 @@
 from pydantic import BaseModel
 
 
-class JoinGameById(BaseModel):
+class _DirectedRequest(BaseModel):
     player_id: str
     room_id: int
 
 
-class RejoinGame(BaseModel):
-    player_id: str
-    room_id: int
+class JoinGameById(_DirectedRequest): ...
 
 
-class WatchGame(BaseModel):
-    player_id: str
-    room_id: int
+class RejoinGame(_DirectedRequest): ...
+
+
+class WatchGame(_DirectedRequest): ...
+
+
+class MakeMove(_DirectedRequest):
+    move: dict
 
 
 class JoinGameByType(BaseModel):
     player_id: str
     game_type: str
-
-
-class MakeMove(BaseModel):
-    player_id: str
-    room_id: int
-    move: dict
