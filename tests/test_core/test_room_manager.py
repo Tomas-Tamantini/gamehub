@@ -10,6 +10,7 @@ from gamehub.core.events.request_events import (
     JoinGameByType,
     MakeMove,
     RejoinGame,
+    WatchGame,
 )
 from gamehub.core.game_room import GameRoom
 from gamehub.core.message import MessageType
@@ -43,6 +44,7 @@ def spy_room():
     [
         (JoinGameById(player_id="Ana", room_id=2), "join_game_by_id"),
         (RejoinGame(player_id="Ana", room_id=2), "rejoin_game"),
+        (WatchGame(player_id="Ana", room_id=2), "watch_game"),
         (MakeMove(player_id="Ana", room_id=2, move={}), "make_move"),
     ],
 )
@@ -97,6 +99,15 @@ async def test_room_manager_forwards_rejoin_game_request_to_proper_room(spy_room
 
 
 @pytest.mark.asyncio
+async def test_room_manager_forwards_watch_game_request_to_proper_room(spy_room):
+    request = WatchGame(player_id="Ana", room_id=1)
+    room = spy_room()
+    room_manager = RoomManager([room], EventBus())
+    await room_manager.watch_game(request)
+    room.add_spectator.assert_called_once_with("Ana")
+
+
+@pytest.mark.asyncio
 async def test_room_manager_forwards_make_move_request_to_proper_room(spy_room):
     mock_move = {"testkey": "testvalue"}
     request = MakeMove(player_id="Ana", room_id=1, move=mock_move)
@@ -120,7 +131,7 @@ async def test_room_manager_finds_first_non_full_room_of_given_game_type(spy_roo
 
 
 @pytest.mark.asyncio
-async def test_room_manager_notifies_rooms_with_given_player_when_they_disconnect(
+async def test_room_manager_notifies_rooms_when_user_disconnects(
     spy_room,
 ):
     request = PlayerDisconnected(player_id="Ana")

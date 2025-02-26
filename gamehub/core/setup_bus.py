@@ -7,6 +7,7 @@ from gamehub.core.events.request_events import (
     JoinGameByType,
     MakeMove,
     RejoinGame,
+    WatchGame,
 )
 from gamehub.core.message_sender import MessageSender
 from gamehub.core.request_parser import RequestParser
@@ -21,6 +22,7 @@ def setup_event_bus(
     event_bus.subscribe(OutgoingMessage, message_sender.send)
     event_bus.subscribe(JoinGameById, room_manager.join_game_by_id)
     event_bus.subscribe(RejoinGame, room_manager.rejoin_game)
+    event_bus.subscribe(WatchGame, room_manager.watch_game)
     event_bus.subscribe(JoinGameByType, room_manager.join_game_by_type)
     event_bus.subscribe(MakeMove, room_manager.make_move)
     event_bus.subscribe(PlayerDisconnected, room_manager.handle_player_disconnected)

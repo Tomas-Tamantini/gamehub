@@ -8,6 +8,7 @@ from gamehub.core.events.request_events import (
     JoinGameByType,
     MakeMove,
     RejoinGame,
+    WatchGame,
 )
 from gamehub.core.game_room import GameRoom
 from gamehub.core.message import error_message
@@ -24,21 +25,30 @@ class RoomManager:
             OutgoingMessage(player_id=player_id, message=error_message(payload))
         )
 
-    async def join_game_by_id(self, join_game: JoinGameById) -> None:
-        if not (room := self._rooms.get(join_game.room_id)):
+    # TODO: Refactor nearly identical methods
+    async def join_game_by_id(self, request: JoinGameById) -> None:
+        if not (room := self._rooms.get(request.room_id)):
             await self._respond_error(
-                join_game.player_id, f"Room with id {join_game.room_id} does not exist"
+                request.player_id, f"Room with id {request.room_id} does not exist"
             )
         else:
-            await room.join(join_game.player_id)
+            await room.join(request.player_id)
 
-    async def rejoin_game(self, join_game: RejoinGame) -> None:
-        if not (room := self._rooms.get(join_game.room_id)):
+    async def rejoin_game(self, request: RejoinGame) -> None:
+        if not (room := self._rooms.get(request.room_id)):
             await self._respond_error(
-                join_game.player_id, f"Room with id {join_game.room_id} does not exist"
+                request.player_id, f"Room with id {request.room_id} does not exist"
             )
         else:
-            await room.rejoin(join_game.player_id)
+            await room.rejoin(request.player_id)
+
+    async def watch_game(self, request: WatchGame) -> None:
+        if not (room := self._rooms.get(request.room_id)):
+            await self._respond_error(
+                request.player_id, f"Room with id {request.room_id} does not exist"
+            )
+        else:
+            await room.add_spectator(request.player_id)
 
     def _rooms_by_game_type(self, game_type: str) -> Iterator[GameRoom]:
         for room in self._rooms.values():

@@ -140,6 +140,9 @@ class GameRoom(Generic[T]):
             await self._broadcast_room_state()
             await self._send_full_state(player_id)
 
+    async def add_spectator(self, player_id: str) -> None:
+        raise NotImplementedError()
+
     async def _send_full_state(self, player_id: str) -> None:
         if self._game_state is not None:
             payload = self._shared_view_payload()
