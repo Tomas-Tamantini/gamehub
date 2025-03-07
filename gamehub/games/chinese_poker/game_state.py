@@ -3,7 +3,7 @@ from typing import Iterator, Optional
 
 from gamehub.games.chinese_poker.hand import card_value
 from gamehub.games.chinese_poker.move import ChinesePokerMove
-from gamehub.games.chinese_poker.player import ChinesePokerPlayer
+from gamehub.games.chinese_poker.player import ChinesePokerPlayer, players_shared_views
 from gamehub.games.chinese_poker.status import ChinesePokerStatus
 from gamehub.games.chinese_poker.views import (
     ChinesePokerPlayerResult,
@@ -54,9 +54,7 @@ class ChinesePokerState:
     def shared_view(self) -> ChinesePokerSharedView:
         return ChinesePokerSharedView(
             status=self.status,
-            players=map(
-                lambda player: player.shared_view(partial_credits=0), self.players
-            ),
+            players=players_shared_views(self.players),
             current_player_id=self.current_player_id(),
             move_history=self.move_history,
             result=self._result(),

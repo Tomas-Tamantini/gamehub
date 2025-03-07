@@ -1,5 +1,7 @@
 from dataclasses import dataclass
+from typing import Iterable, Iterator
 
+from gamehub.games.chinese_poker.credits import calculate_credits
 from gamehub.games.chinese_poker.hand import card_value
 from gamehub.games.chinese_poker.views import ChinesePokerPlayerSharedView
 from gamehub.games.playing_cards import PlayingCard
@@ -10,14 +12,6 @@ class ChinesePokerPlayer:
     player_id: str
     num_points: int
     cards: tuple[PlayingCard, ...]
-
-    def shared_view(self, partial_credits: int) -> ChinesePokerPlayerSharedView:
-        return ChinesePokerPlayerSharedView(
-            player_id=self.player_id,
-            num_points=self.num_points,
-            num_cards=len(self.cards),
-            partial_credits=partial_credits,
-        )
 
     def deal_cards(self, cards: tuple[PlayingCard, ...]) -> "ChinesePokerPlayer":
         return ChinesePokerPlayer(
@@ -49,3 +43,18 @@ class ChinesePokerPlayer:
 
 def player_initial_state(player_id: str) -> ChinesePokerPlayer:
     return ChinesePokerPlayer(player_id=player_id, num_points=0, cards=tuple())
+
+
+def players_shared_views(
+    players: Iterable[ChinesePokerPlayer],
+) -> Iterator[ChinesePokerPlayerSharedView]:
+    partial_credits = calculate_credits({p.player_id: p.num_points for p in players})
+    return (
+        ChinesePokerPlayerSharedView(
+            player_id=p.player_id,
+            num_points=p.num_points,
+            num_cards=len(p.cards),
+            partial_credits=partial_credits[p.player_id],
+        )
+        for p in players
+    )
