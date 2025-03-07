@@ -126,3 +126,24 @@ def test_results_are_sent_at_game_over(end_game, player_ids):
     expected = [-5.5, -3.5, 8.5, 0.5]
     assert player_ids == [player.player_id for player in result.players]
     assert expected == [player.dist_to_avg for player in result.players]
+
+
+@pytest.mark.parametrize(
+    ("state", "expected"),
+    [
+        ("start_game", [0, 0, 0, 0]),
+        ("start_match", [0, 0, 0, 0]),
+        ("start_round", [0, 0, 0, 0]),
+        ("start_turn", [0, 0, 0, 0]),
+        ("await_action", [0, 0, 0, 0]),
+        ("end_turn", [0, 0, 0, 0]),
+        ("end_round", [0, 0, 0, 0]),
+        ("end_match", [0, 0, 0, 0]),
+        ("update_points", [0, 0, 0, 0]),
+        ("end_game", [0, 0, 0, 0]),
+    ],
+)
+def test_partial_results_are_sent_with_each_game_state(request, state, expected):
+    state = request.getfixturevalue(state)
+    result = [p.partial_credits for p in state.shared_view().players]
+    assert expected == result

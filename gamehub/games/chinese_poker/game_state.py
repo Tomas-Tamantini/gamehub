@@ -54,7 +54,9 @@ class ChinesePokerState:
     def shared_view(self) -> ChinesePokerSharedView:
         return ChinesePokerSharedView(
             status=self.status,
-            players=map(lambda player: player.shared_view(), self.players),
+            players=map(
+                lambda player: player.shared_view(partial_credits=0), self.players
+            ),
             current_player_id=self.current_player_id(),
             move_history=self.move_history,
             result=self._result(),

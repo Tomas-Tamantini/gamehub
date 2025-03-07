@@ -11,11 +11,12 @@ class ChinesePokerPlayer:
     num_points: int
     cards: tuple[PlayingCard, ...]
 
-    def shared_view(self) -> ChinesePokerPlayerSharedView:
+    def shared_view(self, partial_credits: int) -> ChinesePokerPlayerSharedView:
         return ChinesePokerPlayerSharedView(
             player_id=self.player_id,
             num_points=self.num_points,
             num_cards=len(self.cards),
+            partial_credits=partial_credits,
         )
 
     def deal_cards(self, cards: tuple[PlayingCard, ...]) -> "ChinesePokerPlayer":

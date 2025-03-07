@@ -11,6 +11,7 @@ class ChinesePokerPlayerSharedView(BaseModel):
     player_id: str
     num_points: int
     num_cards: int
+    partial_credits: int
 
 
 class ChinesePokerPlayerResult(BaseModel):
