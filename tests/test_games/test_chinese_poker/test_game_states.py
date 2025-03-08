@@ -139,8 +139,8 @@ def test_results_are_sent_at_game_over(end_game, player_ids):
         ("end_turn", [0, 0, 0, 0]),
         ("end_round", [0, 0, 0, 0]),
         ("end_match", [0, 0, 0, 0]),
-        ("update_points", [0, 0, 0, 0]),
-        ("end_game", [0, 0, 0, 0]),
+        ("update_points", [4, -2, -1, -1]),
+        ("end_game", [5, 3, -8, 0]),
     ],
 )
 def test_partial_results_are_sent_with_each_game_state(request, state, expected):
