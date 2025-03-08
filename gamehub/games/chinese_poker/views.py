@@ -14,21 +14,11 @@ class ChinesePokerPlayerSharedView(BaseModel):
     partial_credits: int
 
 
-class ChinesePokerPlayerResult(BaseModel):
-    player_id: str
-    dist_to_avg: float
-
-
-class ChinesePokerResult(BaseModel):
-    players: tuple[ChinesePokerPlayerResult, ...]
-
-
 class ChinesePokerSharedView(BaseModel):
     status: ChinesePokerStatus
     players: tuple[ChinesePokerPlayerSharedView, ...]
     current_player_id: Optional[str]
     move_history: tuple[ChinesePokerMove, ...]
-    result: Optional[ChinesePokerResult]
 
 
 class ChinesePokerPrivateView(BaseModel):

@@ -103,32 +103,6 @@ def test_state_is_terminal_if_game_over(end_game):
 
 
 @pytest.mark.parametrize(
-    "state",
-    [
-        "start_game",
-        "start_match",
-        "start_round",
-        "start_turn",
-        "await_action",
-        "end_turn",
-        "end_round",
-        "end_match",
-        "update_points",
-    ],
-)
-def test_results_are_not_sent_before_game_over(request, state):
-    state = request.getfixturevalue(state)
-    assert state.shared_view().result is None
-
-
-def test_results_are_sent_at_game_over(end_game, player_ids):
-    result = end_game.shared_view().result
-    expected = [-5.5, -3.5, 8.5, 0.5]
-    assert player_ids == [player.player_id for player in result.players]
-    assert expected == [player.dist_to_avg for player in result.players]
-
-
-@pytest.mark.parametrize(
     ("state", "expected"),
     [
         ("start_game", [0, 0, 0, 0]),
