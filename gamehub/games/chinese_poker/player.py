@@ -46,9 +46,10 @@ def player_initial_state(player_id: str) -> ChinesePokerPlayer:
 
 
 def players_shared_views(
-    players: Iterable[ChinesePokerPlayer],
+    players: Iterable[ChinesePokerPlayer], credits_per_point: int
 ) -> Iterator[ChinesePokerPlayerSharedView]:
-    partial_credits = calculate_credits({p.player_id: p.num_points for p in players})
+    points = {p.player_id: p.num_points for p in players}
+    partial_credits = calculate_credits(points, credits_per_point)
     return (
         ChinesePokerPlayerSharedView(
             player_id=p.player_id,

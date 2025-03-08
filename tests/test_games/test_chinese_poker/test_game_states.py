@@ -113,8 +113,8 @@ def test_state_is_terminal_if_game_over(end_game):
         ("end_turn", [0, 0, 0, 0]),
         ("end_round", [0, 0, 0, 0]),
         ("end_match", [0, 0, 0, 0]),
-        ("update_points", [4, -2, -1, -1]),
-        ("end_game", [5, 3, -8, 0]),
+        ("update_points", [425, -275, -75, -75]),
+        ("end_game", [550, 350, -850, -50]),
     ],
 )
 def test_partial_results_are_sent_with_each_game_state(request, state, expected):

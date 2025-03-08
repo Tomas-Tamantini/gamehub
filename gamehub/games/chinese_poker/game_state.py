@@ -50,9 +50,10 @@ class ChinesePokerState:
             return current_player.player_id
 
     def shared_view(self) -> ChinesePokerSharedView:
+        credits_per_point = 100  # TODO: move to config
         return ChinesePokerSharedView(
             status=self.status,
-            players=players_shared_views(self.players),
+            players=players_shared_views(self.players, credits_per_point),
             current_player_id=self.current_player_id(),
             move_history=self.move_history,
         )
