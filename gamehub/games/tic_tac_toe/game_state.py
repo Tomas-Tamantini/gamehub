@@ -12,7 +12,7 @@ class TicTacToeState:
     def players(self) -> tuple[TicTacToePlayer, TicTacToePlayer]:
         return self._players
 
-    def shared_view(self) -> TicTacToeView:
+    def shared_view(self, *_, **__) -> TicTacToeView:
         return TicTacToeView(
             players=self._players,
             is_over=self.is_terminal(),

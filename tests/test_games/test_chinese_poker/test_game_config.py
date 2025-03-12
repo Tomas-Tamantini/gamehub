@@ -7,12 +7,18 @@ def test_chinese_poker_has_proper_game_type(game_logic):
 
 def test_chinese_poker_has_proper_game_configuration(game_logic):
     assert game_logic.configuration == ChinesePokerConfiguration(
-        num_players=4, cards_per_player=13, game_over_point_threshold=25
+        num_players=4,
+        cards_per_player=13,
+        game_over_point_threshold=25,
+        credits_per_point=100,
     )
 
 
 def test_chinese_poker_has_variable_number_of_players():
     config = ChinesePokerConfiguration(
-        num_players=3, cards_per_player=10, game_over_point_threshold=10
+        num_players=3,
+        cards_per_player=10,
+        game_over_point_threshold=10,
+        credits_per_point=100,
     )
     assert ChinesePokerGameLogic(config).num_players == 3

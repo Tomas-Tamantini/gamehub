@@ -45,7 +45,7 @@ class RPSGameState:
         ]
         return RPSResultView(winner=self._winner(), moves=moves)
 
-    def shared_view(self) -> RPSSharedView:
+    def shared_view(self, *_, **__) -> RPSSharedView:
         return RPSSharedView(
             players=[player.shared_view() for player in self.players],
             result=self._result(),

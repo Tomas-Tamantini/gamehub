@@ -98,7 +98,10 @@ def make_moves(game_logic):
 @pytest.fixture
 def default_config():
     return ChinesePokerConfiguration(
-        num_players=4, cards_per_player=13, game_over_point_threshold=25
+        num_players=4,
+        cards_per_player=13,
+        game_over_point_threshold=25,
+        credits_per_point=100,
     )
 
 

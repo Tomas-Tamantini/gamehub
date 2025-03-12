@@ -21,11 +21,11 @@ from gamehub.games.chinese_poker.status import ChinesePokerStatus
     ],
 )
 def test_state_transitions_automatically(
-    request, game_logic, state_before, expected_status
+    request, game_logic, state_before, expected_status, default_config
 ):
     state_before = request.getfixturevalue(state_before)
     state_after = game_logic.next_automated_state(state_before)
-    assert state_after.shared_view().status == expected_status
+    assert state_after.shared_view(default_config).status == expected_status
 
 
 @pytest.mark.parametrize("state", ["await_action", "end_game"])

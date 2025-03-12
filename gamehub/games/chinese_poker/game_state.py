@@ -1,6 +1,7 @@
 from dataclasses import dataclass
 from typing import Iterator, Optional
 
+from gamehub.games.chinese_poker.configuration import ChinesePokerConfiguration
 from gamehub.games.chinese_poker.hand import card_value
 from gamehub.games.chinese_poker.move import ChinesePokerMove
 from gamehub.games.chinese_poker.player import ChinesePokerPlayer, players_shared_views
@@ -49,11 +50,12 @@ class ChinesePokerState:
         if current_player := self.current_player():
             return current_player.player_id
 
-    def shared_view(self) -> ChinesePokerSharedView:
-        credits_per_point = 100  # TODO: move to config
+    def shared_view(
+        self, configuration: ChinesePokerConfiguration
+    ) -> ChinesePokerSharedView:
         return ChinesePokerSharedView(
             status=self.status,
-            players=players_shared_views(self.players, credits_per_point),
+            players=players_shared_views(self.players, configuration.credits_per_point),
             current_player_id=self.current_player_id(),
             move_history=self.move_history,
         )

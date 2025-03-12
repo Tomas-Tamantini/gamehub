@@ -38,7 +38,10 @@ def mock_room_manager():
             offline_players=[],
             is_full=True,
             configuration=ChinesePokerConfiguration(
-                num_players=4, cards_per_player=13, game_over_point_threshold=25
+                num_players=4,
+                cards_per_player=13,
+                game_over_point_threshold=25,
+                credits_per_point=100,
             ),
         ),
         RoomState[ChinesePokerConfiguration](
@@ -48,7 +51,10 @@ def mock_room_manager():
             offline_players=["Alice"],
             is_full=False,
             configuration=ChinesePokerConfiguration(
-                num_players=3, cards_per_player=10, game_over_point_threshold=15
+                num_players=3,
+                cards_per_player=10,
+                game_over_point_threshold=15,
+                credits_per_point=200,
             ),
         ),
     ]
@@ -80,6 +86,7 @@ def test_getting_chinese_poker_rooms_returns_list_of_game_rooms(client):
                     "num_players": 4,
                     "cards_per_player": 13,
                     "game_over_point_threshold": 25,
+                    "credits_per_point": 100,
                 },
             },
             {
@@ -92,6 +99,7 @@ def test_getting_chinese_poker_rooms_returns_list_of_game_rooms(client):
                     "num_players": 3,
                     "cards_per_player": 10,
                     "game_over_point_threshold": 15,
+                    "credits_per_point": 200,
                 },
             },
         ]

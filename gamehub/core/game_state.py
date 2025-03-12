@@ -1,12 +1,14 @@
-from typing import Iterator, Optional, Protocol
+from typing import Generic, Iterator, Optional, Protocol, TypeVar
+
+T = TypeVar("T")
 
 
 class _View(Protocol):
     def model_dump(self, *_, exclude_none: bool) -> dict: ...
 
 
-class GameState(Protocol):
-    def shared_view(self) -> _View: ...
+class GameState(Protocol, Generic[T]):
+    def shared_view(self, configuration: T) -> _View: ...
 
     def private_views(self) -> Iterator[tuple[str, _View]]: ...
 

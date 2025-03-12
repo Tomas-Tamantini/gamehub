@@ -39,7 +39,7 @@ def test_rock_paper_scissors_has_no_game_configuration():
 
 
 def test_rock_paper_scissors_initial_state_has_no_selections(initial_state):
-    shared_view = initial_state.shared_view()
+    shared_view = initial_state.shared_view(configuration=None)
     assert shared_view == RPSSharedView(
         players=[
             RPSSharedPlayerView(player_id="Alice", selected=False),
@@ -49,7 +49,7 @@ def test_rock_paper_scissors_initial_state_has_no_selections(initial_state):
 
 
 def test_rock_paper_scissors_allows_players_to_make_selection(after_first_move):
-    shared_view = after_first_move.shared_view()
+    shared_view = after_first_move.shared_view(configuration=None)
     assert shared_view == RPSSharedView(
         players=[
             RPSSharedPlayerView(player_id="Alice", selected=True),
@@ -80,7 +80,7 @@ def test_rock_paper_scissors_informs_result_after_both_selected(after_first_move
     game_over_state = RPSGameLogic().make_move(
         after_first_move, RPSMove(player_id="Bob", selection=RPSSelection.PAPER)
     )
-    shared_view = game_over_state.shared_view()
+    shared_view = game_over_state.shared_view(configuration=None)
     assert shared_view.result == RPSResultView(
         winner="Bob",
         moves=[
@@ -99,7 +99,7 @@ def test_players_tie_if_both_pick_same_move(initial_state, selection):
         state = RPSGameLogic().make_move(
             state, RPSMove(player_id=player, selection=selection)
         )
-    assert state.shared_view().result.winner is None
+    assert state.shared_view(configuration=None).result.winner is None
 
 
 @pytest.mark.parametrize(
@@ -118,4 +118,4 @@ def test_rock_paper_scissors_beat_each_other_cyclically(
         state = RPSGameLogic().make_move(
             state, RPSMove(player_id=player, selection=selection)
         )
-    assert state.shared_view().result.winner == "Alice"
+    assert state.shared_view(configuration=None).result.winner == "Alice"

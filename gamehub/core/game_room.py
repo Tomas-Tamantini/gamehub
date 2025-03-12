@@ -93,9 +93,10 @@ class GameRoom(Generic[MoveType, GameConfigType]):
         await self._broadcast_message(self._room_state_message())
 
     def _shared_view_payload(self) -> dict:
+        shared_view = self._game_state.shared_view(self._logic.configuration)
         return {
             "room_id": self._room_id,
-            "shared_view": self._game_state.shared_view().model_dump(exclude_none=True),
+            "shared_view": shared_view.model_dump(exclude_none=True),
         }
 
     def _shared_view_message(self) -> Message:

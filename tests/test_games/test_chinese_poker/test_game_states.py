@@ -81,15 +81,15 @@ def test_player_receives_their_private_cards_after_their_turn(
 @pytest.mark.parametrize(
     "state", ["start_round", "start_turn", "await_action", "end_turn"]
 )
-def test_state_maintains_current_player(request, state):
+def test_state_maintains_current_player(request, state, default_config):
     state = request.getfixturevalue(state)
-    assert state.shared_view().current_player_id == "Diana"
+    assert state.shared_view(default_config).current_player_id == "Diana"
 
 
 @pytest.mark.parametrize("state", ["end_round"])
-def test_state_increments_current_player(request, state):
+def test_state_increments_current_player(request, state, default_config):
     state = request.getfixturevalue(state)
-    assert state.shared_view().current_player_id == "Alice"
+    assert state.shared_view(default_config).current_player_id == "Alice"
 
 
 @pytest.mark.parametrize("state", ["start_round", "start_turn", "await_action"])
@@ -117,7 +117,9 @@ def test_state_is_terminal_if_game_over(end_game):
         ("end_game", [550, 350, -850, -50]),
     ],
 )
-def test_partial_results_are_sent_with_each_game_state(request, state, expected):
+def test_partial_results_are_sent_with_each_game_state(
+    request, state, expected, default_config
+):
     state = request.getfixturevalue(state)
-    result = [p.partial_credits for p in state.shared_view().players]
+    result = [p.partial_credits for p in state.shared_view(default_config).players]
     assert expected == result

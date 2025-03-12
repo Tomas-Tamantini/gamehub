@@ -49,7 +49,7 @@ def test_tic_tac_toe_has_no_game_configuration():
 
 
 def test_tic_tac_toe_starts_with_empty_board(initial_state):
-    shared_view = initial_state.shared_view()
+    shared_view = initial_state.shared_view(configuration=None)
     assert shared_view == TicTacToeView(
         players=(
             TicTacToePlayer(player_id="Alice", selections=set()),
@@ -67,7 +67,7 @@ def test_tic_tac_toe_does_not_allow_player_to_play_out_of_turn(initial_state):
 
 
 def test_tic_tac_toe_allows_player_to_select_empty_cell(after_first_move):
-    shared_view = after_first_move.shared_view()
+    shared_view = after_first_move.shared_view(configuration=None)
     assert shared_view == TicTacToeView(
         players=(
             TicTacToePlayer(player_id="Alice", selections={0}),
@@ -104,13 +104,13 @@ def test_player_wins_tic_tac_toe_if_three_in_a_row(selections_a, selections_b, w
             TicTacToePlayer(player_id="Bob", selections=selections_b),
         )
     )
-    shared_view = state.shared_view()
+    shared_view = state.shared_view(configuration=None)
     assert shared_view.is_over
     assert shared_view.winner == winner
 
 
 def test_players_tie_on_tic_tac_toe_if_no_three_in_a_row(tie_game):
-    shared_view = tie_game.shared_view()
+    shared_view = tie_game.shared_view(configuration=None)
     assert shared_view.is_over
     assert shared_view.winner is None
 

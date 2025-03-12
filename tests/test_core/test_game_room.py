@@ -39,7 +39,10 @@ def rps_room(event_bus):
 @pytest.fixture
 def chinese_poker_room(event_bus):
     config = ChinesePokerConfiguration(
-        num_players=4, cards_per_player=13, game_over_point_threshold=10
+        num_players=4,
+        cards_per_player=13,
+        game_over_point_threshold=10,
+        credits_per_point=100,
     )
     return GameRoom(
         room_id=1,
@@ -57,7 +60,7 @@ def automated_transition_logic():
         def private_views(self):
             yield from []
 
-        def shared_view(self):
+        def shared_view(self, *_, **__):
             return self
 
         def is_terminal(self):
@@ -169,6 +172,7 @@ async def test_room_notifies_other_players_if_one_disconnects(
                     "num_players": 4,
                     "cards_per_player": 13,
                     "game_over_point_threshold": 10,
+                    "credits_per_point": 100,
                 },
             },
         )
@@ -199,6 +203,7 @@ async def test_room_does_not_remove_disconnected_player_if_game_has_started(
                     "num_players": 4,
                     "cards_per_player": 13,
                     "game_over_point_threshold": 10,
+                    "credits_per_point": 100,
                 },
             },
         )

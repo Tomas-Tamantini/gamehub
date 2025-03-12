@@ -46,10 +46,10 @@ def test_players_cards_are_updated_after_valid_move(
 
 
 def test_valid_move_is_added_to_the_end_of_list_of_move_history(
-    await_action, first_move, second_move, make_moves
+    await_action, first_move, second_move, make_moves, default_config
 ):
     next_state = make_moves(await_action, [first_move, second_move])
-    shared_view = next_state.shared_view()
+    shared_view = next_state.shared_view(default_config)
     assert shared_view.move_history == (first_move, second_move)
 
 
