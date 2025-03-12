@@ -56,12 +56,12 @@ def client(mock_room_manager):
         app.dependency_overrides.clear()
 
 
-def test_getting_game_rooms_returns_status_ok(client):
-    assert client.get("/rooms").status_code == 200
+def test_getting_chinese_poker_rooms_returns_status_ok(client):
+    assert client.get("/rooms/chinese-poker").status_code == 200
 
 
 def test_getting_game_rooms_returns_list_of_game_rooms(client):
-    assert client.get("/rooms").json() == {
+    assert client.get("/rooms/chinese-poker").json() == {
         "items": [
             {
                 "room_id": 1,
@@ -82,5 +82,5 @@ def test_getting_game_rooms_returns_list_of_game_rooms(client):
 
 
 def test_getting_game_rooms_can_filter_rooms_by_game_type(client, mock_room_manager):
-    _ = client.get("/rooms?game_type=rock-paper-scissors")
-    mock_room_manager.room_states.assert_called_once_with("rock-paper-scissors")
+    _ = client.get("/rooms/chinese-poker")
+    mock_room_manager.room_states.assert_called_once_with(game_type="chinese_poker")
