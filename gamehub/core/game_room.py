@@ -11,15 +11,16 @@ from gamehub.core.message import Message, MessageType, error_message
 from gamehub.core.move_parser import MoveParser
 from gamehub.core.room_state import RoomState
 
-T = TypeVar("T")
+MoveType = TypeVar("MoveType")
+GameConfigType = TypeVar("GameConfigType")
 
 
-class GameRoom(Generic[T]):
+class GameRoom(Generic[MoveType, GameConfigType]):
     def __init__(
         self,
         room_id: int,
-        game_logic: GameLogic[T],
-        move_parser: MoveParser[T],
+        game_logic: GameLogic[MoveType, GameConfigType],
+        move_parser: MoveParser[MoveType],
         event_bus: EventBus,
     ):
         self._room_id = room_id
@@ -58,13 +59,14 @@ class GameRoom(Generic[T]):
     def room_id(self) -> int:
         return self._room_id
 
-    def room_state(self) -> RoomState:
-        return RoomState(
+    def room_state(self) -> RoomState[GameConfigType]:
+        return RoomState[GameConfigType](
             room_id=self._room_id,
             capacity=self._logic.num_players,
             player_ids=self._players[:],
             offline_players=list(self._offline_players),
             is_full=self.is_full,
+            configuration=self._logic.configuration,
         )
 
     async def _send_message(self, player_id: str, message: Message) -> None:
@@ -176,14 +178,14 @@ class GameRoom(Generic[T]):
                 OutgoingMessage(player_id=player_id, message=message)
             )
 
-    async def _parsed_move(self, player_id: str, raw_move: dict) -> Optional[T]:
+    async def _parsed_move(self, player_id: str, raw_move: dict) -> Optional[MoveType]:
         try:
             return self._parse_move({"player_id": player_id, **raw_move})
         except ValidationError as e:
             await self._send_error_message(player_id=player_id, payload=str(e))
 
     async def _game_state_after_move(
-        self, player_id: str, parsed_move: T
+        self, player_id: str, parsed_move: MoveType
     ) -> Optional[GameState]:
         try:
             return self._logic.make_move(self._game_state, parsed_move)

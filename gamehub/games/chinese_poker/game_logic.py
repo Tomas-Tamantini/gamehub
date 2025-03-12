@@ -20,6 +20,10 @@ class ChinesePokerGameLogic:
         return "chinese_poker"
 
     @property
+    def configuration(self) -> ChinesePokerConfiguration:
+        return self._configuration
+
+    @property
     def num_players(self) -> int:
         return self._configuration.num_players
 

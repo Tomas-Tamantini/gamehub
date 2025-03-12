@@ -87,6 +87,7 @@ async def test_full_gameplay(message_spy, event_bus, watch_game, make_move, join
                 "player_ids": [],
                 "offline_players": [],
                 "is_full": False,
+                "configuration": None,
             },
         ),
         ExpectedBroadcast(
@@ -98,6 +99,7 @@ async def test_full_gameplay(message_spy, event_bus, watch_game, make_move, join
                 "player_ids": ["Alice"],
                 "offline_players": [],
                 "is_full": False,
+                "configuration": None,
             },
         ),
         ExpectedBroadcast(
@@ -109,6 +111,7 @@ async def test_full_gameplay(message_spy, event_bus, watch_game, make_move, join
                 "player_ids": ["Alice", "Bob"],
                 "offline_players": [],
                 "is_full": True,
+                "configuration": None,
             },
         ),
         ExpectedBroadcast(

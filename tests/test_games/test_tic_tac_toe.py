@@ -44,6 +44,10 @@ def test_tic_tac_toe_has_proper_game_type():
     assert TicTacToeGameLogic().game_type == "tic_tac_toe"
 
 
+def test_tic_tac_toe_has_no_game_configuration():
+    assert TicTacToeGameLogic().configuration is None
+
+
 def test_tic_tac_toe_starts_with_empty_board(initial_state):
     shared_view = initial_state.shared_view()
     assert shared_view == TicTacToeView(

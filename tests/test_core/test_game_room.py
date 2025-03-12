@@ -68,6 +68,10 @@ def automated_transition_logic():
         def num_players(self):
             return 2
 
+        @property
+        def configuration(self):
+            return None
+
         def initial_state(self, *_, **__):
             return MockState(status="START")
 
@@ -106,6 +110,7 @@ async def test_player_can_join_empty_room(rps_room, messages_spy):
                 "player_ids": ["Alice"],
                 "offline_players": [],
                 "is_full": False,
+                "configuration": None,
             },
         )
     ]
@@ -126,6 +131,7 @@ async def test_players_get_informed_when_new_one_joins(rps_room, messages_spy):
                 "player_ids": ["Alice", "Bob"],
                 "offline_players": [],
                 "is_full": True,
+                "configuration": None,
             },
         )
     ]
@@ -159,6 +165,11 @@ async def test_room_notifies_other_players_if_one_disconnects(
                 "player_ids": ["Alice", "Bob"],
                 "offline_players": [],
                 "is_full": False,
+                "configuration": {
+                    "num_players": 4,
+                    "cards_per_player": 13,
+                    "game_over_point_threshold": 10,
+                },
             },
         )
     ]
@@ -184,6 +195,11 @@ async def test_room_does_not_remove_disconnected_player_if_game_has_started(
                 "player_ids": ["Alice", "Bob", "Charlie", "Diana"],
                 "offline_players": ["Alice"],
                 "is_full": True,
+                "configuration": {
+                    "num_players": 4,
+                    "cards_per_player": 13,
+                    "game_over_point_threshold": 10,
+                },
             },
         )
     ]
@@ -249,6 +265,7 @@ async def test_players_get_notified_of_player_rejoining(rps_room, messages_spy):
                 "player_ids": ["Alice", "Bob"],
                 "offline_players": [],
                 "is_full": True,
+                "configuration": None,
             },
         )
     ]
@@ -406,6 +423,7 @@ async def test_game_room_resets_after_game_over_and_new_players_can_join(
                 "player_ids": ["Charlie"],
                 "offline_players": [],
                 "is_full": False,
+                "configuration": None,
             },
         )
     ]
@@ -455,6 +473,7 @@ async def test_spectator_can_watch_room_before_game_starts(rps_room, messages_sp
                 "player_ids": [],
                 "offline_players": [],
                 "is_full": False,
+                "configuration": None,
             },
         )
     ]
@@ -478,6 +497,7 @@ async def test_spectator_can_watch_room_with_game_in_progress(rps_room, messages
                 "player_ids": ["Alice", "Bob"],
                 "offline_players": [],
                 "is_full": True,
+                "configuration": None,
             },
         ),
         ExpectedBroadcast(
@@ -511,6 +531,7 @@ async def test_spectators_get_notified_of_room_updates(rps_room, messages_spy):
                 "player_ids": ["Bob"],
                 "offline_players": [],
                 "is_full": False,
+                "configuration": None,
             },
         )
     ]
