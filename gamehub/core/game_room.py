@@ -111,19 +111,6 @@ class GameRoom(Generic[MoveType, GameConfigType]):
             )
         )
 
-    async def _send_private_views(self) -> None:
-        for player_id, private_view in self._game_state.private_views():
-            message = Message(
-                message_type=MessageType.GAME_STATE,
-                payload={
-                    "room_id": self._room_id,
-                    "private_view": private_view.model_dump(exclude_none=True),
-                },
-            )
-            await self._event_bus.publish(
-                OutgoingMessage(player_id=player_id, message=message)
-            )
-
     async def _start_game(self) -> None:
         await self._set_game_state(self._logic.initial_state(*self._players))
 
