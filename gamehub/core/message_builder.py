@@ -22,11 +22,7 @@ class MessageBuilder:
             message_type=MessageType.GAME_ROOM_UPDATE,
             payload=room_update.room_state.model_dump(),
         )
-        for player in room_update.room_state.player_ids:
+        for recipient in room_update.recipients:
             await self._event_bus.publish(
-                OutgoingMessage(player_id=player, message=msg)
-            )
-        for spectator in room_update.spectators:
-            await self._event_bus.publish(
-                OutgoingMessage(player_id=spectator, message=msg)
+                OutgoingMessage(player_id=recipient, message=msg)
             )

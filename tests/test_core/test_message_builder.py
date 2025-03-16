@@ -46,7 +46,7 @@ async def test_message_builder_broadcasts_game_room_updates_to_players_and_spect
             is_full=False,
             configuration=None,
         ),
-        spectators={"Charlie", "Diana"},
+        recipients=["Alice", "Bob", "Charlie", "Diana"],
     )
     await msg_builder.notify_room_update(room_update)
     assert len(messages_spy) == 4

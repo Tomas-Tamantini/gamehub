@@ -9,4 +9,4 @@ T = TypeVar("T")
 @dataclass(frozen=True)
 class GameRoomUpdate(Generic[T]):
     room_state: RoomState[T]
-    spectators: Iterable[str]
+    recipients: Iterable[str]

@@ -89,9 +89,8 @@ class GameRoom(Generic[MoveType, GameConfigType]):
         )
 
     async def _notify_room_state_update(self) -> None:
-        await self._event_bus.publish(
-            GameRoomUpdate(self.room_state(), self._spectators)
-        )
+        recipients = self._players + list(self._spectators)
+        await self._event_bus.publish(GameRoomUpdate(self.room_state(), recipients))
 
     def _shared_view_payload(self) -> dict:
         shared_view = self._game_state.shared_view(self._logic.configuration)
