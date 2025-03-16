@@ -1,3 +1,5 @@
+from dataclasses import dataclass
+
 from pydantic import BaseModel
 
 
@@ -22,3 +24,9 @@ class MakeMove(DirectedRequest):
 class JoinGameByType(BaseModel):
     player_id: str
     game_type: str
+
+
+@dataclass(frozen=True)
+class RequestFailed:
+    player_id: str
+    error_msg: str

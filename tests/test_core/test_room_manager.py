@@ -3,17 +3,16 @@ from unittest.mock import Mock
 import pytest
 
 from gamehub.core.event_bus import EventBus
-from gamehub.core.events.outgoing_message import OutgoingMessage
 from gamehub.core.events.player_disconnected import PlayerDisconnected
 from gamehub.core.events.request_events import (
     JoinGameById,
     JoinGameByType,
     MakeMove,
     RejoinGame,
+    RequestFailed,
     WatchGame,
 )
 from gamehub.core.game_room import GameRoom
-from gamehub.core.message import MessageType
 from gamehub.core.room_manager import RoomManager
 from gamehub.core.room_state import RoomState
 
@@ -54,15 +53,14 @@ async def test_room_manager_returns_error_message_if_bad_room_id(
     spy_room, event, method_name
 ):
     request = event
-    messages_spy = []
+    events_spy = []
     event_bus = EventBus()
     room_manager = RoomManager([spy_room()], event_bus)
-    event_bus.subscribe(OutgoingMessage, messages_spy.append)
+    event_bus.subscribe(RequestFailed, events_spy.append)
     await getattr(room_manager, method_name)(request)
-    assert len(messages_spy) == 1
-    assert messages_spy[0].player_id == "Ana"
-    assert messages_spy[0].message.message_type == MessageType.ERROR
-    assert "id 2 does not exist" in messages_spy[0].message.payload["error"]
+    assert len(events_spy) == 1
+    assert events_spy[0].player_id == "Ana"
+    assert "id 2 does not exist" in events_spy[0].error_msg
 
 
 @pytest.mark.asyncio
@@ -70,15 +68,14 @@ async def test_room_manager_returns_error_message_if_bad_game_type_when_joining_
     spy_room,
 ):
     request = JoinGameByType(player_id="Ana", game_type="tic-tac-toe")
-    messages_spy = []
+    events_spy = []
     event_bus = EventBus()
     room_manager = RoomManager([spy_room(is_full=True)], event_bus)
-    event_bus.subscribe(OutgoingMessage, messages_spy.append)
+    event_bus.subscribe(RequestFailed, events_spy.append)
     await room_manager.join_game_by_type(request)
-    assert len(messages_spy) == 1
-    assert messages_spy[0].player_id == "Ana"
-    assert messages_spy[0].message.message_type == MessageType.ERROR
-    assert "No available" in messages_spy[0].message.payload["error"]
+    assert len(events_spy) == 1
+    assert events_spy[0].player_id == "Ana"
+    assert "No available" in events_spy[0].error_msg
 
 
 @pytest.mark.asyncio

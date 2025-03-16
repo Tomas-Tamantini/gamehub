@@ -1,7 +1,6 @@
 from typing import Awaitable, Callable, Iterator, Optional
 
 from gamehub.core.event_bus import EventBus
-from gamehub.core.events.outgoing_message import OutgoingMessage
 from gamehub.core.events.player_disconnected import PlayerDisconnected
 from gamehub.core.events.request_events import (
     DirectedRequest,
@@ -9,10 +8,10 @@ from gamehub.core.events.request_events import (
     JoinGameByType,
     MakeMove,
     RejoinGame,
+    RequestFailed,
     WatchGame,
 )
 from gamehub.core.game_room import GameRoom
-from gamehub.core.message import error_message
 from gamehub.core.room_state import RoomState
 
 
@@ -21,9 +20,9 @@ class RoomManager:
         self._rooms = {room.room_id: room for room in rooms}
         self._event_bus = event_bus
 
-    async def _respond_error(self, player_id: str, payload: str) -> None:
+    async def _raise_error_event(self, player_id: str, payload: str) -> None:
         await self._event_bus.publish(
-            OutgoingMessage(player_id=player_id, message=error_message(payload))
+            RequestFailed(player_id=player_id, error_msg=payload)
         )
 
     async def _handle_directed_request(
@@ -32,7 +31,7 @@ class RoomManager:
         handler: Callable[[GameRoom, str], Awaitable[None]],
     ) -> None:
         if not (room := self._rooms.get(request.room_id)):
-            await self._respond_error(
+            await self._raise_error_event(
                 request.player_id, f"Room with id {request.room_id} does not exist"
             )
         else:
@@ -67,14 +66,14 @@ class RoomManager:
                 await room.join(join_game.player_id)
                 return
 
-        await self._respond_error(
+        await self._raise_error_event(
             join_game.player_id,
             f"No available room for game type {join_game.game_type}",
         )
 
     async def make_move(self, make_move: MakeMove) -> None:
         if not (room := self._rooms.get(make_move.room_id)):
-            await self._respond_error(
+            await self._raise_error_event(
                 make_move.player_id, f"Room with id {make_move.room_id} does not exist"
             )
         else:

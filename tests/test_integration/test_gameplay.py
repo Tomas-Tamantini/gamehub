@@ -39,11 +39,14 @@ def event_bus(message_spy):
 
 @pytest.fixture
 def join_game(build_request):
-    return lambda player_id: build_request(
-        player_id=player_id,
-        request_type=RequestType.JOIN_GAME_BY_ID,
-        payload={"room_id": 1},
-    )
+    def _join_game(player_id, room_id=1):
+        return build_request(
+            player_id=player_id,
+            request_type=RequestType.JOIN_GAME_BY_ID,
+            payload={"room_id": room_id},
+        )
+
+    return _join_game
 
 
 @pytest.fixture
@@ -70,6 +73,7 @@ async def test_full_gameplay(message_spy, event_bus, watch_game, make_move, join
         watch_game("Spectator"),
         join_game("Alice"),
         join_game("Bob"),
+        join_game("Charlie", room_id=2),
         make_move("Alice", "ROCK"),
         make_move("Bob", "SCISSORS"),
     )
@@ -126,6 +130,11 @@ async def test_full_gameplay(message_spy, event_bus, watch_game, make_move, join
                     ]
                 },
             },
+        ),
+        ExpectedBroadcast(
+            ["Charlie"],
+            MessageType.ERROR,
+            {"error": "Room with id 2 does not exist"},
         ),
         ExpectedBroadcast(
             ["Alice"],
