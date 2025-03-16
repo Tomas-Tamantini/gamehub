@@ -3,6 +3,7 @@ from pydantic import BaseModel
 
 from gamehub.core.event_bus import EventBus
 from gamehub.core.events.outgoing_message import OutgoingMessage
+from gamehub.core.events.request_events import RequestFailed
 from gamehub.core.game_room import GameRoom
 from gamehub.core.message import MessageType
 from gamehub.games.chinese_poker import (
@@ -24,6 +25,13 @@ def messages_spy(event_bus):
     messages = []
     event_bus.subscribe(OutgoingMessage, messages.append)
     return messages
+
+
+@pytest.fixture
+def failed_requests_spy(event_bus):
+    events = []
+    event_bus.subscribe(RequestFailed, events.append)
+    return events
 
 
 @pytest.fixture
@@ -212,45 +220,41 @@ async def test_room_does_not_remove_disconnected_player_if_game_has_started(
 
 
 @pytest.mark.asyncio
-async def test_player_cannot_join_full_room(rps_room, messages_spy):
+async def test_player_cannot_join_full_room(rps_room, failed_requests_spy):
     await rps_room.join("Alice")
     await rps_room.join("Bob")
     await rps_room.join("Charlie")
 
-    assert messages_spy[-1].player_id == "Charlie"
-    assert messages_spy[-1].message.message_type == MessageType.ERROR
-    assert messages_spy[-1].message.payload["error"] == "Unable to join: Room is full"
+    assert failed_requests_spy[-1].player_id == "Charlie"
+    assert failed_requests_spy[-1].error_msg == "Unable to join: Room is full"
 
 
 @pytest.mark.asyncio
-async def test_player_cannot_join_room_twice(rps_room, messages_spy):
+async def test_player_cannot_join_room_twice(rps_room, failed_requests_spy):
     await rps_room.join("Alice")
     await rps_room.join("Alice")
 
-    assert messages_spy[-1].player_id == "Alice"
-    assert messages_spy[-1].message.message_type == MessageType.ERROR
-    assert messages_spy[-1].message.payload["error"] == "Player already in room"
+    assert failed_requests_spy[-1].player_id == "Alice"
+    assert failed_requests_spy[-1].error_msg == "Player already in room"
 
 
 @pytest.mark.asyncio
-async def test_player_cannot_rejoin_room_they_are_not_in(rps_room, messages_spy):
+async def test_player_cannot_rejoin_room_they_are_not_in(rps_room, failed_requests_spy):
     await rps_room.rejoin("Alice")
 
-    assert messages_spy[-1].player_id == "Alice"
-    assert messages_spy[-1].message.message_type == MessageType.ERROR
-    assert messages_spy[-1].message.payload["error"] == "Player not in room"
+    assert failed_requests_spy[-1].player_id == "Alice"
+    assert failed_requests_spy[-1].error_msg == "Player not in room"
 
 
 @pytest.mark.asyncio
 async def test_player_cannot_rejoin_room_if_they_were_not_offline(
-    rps_room, messages_spy
+    rps_room, failed_requests_spy
 ):
     await rps_room.join("Alice")
     await rps_room.rejoin("Alice")
 
-    assert messages_spy[-1].player_id == "Alice"
-    assert messages_spy[-1].message.message_type == MessageType.ERROR
-    assert messages_spy[-1].message.payload["error"] == "Player is not offline"
+    assert failed_requests_spy[-1].player_id == "Alice"
+    assert failed_requests_spy[-1].error_msg == "Player is not offline"
 
 
 @pytest.mark.asyncio
@@ -307,13 +311,12 @@ async def test_players_get_notified_of_full_game_state_when_rejoining(
 
 
 @pytest.mark.asyncio
-async def test_player_cannot_make_move_before_game_start(rps_room, messages_spy):
+async def test_player_cannot_make_move_before_game_start(rps_room, failed_requests_spy):
     await rps_room.join("Alice")
     await rps_room.make_move("Alice", {"selection": "ROCK"})
 
-    assert messages_spy[-1].player_id == "Alice"
-    assert messages_spy[-1].message.message_type == MessageType.ERROR
-    assert messages_spy[-1].message.payload["error"] == "Game has not started yet"
+    assert failed_requests_spy[-1].player_id == "Alice"
+    assert failed_requests_spy[-1].error_msg == "Game has not started yet"
 
 
 @pytest.mark.asyncio
@@ -374,37 +377,36 @@ async def test_players_get_informed_of_new_game_state_after_making_move(
 
 
 @pytest.mark.asyncio
-async def test_player_gets_informed_of_parse_move_error(rps_room, messages_spy):
+async def test_player_gets_informed_of_parse_move_error(rps_room, failed_requests_spy):
     await rps_room.join("Alice")
     await rps_room.join("Bob")
     await rps_room.make_move("Alice", {"selection": "bad_value"})
 
-    assert messages_spy[-1].player_id == "Alice"
-    assert messages_spy[-1].message.message_type == MessageType.ERROR
-    assert "selection" in messages_spy[-1].message.payload["error"]
+    assert failed_requests_spy[-1].player_id == "Alice"
+    assert "selection" in failed_requests_spy[-1].error_msg
 
 
 @pytest.mark.asyncio
-async def test_player_gets_informed_of_invalid_move_error(rps_room, messages_spy):
+async def test_player_gets_informed_of_invalid_move_error(
+    rps_room, failed_requests_spy
+):
     await rps_room.join("Alice")
     await rps_room.join("Bob")
     await rps_room.make_move("Alice", {"selection": "ROCK"})
     await rps_room.make_move("Alice", {"selection": "PAPER"})
 
-    assert messages_spy[-1].player_id == "Alice"
-    assert messages_spy[-1].message.message_type == MessageType.ERROR
-    assert "already selected" in messages_spy[-1].message.payload["error"]
+    assert failed_requests_spy[-1].player_id == "Alice"
+    assert "already selected" in failed_requests_spy[-1].error_msg
 
 
 @pytest.mark.asyncio
-async def test_player_not_in_game_room_cannot_make_move(rps_room, messages_spy):
+async def test_player_not_in_game_room_cannot_make_move(rps_room, failed_requests_spy):
     await rps_room.join("Alice")
     await rps_room.join("Bob")
     await rps_room.make_move("Charlie", {"selection": "ROCK"})
 
-    assert messages_spy[-1].player_id == "Charlie"
-    assert messages_spy[-1].message.message_type == MessageType.ERROR
-    assert "not in room" in messages_spy[-1].message.payload["error"]
+    assert failed_requests_spy[-1].player_id == "Charlie"
+    assert "not in room" in failed_requests_spy[-1].error_msg
 
 
 @pytest.mark.asyncio
@@ -602,14 +604,12 @@ async def test_spectators_are_removed_if_they_become_players(rps_room, messages_
 
 
 @pytest.mark.asyncio
-async def test_players_cannot_join_as_spectators(rps_room, messages_spy):
+async def test_players_cannot_join_as_spectators(rps_room, failed_requests_spy):
     await rps_room.join("Alice")
     await rps_room.add_spectator("Alice")
-    assert len(messages_spy) == 2
 
-    assert messages_spy[-1].player_id == "Alice"
-    assert messages_spy[-1].message.message_type == MessageType.ERROR
+    assert failed_requests_spy[-1].player_id == "Alice"
     assert (
-        messages_spy[-1].message.payload["error"]
+        failed_requests_spy[-1].error_msg
         == "Already joined game. Cannot watch as spectator"
     )

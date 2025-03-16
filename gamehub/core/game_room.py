@@ -4,10 +4,11 @@ from pydantic import ValidationError
 
 from gamehub.core.event_bus import EventBus
 from gamehub.core.events.outgoing_message import OutgoingMessage
+from gamehub.core.events.request_events import RequestFailed
 from gamehub.core.exceptions import InvalidMoveError
 from gamehub.core.game_logic import GameLogic
 from gamehub.core.game_state import GameState
-from gamehub.core.message import Message, MessageType, error_message
+from gamehub.core.message import Message, MessageType
 from gamehub.core.move_parser import MoveParser
 from gamehub.core.room_state import RoomState
 
@@ -74,9 +75,6 @@ class GameRoom(Generic[MoveType, GameConfigType]):
             OutgoingMessage(player_id=player_id, message=message)
         )
 
-    async def _send_error_message(self, player_id: str, payload: str) -> None:
-        await self._send_message(player_id, error_message(payload))
-
     async def _broadcast_message(self, message: Message) -> None:
         for player in self._players:
             await self._send_message(player, message)
@@ -130,12 +128,12 @@ class GameRoom(Generic[MoveType, GameConfigType]):
 
     async def join(self, player_id: str) -> None:
         if player_id in self._players:
-            await self._send_error_message(
-                player_id=player_id, payload="Player already in room"
+            await self._event_bus.publish(
+                RequestFailed(player_id, "Player already in room")
             )
         elif self.is_full:
-            await self._send_error_message(
-                player_id=player_id, payload="Unable to join: Room is full"
+            await self._event_bus.publish(
+                RequestFailed(player_id, "Unable to join: Room is full")
             )
         else:
             self._add_player(player_id)
@@ -145,12 +143,12 @@ class GameRoom(Generic[MoveType, GameConfigType]):
 
     async def rejoin(self, player_id: str) -> None:
         if player_id not in self._players:
-            await self._send_error_message(
-                player_id=player_id, payload="Player not in room"
+            await self._event_bus.publish(
+                RequestFailed(player_id, "Player not in room")
             )
         elif player_id not in self._offline_players:
-            await self._send_error_message(
-                player_id=player_id, payload="Player is not offline"
+            await self._event_bus.publish(
+                RequestFailed(player_id, "Player is not offline")
             )
         else:
             self._offline_players.remove(player_id)
@@ -159,9 +157,10 @@ class GameRoom(Generic[MoveType, GameConfigType]):
 
     async def add_spectator(self, player_id: str) -> None:
         if player_id in self._players:
-            await self._send_error_message(
-                player_id=player_id,
-                payload="Already joined game. Cannot watch as spectator",
+            await self._event_bus.publish(
+                RequestFailed(
+                    player_id, "Already joined game. Cannot watch as spectator"
+                )
             )
         else:
             self._spectators.add(player_id)
@@ -183,7 +182,7 @@ class GameRoom(Generic[MoveType, GameConfigType]):
         try:
             return self._parse_move({"player_id": player_id, **raw_move})
         except ValidationError as e:
-            await self._send_error_message(player_id=player_id, payload=str(e))
+            await self._event_bus.publish(RequestFailed(player_id, str(e)))
 
     async def _game_state_after_move(
         self, player_id: str, parsed_move: MoveType
@@ -191,16 +190,16 @@ class GameRoom(Generic[MoveType, GameConfigType]):
         try:
             return self._logic.make_move(self._game_state, parsed_move)
         except InvalidMoveError as e:
-            await self._send_error_message(player_id=player_id, payload=str(e))
+            await self._event_bus.publish(RequestFailed(player_id, str(e)))
 
     async def make_move(self, player_id: str, move: dict) -> None:
         if player_id not in self._players:
-            await self._send_error_message(
-                player_id=player_id, payload="Player not in room"
+            await self._event_bus.publish(
+                RequestFailed(player_id, "Player not in room")
             )
         elif not self._game_state:
-            await self._send_error_message(
-                player_id=player_id, payload="Game has not started yet"
+            await self._event_bus.publish(
+                RequestFailed(player_id, "Game has not started yet")
             )
         elif parsed_move := await self._parsed_move(player_id, move):
             if new_state := await self._game_state_after_move(player_id, parsed_move):
