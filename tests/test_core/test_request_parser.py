@@ -8,9 +8,9 @@ from gamehub.core.events.request_events import (
     JoinGameByType,
     MakeMove,
     RejoinGame,
+    RequestFailed,
     WatchGame,
 )
-from gamehub.core.message import MessageType
 from gamehub.core.request_parser import RequestParser
 
 
@@ -27,6 +27,7 @@ def output_events():
             JoinGameByType,
             RejoinGame,
             WatchGame,
+            RequestFailed,
         ):
             event_bus.subscribe(event_type, events.append)
         await parser.parse_request(request)
@@ -43,8 +44,7 @@ async def test_request_parser_returns_error_message_if_request_is_not_json(
     output_events = await output_events(request)
     assert len(output_events) == 1
     assert output_events[0].player_id == "Ana"
-    assert output_events[0].message.message_type == MessageType.ERROR
-    assert "not json" in output_events[0].message.payload["error"]
+    assert "not json" in output_events[0].error_msg
 
 
 @pytest.mark.asyncio
@@ -53,8 +53,7 @@ async def test_request_parser_returns_error_message_if_bad_request_type(output_e
     output_events = await output_events(request)
     assert len(output_events) == 1
     assert output_events[0].player_id == "Ana"
-    assert output_events[0].message.message_type == MessageType.ERROR
-    assert "validation error" in output_events[0].message.payload["error"]
+    assert "validation error" in output_events[0].error_msg
 
 
 @pytest.mark.asyncio

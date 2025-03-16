@@ -3,16 +3,15 @@ from typing import Optional
 from pydantic import BaseModel, ValidationError
 
 from gamehub.core.event_bus import EventBus
-from gamehub.core.events.outgoing_message import OutgoingMessage
 from gamehub.core.events.request import Request, RequestType
 from gamehub.core.events.request_events import (
     JoinGameById,
     JoinGameByType,
     MakeMove,
     RejoinGame,
+    RequestFailed,
     WatchGame,
 )
-from gamehub.core.message import error_message
 
 
 class _BasicRequestPayload(BaseModel):
@@ -24,16 +23,13 @@ class RequestParser:
     def __init__(self, event_bus: EventBus):
         self._event_bus = event_bus
 
-    async def _respond_error(self, player_id: str, payload: str) -> None:
-        await self._event_bus.publish(
-            OutgoingMessage(player_id=player_id, message=error_message(payload))
-        )
-
     async def pre_parse(self, request: Request) -> Optional[_BasicRequestPayload]:
         try:
             return _BasicRequestPayload.model_validate_json(request.raw_request)
         except ValidationError as e:
-            await self._respond_error(request.player_id, str(e))
+            await self._event_bus.publish(
+                RequestFailed(player_id=request.player_id, error_msg=str(e))
+            )
 
     async def parse_request(self, request: Request) -> None:
         if pre_parsed := await self.pre_parse(request):
