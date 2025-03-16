@@ -31,7 +31,7 @@ class RequestParser:
 
     async def pre_parse(self, request: Request) -> Optional[_BasicRequestPayload]:
         try:
-            return _BasicRequestPayload.parse_raw(request.raw_request)
+            return _BasicRequestPayload.model_validate_json(request.raw_request)
         except ValidationError as e:
             await self._respond_error(request.player_id, str(e))
 
