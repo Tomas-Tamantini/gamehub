@@ -3,6 +3,7 @@ from typing import Generic, Optional, TypeVar
 from pydantic import ValidationError
 
 from gamehub.core.event_bus import EventBus
+from gamehub.core.events.game_room_update import GameRoomUpdate
 from gamehub.core.events.outgoing_message import OutgoingMessage
 from gamehub.core.events.request_events import RequestFailed
 from gamehub.core.exceptions import InvalidMoveError
@@ -87,8 +88,10 @@ class GameRoom(Generic[MoveType, GameConfigType]):
             payload=self.room_state().model_dump(),
         )
 
-    async def _broadcast_room_state(self) -> None:
-        await self._broadcast_message(self._room_state_message())
+    async def _notify_room_state_update(self) -> None:
+        await self._event_bus.publish(
+            GameRoomUpdate(self.room_state(), self._spectators)
+        )
 
     def _shared_view_payload(self) -> dict:
         shared_view = self._game_state.shared_view(self._logic.configuration)
@@ -137,7 +140,7 @@ class GameRoom(Generic[MoveType, GameConfigType]):
             )
         else:
             self._add_player(player_id)
-            await self._broadcast_room_state()
+            await self._notify_room_state_update()
             if self.is_full:
                 await self._start_game()
 
@@ -152,7 +155,7 @@ class GameRoom(Generic[MoveType, GameConfigType]):
             )
         else:
             self._offline_players.remove(player_id)
-            await self._broadcast_room_state()
+            await self._notify_room_state_update()
             await self._send_full_game_state(player_id)
 
     async def add_spectator(self, player_id: str) -> None:
@@ -211,6 +214,6 @@ class GameRoom(Generic[MoveType, GameConfigType]):
                 self._players.remove(player_id)
             else:
                 self._offline_players.add(player_id)
-            await self._broadcast_room_state()
+            await self._notify_room_state_update()
         elif player_id in self._spectators:
             self._spectators.remove(player_id)

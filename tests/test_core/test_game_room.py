@@ -2,10 +2,12 @@ import pytest
 from pydantic import BaseModel
 
 from gamehub.core.event_bus import EventBus
+from gamehub.core.events.game_room_update import GameRoomUpdate
 from gamehub.core.events.outgoing_message import OutgoingMessage
 from gamehub.core.events.request_events import RequestFailed
 from gamehub.core.game_room import GameRoom
 from gamehub.core.message import MessageType
+from gamehub.core.room_state import RoomState
 from gamehub.games.chinese_poker import (
     ChinesePokerConfiguration,
     ChinesePokerGameLogic,
@@ -31,6 +33,13 @@ def messages_spy(event_bus):
 def failed_requests_spy(event_bus):
     events = []
     event_bus.subscribe(RequestFailed, events.append)
+    return events
+
+
+@pytest.fixture
+def room_updates_spy(event_bus):
+    events = []
+    event_bus.subscribe(GameRoomUpdate, events.append)
     return events
 
 
@@ -109,114 +118,102 @@ def automated_transition_room(event_bus, automated_transition_logic):
 
 
 @pytest.mark.asyncio
-async def test_player_can_join_empty_room(rps_room, messages_spy):
+async def test_player_can_join_empty_room(rps_room, room_updates_spy):
     await rps_room.join("Alice")
-    expected = [
-        ExpectedBroadcast(
-            ["Alice"],
-            MessageType.GAME_ROOM_UPDATE,
-            {
-                "room_id": 0,
-                "capacity": 2,
-                "player_ids": ["Alice"],
-                "offline_players": [],
-                "is_full": False,
-                "configuration": None,
-            },
-        )
-    ]
-    check_messages(messages_spy, expected)
+    assert room_updates_spy[-1] == GameRoomUpdate(
+        room_state=RoomState(
+            room_id=0,
+            capacity=2,
+            player_ids=["Alice"],
+            offline_players=[],
+            is_full=False,
+            configuration=None,
+        ),
+        spectators=set(),
+    )
 
 
 @pytest.mark.asyncio
-async def test_players_get_informed_when_new_one_joins(rps_room, messages_spy):
+async def test_players_and_spectators_get_informed_when_new_one_joins(
+    rps_room, room_updates_spy
+):
     await rps_room.join("Alice")
+    await rps_room.add_spectator("Charlie")
     await rps_room.join("Bob")
-    expected = [
-        ExpectedBroadcast(
-            ["Alice", "Bob"],
-            MessageType.GAME_ROOM_UPDATE,
-            {
-                "room_id": 0,
-                "capacity": 2,
-                "player_ids": ["Alice", "Bob"],
-                "offline_players": [],
-                "is_full": True,
-                "configuration": None,
-            },
-        )
-    ]
-    check_messages(messages_spy[1:3], expected)
+    assert room_updates_spy[-1] == GameRoomUpdate(
+        room_state=RoomState(
+            room_id=0,
+            capacity=2,
+            player_ids=["Alice", "Bob"],
+            offline_players=[],
+            is_full=True,
+            configuration=None,
+        ),
+        spectators={"Charlie"},
+    )
 
 
 @pytest.mark.asyncio
 async def test_room_ignores_disconnected_player_if_not_inside_room(
-    rps_room, messages_spy
+    rps_room, room_updates_spy
 ):
     await rps_room.join("Alice")
     await rps_room.handle_player_disconnected("Bob")
-    assert len(messages_spy) == 1
+    assert len(room_updates_spy) == 1
 
 
 @pytest.mark.asyncio
 async def test_room_notifies_other_players_if_one_disconnects(
-    chinese_poker_room, messages_spy
+    chinese_poker_room, room_updates_spy
 ):
     await chinese_poker_room.join("Alice")
     await chinese_poker_room.join("Bob")
     await chinese_poker_room.join("Charlie")
     await chinese_poker_room.handle_player_disconnected("Charlie")
-    expected = [
-        ExpectedBroadcast(
-            ["Alice", "Bob"],
-            MessageType.GAME_ROOM_UPDATE,
-            {
-                "room_id": 1,
-                "capacity": 4,
-                "player_ids": ["Alice", "Bob"],
-                "offline_players": [],
-                "is_full": False,
-                "configuration": {
-                    "num_players": 4,
-                    "cards_per_player": 13,
-                    "game_over_point_threshold": 10,
-                    "credits_per_point": 100,
-                },
-            },
-        )
-    ]
-    check_messages(messages_spy[6:], expected)
+    assert len(room_updates_spy) == 4
+    assert room_updates_spy[-1] == GameRoomUpdate(
+        room_state=RoomState(
+            room_id=1,
+            capacity=4,
+            player_ids=["Alice", "Bob"],
+            offline_players=[],
+            is_full=False,
+            configuration=ChinesePokerConfiguration(
+                num_players=4,
+                cards_per_player=13,
+                game_over_point_threshold=10,
+                credits_per_point=100,
+            ),
+        ),
+        spectators=set(),
+    )
 
 
 @pytest.mark.asyncio
 async def test_room_does_not_remove_disconnected_player_if_game_has_started(
-    chinese_poker_room, messages_spy
+    chinese_poker_room, room_updates_spy
 ):
     await chinese_poker_room.join("Alice")
     await chinese_poker_room.join("Bob")
     await chinese_poker_room.join("Charlie")
     await chinese_poker_room.join("Diana")
     await chinese_poker_room.handle_player_disconnected("Alice")
-    expected = [
-        ExpectedBroadcast(
-            ["Alice", "Bob", "Charlie", "Diana"],
-            MessageType.GAME_ROOM_UPDATE,
-            {
-                "room_id": 1,
-                "capacity": 4,
-                "player_ids": ["Alice", "Bob", "Charlie", "Diana"],
-                "offline_players": ["Alice"],
-                "is_full": True,
-                "configuration": {
-                    "num_players": 4,
-                    "cards_per_player": 13,
-                    "game_over_point_threshold": 10,
-                    "credits_per_point": 100,
-                },
-            },
-        )
-    ]
-    check_messages(messages_spy[-4:], expected)
+    assert room_updates_spy[-1] == GameRoomUpdate(
+        room_state=RoomState(
+            room_id=1,
+            capacity=4,
+            player_ids=["Alice", "Bob", "Charlie", "Diana"],
+            offline_players=["Alice"],
+            is_full=True,
+            configuration=ChinesePokerConfiguration(
+                num_players=4,
+                cards_per_player=13,
+                game_over_point_threshold=10,
+                credits_per_point=100,
+            ),
+        ),
+        spectators=set(),
+    )
 
 
 @pytest.mark.asyncio
@@ -258,27 +255,23 @@ async def test_player_cannot_rejoin_room_if_they_were_not_offline(
 
 
 @pytest.mark.asyncio
-async def test_players_get_notified_of_player_rejoining(rps_room, messages_spy):
+async def test_players_get_notified_of_player_rejoining(rps_room, room_updates_spy):
     await rps_room.join("Alice")
     await rps_room.join("Bob")
     await rps_room.handle_player_disconnected("Alice")
     await rps_room.rejoin("Alice")
 
-    expected = [
-        ExpectedBroadcast(
-            ["Alice", "Bob"],
-            MessageType.GAME_ROOM_UPDATE,
-            {
-                "room_id": 0,
-                "capacity": 2,
-                "player_ids": ["Alice", "Bob"],
-                "offline_players": [],
-                "is_full": True,
-                "configuration": None,
-            },
-        )
-    ]
-    check_messages(messages_spy[7:9], expected)
+    assert room_updates_spy[-1] == GameRoomUpdate(
+        room_state=RoomState(
+            room_id=0,
+            capacity=2,
+            player_ids=["Alice", "Bob"],
+            offline_players=[],
+            is_full=True,
+            configuration=None,
+        ),
+        spectators=set(),
+    )
 
 
 @pytest.mark.asyncio
@@ -307,7 +300,7 @@ async def test_players_get_notified_of_full_game_state_when_rejoining(
             },
         )
     ]
-    check_messages(messages_spy[12:], expected)
+    check_messages(messages_spy[-1:], expected)
 
 
 @pytest.mark.asyncio
@@ -339,7 +332,7 @@ async def test_game_starts_when_room_is_full(rps_room, messages_spy):
             },
         )
     ]
-    check_messages(messages_spy[3:], expected)
+    check_messages(messages_spy[-2:], expected)
 
 
 @pytest.mark.asyncio
@@ -373,7 +366,7 @@ async def test_players_get_informed_of_new_game_state_after_making_move(
             },
         ),
     ]
-    check_messages(messages_spy[5:], expected)
+    check_messages(messages_spy[-3:], expected)
 
 
 @pytest.mark.asyncio
@@ -411,7 +404,7 @@ async def test_player_not_in_game_room_cannot_make_move(rps_room, failed_request
 
 @pytest.mark.asyncio
 async def test_game_room_resets_after_game_over_and_new_players_can_join(
-    rps_room, messages_spy
+    rps_room, room_updates_spy
 ):
     await rps_room.join("Alice")
     await rps_room.join("Bob")
@@ -420,21 +413,17 @@ async def test_game_room_resets_after_game_over_and_new_players_can_join(
     await rps_room.make_move("Bob", {"selection": "PAPER"})
     await rps_room.join("Charlie")
 
-    expected = [
-        ExpectedBroadcast(
-            ["Charlie"],
-            MessageType.GAME_ROOM_UPDATE,
-            {
-                "room_id": 0,
-                "capacity": 2,
-                "player_ids": ["Charlie"],
-                "offline_players": [],
-                "is_full": False,
-                "configuration": None,
-            },
-        )
-    ]
-    check_messages(messages_spy[-1:], expected)
+    assert room_updates_spy[-1] == GameRoomUpdate(
+        room_state=RoomState(
+            room_id=0,
+            capacity=2,
+            player_ids=["Charlie"],
+            offline_players=[],
+            is_full=False,
+            configuration=None,
+        ),
+        spectators=set(),
+    )
 
 
 def test_room_has_associated_game_type(rps_room):
@@ -464,11 +453,13 @@ async def test_players_get_informed_of_new_game_state_after_automatic_transition
             "AUTO_MOVE_B",
         )
     ]
-    check_messages(messages_spy[3:], expected)
+    check_messages(messages_spy[-12:], expected)
 
 
 @pytest.mark.asyncio
-async def test_spectator_can_watch_room_before_game_starts(rps_room, messages_spy):
+async def test_spectators_who_join_before_game_start_receive_room_state(
+    rps_room, messages_spy
+):
     await rps_room.add_spectator("Alice")
     expected = [
         ExpectedBroadcast(
@@ -488,7 +479,9 @@ async def test_spectator_can_watch_room_before_game_starts(rps_room, messages_sp
 
 
 @pytest.mark.asyncio
-async def test_spectator_can_watch_room_with_game_in_progress(rps_room, messages_spy):
+async def test_spectators_who_join_after_game_start_receive_room_state_and_game_state(
+    rps_room, messages_spy
+):
     await rps_room.join("Alice")
     await rps_room.join("Bob")
     await rps_room.make_move("Alice", {"selection": "ROCK"})
@@ -525,27 +518,6 @@ async def test_spectator_can_watch_room_with_game_in_progress(rps_room, messages
 
 
 @pytest.mark.asyncio
-async def test_spectators_get_notified_of_room_updates(rps_room, messages_spy):
-    await rps_room.add_spectator("Alice")
-    await rps_room.join("Bob")
-    expected = [
-        ExpectedBroadcast(
-            ["Bob", "Alice"],
-            MessageType.GAME_ROOM_UPDATE,
-            {
-                "room_id": 0,
-                "capacity": 2,
-                "player_ids": ["Bob"],
-                "offline_players": [],
-                "is_full": False,
-                "configuration": None,
-            },
-        )
-    ]
-    check_messages(messages_spy[-2:], expected)
-
-
-@pytest.mark.asyncio
 async def test_spectators_get_notified_of_game_updates(rps_room, messages_spy):
     await rps_room.join("Alice")
     await rps_room.join("Bob")
@@ -567,7 +539,7 @@ async def test_spectators_get_notified_of_game_updates(rps_room, messages_spy):
             },
         ),
     ]
-    check_messages(messages_spy[8:], expected)
+    check_messages(messages_spy[-3:], expected)
 
 
 @pytest.mark.asyncio
@@ -593,14 +565,26 @@ async def test_spectators_are_removed_if_they_disconnect(rps_room, messages_spy)
             },
         ),
     ]
-    check_messages(messages_spy[8:], expected)
+    check_messages(messages_spy[-2:], expected)
 
 
 @pytest.mark.asyncio
-async def test_spectators_are_removed_if_they_become_players(rps_room, messages_spy):
+async def test_spectators_are_removed_if_they_become_players(
+    rps_room, room_updates_spy
+):
     await rps_room.add_spectator("Alice")
     await rps_room.join("Alice")
-    assert len(messages_spy) == 2
+    assert room_updates_spy[-1] == GameRoomUpdate(
+        room_state=RoomState(
+            room_id=0,
+            capacity=2,
+            player_ids=["Alice"],
+            offline_players=[],
+            is_full=False,
+            configuration=None,
+        ),
+        spectators=set(),
+    )
 
 
 @pytest.mark.asyncio
