@@ -1,7 +1,6 @@
 import pytest
 from pydantic import BaseModel
 
-from gamehub.core.event_bus import EventBus
 from gamehub.core.events.game_room_update import GameRoomUpdate
 from gamehub.core.events.game_state_update import GameStateUpdate
 from gamehub.core.events.outgoing_message import OutgoingMessage
@@ -24,36 +23,23 @@ from tests.utils import ExpectedBroadcast, check_messages
 
 
 @pytest.fixture
-def event_bus():
-    return EventBus()
+def messages_spy(event_spy):
+    return event_spy(OutgoingMessage)
 
 
 @pytest.fixture
-def messages_spy(event_bus):
-    messages = []
-    event_bus.subscribe(OutgoingMessage, messages.append)
-    return messages
+def failed_requests_spy(event_spy):
+    return event_spy(RequestFailed)
 
 
 @pytest.fixture
-def failed_requests_spy(event_bus):
-    events = []
-    event_bus.subscribe(RequestFailed, events.append)
-    return events
+def room_updates_spy(event_spy):
+    return event_spy(GameRoomUpdate)
 
 
 @pytest.fixture
-def room_updates_spy(event_bus):
-    events = []
-    event_bus.subscribe(GameRoomUpdate, events.append)
-    return events
-
-
-@pytest.fixture
-def game_state_updates_spy(event_bus):
-    events = []
-    event_bus.subscribe(GameStateUpdate, events.append)
-    return events
+def game_state_updates_spy(event_spy):
+    return event_spy(GameStateUpdate)
 
 
 @pytest.fixture

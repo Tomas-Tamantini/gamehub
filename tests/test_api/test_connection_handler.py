@@ -72,13 +72,11 @@ async def test_handler_discards_disconnected_clients(connection_handler, valid_c
 
 @pytest.mark.asyncio
 async def test_handler_raises_disconnected_client_event(
-    connection_handler, valid_client
+    connection_handler, valid_client, event_bus, event_spy
 ):
     client_manager_spy = Mock(spec=ClientManager)
     client_manager_spy.remove.return_value = "Alice"
-    events = []
-    event_bus = EventBus()
-    event_bus.subscribe(PlayerDisconnected, events.append)
+    events = event_spy(PlayerDisconnected)
     handler = connection_handler(client_manager_spy, event_bus=event_bus)
     await handler.handle_client(valid_client, "Alice")
     assert events == [PlayerDisconnected(player_id="Alice")]
@@ -86,11 +84,9 @@ async def test_handler_raises_disconnected_client_event(
 
 @pytest.mark.asyncio
 async def test_handler_publishes_request_in_event_bus(
-    connection_handler, valid_client, valid_request
+    connection_handler, valid_client, valid_request, event_bus, event_spy
 ):
-    event_bus = EventBus()
-    requests = []
-    event_bus.subscribe(Request, requests.append)
+    requests = event_spy(Request)
     await connection_handler(event_bus=event_bus).handle_client(valid_client, "Alice")
     assert len(requests) == 1
     assert requests[0].player_id == "Alice"

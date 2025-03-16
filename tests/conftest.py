@@ -2,7 +2,23 @@ import json
 
 import pytest
 
+from gamehub.core.event_bus import EventBus
 from gamehub.core.events.request import Request, RequestType
+
+
+@pytest.fixture
+def event_bus():
+    return EventBus()
+
+
+@pytest.fixture
+def event_spy(event_bus):
+    def _spy(event_type: type):
+        events = []
+        event_bus.subscribe(event_type, events.append)
+        return events
+
+    return _spy
 
 
 @pytest.fixture

@@ -1,7 +1,5 @@
 import pytest
 
-from gamehub.core.event_bus import EventBus
-from gamehub.core.events.outgoing_message import OutgoingMessage
 from gamehub.core.events.request import Request, RequestType
 from gamehub.core.events.request_events import (
     JoinGameById,
@@ -15,21 +13,10 @@ from gamehub.core.request_parser import RequestParser
 
 
 @pytest.fixture
-def output_events():
-    async def _output_events(request: Request):
-        event_bus = EventBus()
+def output_events(event_bus, event_spy):
+    async def _output_events(request: Request, event_type: type):
+        events = event_spy(event_type)
         parser = RequestParser(event_bus)
-        events = []
-        for event_type in (
-            OutgoingMessage,
-            JoinGameById,
-            MakeMove,
-            JoinGameByType,
-            RejoinGame,
-            WatchGame,
-            RequestFailed,
-        ):
-            event_bus.subscribe(event_type, events.append)
         await parser.parse_request(request)
         return events
 
@@ -41,7 +28,7 @@ async def test_request_parser_returns_error_message_if_request_is_not_json(
     output_events,
 ):
     request = Request(player_id="Ana", raw_request="not json")
-    output_events = await output_events(request)
+    output_events = await output_events(request, RequestFailed)
     assert len(output_events) == 1
     assert output_events[0].player_id == "Ana"
     assert "not json" in output_events[0].error_msg
@@ -50,7 +37,7 @@ async def test_request_parser_returns_error_message_if_request_is_not_json(
 @pytest.mark.asyncio
 async def test_request_parser_returns_error_message_if_bad_request_type(output_events):
     request = Request(player_id="Ana", raw_request='{"request_type": "bad_type"}')
-    output_events = await output_events(request)
+    output_events = await output_events(request, RequestFailed)
     assert len(output_events) == 1
     assert output_events[0].player_id == "Ana"
     assert "validation error" in output_events[0].error_msg
@@ -65,7 +52,7 @@ async def test_request_parser_raises_join_game_by_id_event(
         request_type=RequestType.JOIN_GAME_BY_ID,
         payload={"room_id": 123},
     )
-    output_events = await output_events(request)
+    output_events = await output_events(request, JoinGameById)
     assert len(output_events) == 1
     assert output_events[0] == JoinGameById(player_id="Ana", room_id=123)
 
@@ -77,7 +64,7 @@ async def test_request_parser_raises_rejoin_game_event(output_events, build_requ
         request_type=RequestType.REJOIN_GAME,
         payload={"room_id": 123},
     )
-    output_events = await output_events(request)
+    output_events = await output_events(request, RejoinGame)
     assert len(output_events) == 1
     assert output_events[0] == RejoinGame(player_id="Ana", room_id=123)
 
@@ -89,7 +76,7 @@ async def test_request_parser_raises_watch_game_event(output_events, build_reque
         request_type=RequestType.WATCH_GAME,
         payload={"room_id": 123},
     )
-    output_events = await output_events(request)
+    output_events = await output_events(request, WatchGame)
     assert len(output_events) == 1
     assert output_events[0] == WatchGame(player_id="Ana", room_id=123)
 
@@ -103,7 +90,7 @@ async def test_request_parser_raises_join_game_by_type_event(
         request_type=RequestType.JOIN_GAME_BY_TYPE,
         payload={"game_type": "tic_tac_toe"},
     )
-    output_events = await output_events(request)
+    output_events = await output_events(request, JoinGameByType)
     assert len(output_events) == 1
     assert output_events[0] == JoinGameByType(player_id="Ana", game_type="tic_tac_toe")
 
@@ -115,7 +102,7 @@ async def test_request_parser_raises_make_move_event(output_events, build_reques
         request_type=RequestType.MAKE_MOVE,
         payload={"room_id": 123, "move": {"mock": "move"}},
     )
-    output_events = await output_events(request)
+    output_events = await output_events(request, MakeMove)
     assert len(output_events) == 1
     assert output_events[0] == MakeMove(
         player_id="Ana", room_id=123, move={"mock": "move"}

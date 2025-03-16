@@ -50,32 +50,28 @@ def spy_room():
 )
 @pytest.mark.asyncio
 async def test_room_manager_returns_error_message_if_bad_room_id(
-    spy_room, event, method_name
+    spy_room, event, method_name, event_bus, event_spy
 ):
     request = event
-    events_spy = []
-    event_bus = EventBus()
+    events = event_spy(RequestFailed)
     room_manager = RoomManager([spy_room()], event_bus)
-    event_bus.subscribe(RequestFailed, events_spy.append)
     await getattr(room_manager, method_name)(request)
-    assert len(events_spy) == 1
-    assert events_spy[0].player_id == "Ana"
-    assert "id 2 does not exist" in events_spy[0].error_msg
+    assert len(events) == 1
+    assert events[0].player_id == "Ana"
+    assert "id 2 does not exist" in events[0].error_msg
 
 
 @pytest.mark.asyncio
 async def test_room_manager_returns_error_message_if_bad_game_type_when_joining_game(
-    spy_room,
+    spy_room, event_bus, event_spy
 ):
     request = JoinGameByType(player_id="Ana", game_type="tic-tac-toe")
-    events_spy = []
-    event_bus = EventBus()
+    events = event_spy(RequestFailed)
     room_manager = RoomManager([spy_room(is_full=True)], event_bus)
-    event_bus.subscribe(RequestFailed, events_spy.append)
     await room_manager.join_game_by_type(request)
-    assert len(events_spy) == 1
-    assert events_spy[0].player_id == "Ana"
-    assert "No available" in events_spy[0].error_msg
+    assert len(events) == 1
+    assert events[0].player_id == "Ana"
+    assert "No available" in events[0].error_msg
 
 
 @pytest.mark.asyncio

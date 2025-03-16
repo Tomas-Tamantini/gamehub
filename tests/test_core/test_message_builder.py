@@ -1,7 +1,6 @@
 import pytest
 from pydantic import BaseModel
 
-from gamehub.core.event_bus import EventBus
 from gamehub.core.events.game_room_update import GameRoomUpdate
 from gamehub.core.events.game_state_update import GameStateUpdate
 from gamehub.core.events.outgoing_message import OutgoingMessage
@@ -13,15 +12,8 @@ from tests.utils import ExpectedBroadcast, check_messages
 
 
 @pytest.fixture
-def event_bus():
-    return EventBus()
-
-
-@pytest.fixture
-def messages_spy(event_bus):
-    messages = []
-    event_bus.subscribe(OutgoingMessage, messages.append)
-    return messages
+def messages_spy(event_spy):
+    return event_spy(OutgoingMessage)
 
 
 @pytest.mark.asyncio
