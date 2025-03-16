@@ -1,5 +1,6 @@
 from gamehub.core.event_bus import EventBus
 from gamehub.core.events.game_room_update import GameRoomUpdate
+from gamehub.core.events.game_state_update import GameStateUpdate
 from gamehub.core.events.outgoing_message import OutgoingMessage
 from gamehub.core.events.player_disconnected import PlayerDisconnected
 from gamehub.core.events.request import Request
@@ -25,6 +26,7 @@ def setup_event_bus(
     event_bus.subscribe(Request, request_parser.parse_request)
     event_bus.subscribe(RequestFailed, message_builder.build_error_message)
     event_bus.subscribe(GameRoomUpdate, message_builder.notify_room_update)
+    event_bus.subscribe(GameStateUpdate, message_builder.notify_game_state_update)
     event_bus.subscribe(OutgoingMessage, message_sender.send)
     event_bus.subscribe(JoinGameById, room_manager.join_game_by_id)
     event_bus.subscribe(RejoinGame, room_manager.rejoin_game)

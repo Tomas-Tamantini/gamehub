@@ -3,6 +3,7 @@ from pydantic import BaseModel
 
 from gamehub.core.event_bus import EventBus
 from gamehub.core.events.game_room_update import GameRoomUpdate
+from gamehub.core.events.game_state_update import GameStateUpdate
 from gamehub.core.events.outgoing_message import OutgoingMessage
 from gamehub.core.events.request_events import RequestFailed
 from gamehub.core.game_room import GameRoom
@@ -14,6 +15,11 @@ from gamehub.games.chinese_poker import (
     ChinesePokerMove,
 )
 from gamehub.games.rock_paper_scissors import RPSGameLogic, RPSMove
+from gamehub.games.rock_paper_scissors.views import (
+    RPSPrivateView,
+    RPSSharedPlayerView,
+    RPSSharedView,
+)
 from tests.utils import ExpectedBroadcast, check_messages
 
 
@@ -44,6 +50,13 @@ def room_updates_spy(event_bus):
 
 
 @pytest.fixture
+def game_state_updates_spy(event_bus):
+    events = []
+    event_bus.subscribe(GameStateUpdate, events.append)
+    return events
+
+
+@pytest.fixture
 def rps_room(event_bus):
     return GameRoom(
         room_id=0,
@@ -69,20 +82,21 @@ def chinese_poker_room(event_bus):
     )
 
 
+class _MockState(BaseModel):
+    status: str
+
+    def private_views(self):
+        yield from []
+
+    def shared_view(self, *_, **__):
+        return self
+
+    def is_terminal(self):
+        return False
+
+
 @pytest.fixture
 def automated_transition_logic():
-    class MockState(BaseModel):
-        status: str
-
-        def private_views(self):
-            yield from []
-
-        def shared_view(self, *_, **__):
-            return self
-
-        def is_terminal(self):
-            return False
-
     class MockLogic:
         @property
         def num_players(self):
@@ -93,16 +107,16 @@ def automated_transition_logic():
             return None
 
         def initial_state(self, *_, **__):
-            return MockState(status="START")
+            return _MockState(status="START")
 
         def make_move(self, *_, **__):
-            return MockState(status="MOVE")
+            return _MockState(status="MOVE")
 
         def next_automated_state(self, state, *_, **__):
             if "_" not in state.status:
-                return MockState(status="AUTO_" + state.status + "_A")
+                return _MockState(status="AUTO_" + state.status + "_A")
             elif state.status.endswith("_A"):
-                return MockState(status=state.status.replace("_A", "_B"))
+                return _MockState(status=state.status.replace("_A", "_B"))
 
     return MockLogic()
 
@@ -313,60 +327,41 @@ async def test_player_cannot_make_move_before_game_start(rps_room, failed_reques
 
 
 @pytest.mark.asyncio
-async def test_game_starts_when_room_is_full(rps_room, messages_spy):
+async def test_game_starts_when_room_is_full(rps_room, game_state_updates_spy):
     await rps_room.join("Alice")
     await rps_room.join("Bob")
-
-    expected = [
-        ExpectedBroadcast(
-            ["Alice", "Bob"],
-            MessageType.GAME_STATE,
-            {
-                "room_id": 0,
-                "shared_view": {
-                    "players": [
-                        {"player_id": "Alice", "selected": False},
-                        {"player_id": "Bob", "selected": False},
-                    ]
-                },
-            },
-        )
-    ]
-    check_messages(messages_spy[-2:], expected)
+    assert game_state_updates_spy[-1] == GameStateUpdate(
+        room_id=0,
+        shared_view=RPSSharedView(
+            players=[
+                RPSSharedPlayerView(player_id="Alice", selected=False),
+                RPSSharedPlayerView(player_id="Bob", selected=False),
+            ]
+        ),
+        private_views=dict(),
+        recipients=["Alice", "Bob"],
+    )
 
 
 @pytest.mark.asyncio
-async def test_players_get_informed_of_new_game_state_after_making_move(
-    rps_room, messages_spy
+async def test_players_and_spectators_get_informed_of_new_game_state_after_making_move(
+    rps_room, game_state_updates_spy
 ):
     await rps_room.join("Alice")
     await rps_room.join("Bob")
+    await rps_room.add_spectator("Charlie")
     await rps_room.make_move("Alice", {"selection": "ROCK"})
-
-    expected = [
-        ExpectedBroadcast(
-            ["Alice"],
-            MessageType.GAME_STATE,
-            {
-                "room_id": 0,
-                "private_view": {"selection": "ROCK"},
-            },
+    assert game_state_updates_spy[-1] == GameStateUpdate(
+        room_id=0,
+        shared_view=RPSSharedView(
+            players=[
+                RPSSharedPlayerView(player_id="Alice", selected=True),
+                RPSSharedPlayerView(player_id="Bob", selected=False),
+            ]
         ),
-        ExpectedBroadcast(
-            ["Alice", "Bob"],
-            MessageType.GAME_STATE,
-            {
-                "room_id": 0,
-                "shared_view": {
-                    "players": [
-                        {"player_id": "Alice", "selected": True},
-                        {"player_id": "Bob", "selected": False},
-                    ]
-                },
-            },
-        ),
-    ]
-    check_messages(messages_spy[-3:], expected)
+        private_views={"Alice": RPSPrivateView(selection="ROCK")},
+        recipients=["Alice", "Bob", "Charlie"],
+    )
 
 
 @pytest.mark.asyncio
@@ -431,18 +426,20 @@ def test_room_has_associated_game_type(rps_room):
 
 
 @pytest.mark.asyncio
-async def test_players_get_informed_of_new_game_state_after_automatic_transition(
-    automated_transition_room, messages_spy
+async def test_players_and_spectators_see_new_game_state_after_automatic_transition(
+    automated_transition_room, game_state_updates_spy
 ):
+    await automated_transition_room.add_spectator("Spectator")
     await automated_transition_room.join("Alice")
     await automated_transition_room.join("Bob")
     await automated_transition_room.make_move("Alice", {})
 
     expected = [
-        ExpectedBroadcast(
-            ["Alice", "Bob"],
-            MessageType.GAME_STATE,
-            {"room_id": 0, "shared_view": {"status": status}},
+        GameStateUpdate(
+            room_id=0,
+            shared_view=_MockState(status=status),
+            private_views={},
+            recipients=["Alice", "Bob", "Spectator"],
         )
         for status in (
             "START",
@@ -453,7 +450,7 @@ async def test_players_get_informed_of_new_game_state_after_automatic_transition
             "AUTO_MOVE_B",
         )
     ]
-    check_messages(messages_spy[-12:], expected)
+    assert game_state_updates_spy == expected
 
 
 @pytest.mark.asyncio
@@ -518,54 +515,26 @@ async def test_spectators_who_join_after_game_start_receive_room_state_and_game_
 
 
 @pytest.mark.asyncio
-async def test_spectators_get_notified_of_game_updates(rps_room, messages_spy):
-    await rps_room.join("Alice")
-    await rps_room.join("Bob")
-    await rps_room.add_spectator("Charlie")
-    await rps_room.make_move("Alice", {"selection": "ROCK"})
-
-    expected = [
-        ExpectedBroadcast(
-            ["Alice", "Bob", "Charlie"],
-            MessageType.GAME_STATE,
-            {
-                "room_id": 0,
-                "shared_view": {
-                    "players": [
-                        {"player_id": "Alice", "selected": True},
-                        {"player_id": "Bob", "selected": False},
-                    ]
-                },
-            },
-        ),
-    ]
-    check_messages(messages_spy[-3:], expected)
-
-
-@pytest.mark.asyncio
-async def test_spectators_are_removed_if_they_disconnect(rps_room, messages_spy):
+async def test_spectators_are_removed_if_they_disconnect(
+    rps_room, game_state_updates_spy
+):
     await rps_room.join("Alice")
     await rps_room.join("Bob")
     await rps_room.add_spectator("Charlie")
     await rps_room.handle_player_disconnected("Charlie")
     await rps_room.make_move("Alice", {"selection": "ROCK"})
 
-    expected = [
-        ExpectedBroadcast(
-            ["Alice", "Bob"],
-            MessageType.GAME_STATE,
-            {
-                "room_id": 0,
-                "shared_view": {
-                    "players": [
-                        {"player_id": "Alice", "selected": True},
-                        {"player_id": "Bob", "selected": False},
-                    ]
-                },
-            },
+    assert game_state_updates_spy[-1] == GameStateUpdate(
+        room_id=0,
+        shared_view=RPSSharedView(
+            players=[
+                RPSSharedPlayerView(player_id="Alice", selected=True),
+                RPSSharedPlayerView(player_id="Bob", selected=False),
+            ]
         ),
-    ]
-    check_messages(messages_spy[-2:], expected)
+        private_views={"Alice": RPSPrivateView(selection="ROCK")},
+        recipients=["Alice", "Bob"],
+    )
 
 
 @pytest.mark.asyncio

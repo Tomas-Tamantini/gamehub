@@ -4,6 +4,7 @@ from pydantic import ValidationError
 
 from gamehub.core.event_bus import EventBus
 from gamehub.core.events.game_room_update import GameRoomUpdate
+from gamehub.core.events.game_state_update import GameStateUpdate
 from gamehub.core.events.outgoing_message import OutgoingMessage
 from gamehub.core.events.request_events import RequestFailed
 from gamehub.core.exceptions import InvalidMoveError
@@ -50,8 +51,7 @@ class GameRoom(Generic[MoveType, GameConfigType]):
 
     async def _set_game_state(self, state: GameState) -> None:
         self._game_state = state
-        await self._send_private_views()
-        await self._broadcast_shared_view()
+        await self._notify_game_state_update()
         if state.is_terminal():
             self._reset()
         elif new_state := self._logic.next_automated_state(state):
@@ -76,12 +76,6 @@ class GameRoom(Generic[MoveType, GameConfigType]):
             OutgoingMessage(player_id=player_id, message=message)
         )
 
-    async def _broadcast_message(self, message: Message) -> None:
-        for player in self._players:
-            await self._send_message(player, message)
-        for spectator in self._spectators:
-            await self._send_message(spectator, message)
-
     def _room_state_message(self) -> Message:
         return Message(
             message_type=MessageType.GAME_ROOM_UPDATE,
@@ -104,8 +98,18 @@ class GameRoom(Generic[MoveType, GameConfigType]):
             message_type=MessageType.GAME_STATE, payload=self._shared_view_payload()
         )
 
-    async def _broadcast_shared_view(self) -> None:
-        await self._broadcast_message(self._shared_view_message())
+    async def _notify_game_state_update(self) -> None:
+        await self._event_bus.publish(
+            GameStateUpdate(
+                room_id=self._room_id,
+                shared_view=self._game_state.shared_view(self._logic.configuration),
+                private_views={
+                    player_id: private_view
+                    for player_id, private_view in self._game_state.private_views()
+                },
+                recipients=self._players + list(self._spectators),
+            )
+        )
 
     async def _send_private_views(self) -> None:
         for player_id, private_view in self._game_state.private_views():
