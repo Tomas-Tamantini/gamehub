@@ -48,7 +48,7 @@ async def test_message_builder_broadcasts_game_room_updates_to_players_and_spect
         ),
         spectators={"Charlie", "Diana"},
     )
-    await msg_builder.broadcast_room_update(room_update)
+    await msg_builder.notify_room_update(room_update)
     assert len(messages_spy) == 4
     recipients = {event.player_id for event in messages_spy}
     assert recipients == {"Alice", "Bob", "Charlie", "Diana"}

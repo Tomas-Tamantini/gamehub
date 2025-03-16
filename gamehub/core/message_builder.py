@@ -17,7 +17,7 @@ class MessageBuilder:
             )
         )
 
-    async def broadcast_room_update(self, room_update: GameRoomUpdate) -> None:
+    async def notify_room_update(self, room_update: GameRoomUpdate) -> None:
         msg = Message(
             message_type=MessageType.GAME_ROOM_UPDATE,
             payload=room_update.room_state.model_dump(),
