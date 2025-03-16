@@ -5,6 +5,7 @@ from gamehub.core.events.game_room_update import GameRoomUpdate
 from gamehub.core.events.game_state_update import GameStateUpdate
 from gamehub.core.events.outgoing_message import OutgoingMessage
 from gamehub.core.events.request_events import RequestFailed
+from gamehub.core.events.sync_client_state import SyncClientState
 from gamehub.core.message import MessageType
 from gamehub.core.message_builder import MessageBuilder
 from gamehub.core.room_state import RoomState
@@ -25,36 +26,6 @@ async def test_message_builder_notifies_failed_request(event_bus, messages_spy):
     assert messages_spy[0].message.message_type == MessageType.ERROR
     assert messages_spy[0].player_id == "Alice"
     assert messages_spy[0].message.payload["error"] == "Invalid move"
-
-
-@pytest.mark.asyncio
-async def test_message_builder_broadcasts_game_room_updates_to_recipients(
-    event_bus, messages_spy
-):
-    msg_builder = MessageBuilder(event_bus)
-    room_update = GameRoomUpdate(
-        room_state=RoomState(
-            room_id=123,
-            capacity=4,
-            player_ids=["Alice", "Bob"],
-            offline_players=[],
-            is_full=False,
-            configuration=None,
-        ),
-        recipients=["Alice", "Bob", "Charlie", "Diana"],
-    )
-    await msg_builder.notify_room_update(room_update)
-    assert len(messages_spy) == 4
-    recipients = {event.player_id for event in messages_spy}
-    assert recipients == {"Alice", "Bob", "Charlie", "Diana"}
-    assert all(
-        event.message.message_type == MessageType.GAME_ROOM_UPDATE
-        for event in messages_spy
-    )
-    assert all(
-        event.message.payload == room_update.room_state.model_dump()
-        for event in messages_spy
-    )
 
 
 @pytest.mark.asyncio
@@ -140,3 +111,34 @@ async def test_message_builder_sends_private_game_states_to_players(
 
     assert bob_msg.player_id == "Bob"
     assert bob_msg.message.payload["private_view"]["field"] == "Bob's view"
+
+
+@pytest.mark.asyncio
+async def test_message_builder_sends_full_state_for_reconnecting_client_to_sync(
+    event_bus, messages_spy
+):
+    msg_builder = MessageBuilder(event_bus)
+    state_sync = SyncClientState(
+        client_id="Alice",
+        shared_view=_MockView(field="shared"),
+        private_view=_MockView(field="private"),
+        room_state=RoomState(
+            room_id=123,
+            capacity=4,
+            player_ids=["Alice", "Bob"],
+            offline_players=[],
+            is_full=False,
+            configuration=None,
+        ),
+    )
+    await msg_builder.sync_client_state(state_sync)
+    assert len(messages_spy) == 2
+    assert all(event.player_id == "Alice" for event in messages_spy)
+    assert messages_spy[0].message.message_type == MessageType.GAME_ROOM_UPDATE
+    assert messages_spy[0].message.payload == state_sync.room_state.model_dump()
+    assert messages_spy[1].message.message_type == MessageType.GAME_STATE
+    assert messages_spy[1].message.payload == {
+        "room_id": 123,
+        "shared_view": {"field": "shared"},
+        "private_view": {"field": "private"},
+    }

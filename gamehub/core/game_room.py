@@ -5,12 +5,11 @@ from pydantic import ValidationError
 from gamehub.core.event_bus import EventBus
 from gamehub.core.events.game_room_update import GameRoomUpdate
 from gamehub.core.events.game_state_update import GameStateUpdate
-from gamehub.core.events.outgoing_message import OutgoingMessage
 from gamehub.core.events.request_events import RequestFailed
+from gamehub.core.events.sync_client_state import SyncClientState
 from gamehub.core.exceptions import InvalidMoveError
 from gamehub.core.game_logic import GameLogic
 from gamehub.core.game_state import GameState
-from gamehub.core.message import Message, MessageType
 from gamehub.core.move_parser import MoveParser
 from gamehub.core.room_state import RoomState
 
@@ -71,32 +70,9 @@ class GameRoom(Generic[MoveType, GameConfigType]):
             configuration=self._logic.configuration,
         )
 
-    async def _send_message(self, player_id: str, message: Message) -> None:
-        await self._event_bus.publish(
-            OutgoingMessage(player_id=player_id, message=message)
-        )
-
-    def _room_state_message(self) -> Message:
-        return Message(
-            message_type=MessageType.GAME_ROOM_UPDATE,
-            payload=self.room_state().model_dump(),
-        )
-
     async def _notify_room_state_update(self) -> None:
         recipients = self._players + list(self._spectators)
         await self._event_bus.publish(GameRoomUpdate(self.room_state(), recipients))
-
-    def _shared_view_payload(self) -> dict:
-        shared_view = self._game_state.shared_view(self._logic.configuration)
-        return {
-            "room_id": self._room_id,
-            "shared_view": shared_view.model_dump(exclude_none=True),
-        }
-
-    def _shared_view_message(self) -> Message:
-        return Message(
-            message_type=MessageType.GAME_STATE, payload=self._shared_view_payload()
-        )
 
     async def _notify_game_state_update(self) -> None:
         await self._event_bus.publish(
@@ -146,7 +122,7 @@ class GameRoom(Generic[MoveType, GameConfigType]):
         else:
             self._offline_players.remove(player_id)
             await self._notify_room_state_update()
-            await self._send_full_game_state(player_id)
+            await self._sync_client_state(player_id)
 
     async def add_spectator(self, player_id: str) -> None:
         if player_id in self._players:
@@ -157,19 +133,25 @@ class GameRoom(Generic[MoveType, GameConfigType]):
             )
         else:
             self._spectators.add(player_id)
-            await self._send_message(player_id, self._room_state_message())
-            if self._game_state:
-                await self._send_message(player_id, self._shared_view_message())
+            await self._sync_client_state(player_id)
 
-    async def _send_full_game_state(self, player_id: str) -> None:
-        if self._game_state is not None:
-            payload = self._shared_view_payload()
-            if private_view := self._game_state.query_private_view(player_id):
-                payload["private_view"] = private_view.model_dump(exclude_none=True)
-            message = Message(message_type=MessageType.GAME_STATE, payload=payload)
-            await self._event_bus.publish(
-                OutgoingMessage(player_id=player_id, message=message)
+    async def _sync_client_state(self, player_id: str) -> None:
+        await self._event_bus.publish(
+            SyncClientState(
+                client_id=player_id,
+                room_state=self.room_state(),
+                shared_view=(
+                    self._game_state.shared_view(self._logic.configuration)
+                    if self._game_state
+                    else None
+                ),
+                private_view=(
+                    self._game_state.query_private_view(player_id)
+                    if self._game_state
+                    else None
+                ),
             )
+        )
 
     async def _parsed_move(self, player_id: str, raw_move: dict) -> Optional[MoveType]:
         try:

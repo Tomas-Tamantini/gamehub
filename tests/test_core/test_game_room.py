@@ -5,8 +5,8 @@ from gamehub.core.events.game_room_update import GameRoomUpdate
 from gamehub.core.events.game_state_update import GameStateUpdate
 from gamehub.core.events.outgoing_message import OutgoingMessage
 from gamehub.core.events.request_events import RequestFailed
+from gamehub.core.events.sync_client_state import SyncClientState
 from gamehub.core.game_room import GameRoom
-from gamehub.core.message import MessageType
 from gamehub.core.room_state import RoomState
 from gamehub.games.chinese_poker import (
     ChinesePokerConfiguration,
@@ -19,7 +19,6 @@ from gamehub.games.rock_paper_scissors.views import (
     RPSSharedPlayerView,
     RPSSharedView,
 )
-from tests.utils import ExpectedBroadcast, check_messages
 
 
 @pytest.fixture
@@ -40,6 +39,11 @@ def room_updates_spy(event_spy):
 @pytest.fixture
 def game_state_updates_spy(event_spy):
     return event_spy(GameStateUpdate)
+
+
+@pytest.fixture
+def sync_client_state_spy(event_spy):
+    return event_spy(SyncClientState)
 
 
 @pytest.fixture
@@ -276,7 +280,7 @@ async def test_players_get_notified_of_player_rejoining(rps_room, room_updates_s
 
 @pytest.mark.asyncio
 async def test_players_get_notified_of_full_game_state_when_rejoining(
-    rps_room, messages_spy
+    rps_room, sync_client_state_spy
 ):
     await rps_room.join("Alice")
     await rps_room.join("Bob")
@@ -284,23 +288,24 @@ async def test_players_get_notified_of_full_game_state_when_rejoining(
     await rps_room.handle_player_disconnected("Alice")
     await rps_room.rejoin("Alice")
 
-    expected = [
-        ExpectedBroadcast(
-            ["Alice"],
-            MessageType.GAME_STATE,
-            {
-                "room_id": 0,
-                "shared_view": {
-                    "players": [
-                        {"player_id": "Alice", "selected": True},
-                        {"player_id": "Bob", "selected": False},
-                    ]
-                },
-                "private_view": {"selection": "ROCK"},
-            },
-        )
-    ]
-    check_messages(messages_spy[-1:], expected)
+    assert sync_client_state_spy[0] == SyncClientState(
+        client_id="Alice",
+        room_state=RoomState(
+            room_id=0,
+            capacity=2,
+            player_ids=["Alice", "Bob"],
+            offline_players=[],
+            is_full=True,
+            configuration=None,
+        ),
+        shared_view=RPSSharedView(
+            players=[
+                RPSSharedPlayerView(player_id="Alice", selected=True),
+                RPSSharedPlayerView(player_id="Bob", selected=False),
+            ]
+        ),
+        private_view=RPSPrivateView(selection="ROCK"),
+    )
 
 
 @pytest.mark.asyncio
@@ -441,63 +446,48 @@ async def test_players_and_spectators_see_new_game_state_after_automatic_transit
 
 @pytest.mark.asyncio
 async def test_spectators_who_join_before_game_start_receive_room_state(
-    rps_room, messages_spy
+    rps_room, sync_client_state_spy
 ):
     await rps_room.add_spectator("Alice")
-    expected = [
-        ExpectedBroadcast(
-            ["Alice"],
-            MessageType.GAME_ROOM_UPDATE,
-            {
-                "room_id": 0,
-                "capacity": 2,
-                "player_ids": [],
-                "offline_players": [],
-                "is_full": False,
-                "configuration": None,
-            },
-        )
-    ]
-    check_messages(messages_spy, expected)
+    assert sync_client_state_spy[0] == SyncClientState(
+        client_id="Alice",
+        room_state=RoomState(
+            room_id=0,
+            capacity=2,
+            player_ids=[],
+            offline_players=[],
+            is_full=False,
+            configuration=None,
+        ),
+    )
 
 
 @pytest.mark.asyncio
 async def test_spectators_who_join_after_game_start_receive_room_state_and_game_state(
-    rps_room, messages_spy
+    rps_room, sync_client_state_spy
 ):
     await rps_room.join("Alice")
     await rps_room.join("Bob")
     await rps_room.make_move("Alice", {"selection": "ROCK"})
     await rps_room.add_spectator("Charlie")
 
-    expected = [
-        ExpectedBroadcast(
-            ["Charlie"],
-            MessageType.GAME_ROOM_UPDATE,
-            {
-                "room_id": 0,
-                "capacity": 2,
-                "player_ids": ["Alice", "Bob"],
-                "offline_players": [],
-                "is_full": True,
-                "configuration": None,
-            },
+    assert sync_client_state_spy[0] == SyncClientState(
+        client_id="Charlie",
+        room_state=RoomState(
+            room_id=0,
+            capacity=2,
+            player_ids=["Alice", "Bob"],
+            offline_players=[],
+            is_full=True,
+            configuration=None,
         ),
-        ExpectedBroadcast(
-            ["Charlie"],
-            MessageType.GAME_STATE,
-            {
-                "room_id": 0,
-                "shared_view": {
-                    "players": [
-                        {"player_id": "Alice", "selected": True},
-                        {"player_id": "Bob", "selected": False},
-                    ]
-                },
-            },
+        shared_view=RPSSharedView(
+            players=[
+                RPSSharedPlayerView(player_id="Alice", selected=True),
+                RPSSharedPlayerView(player_id="Bob", selected=False),
+            ]
         ),
-    ]
-    check_messages(messages_spy[-2:], expected)
+    )
 
 
 @pytest.mark.asyncio

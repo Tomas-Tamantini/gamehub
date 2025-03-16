@@ -12,6 +12,7 @@ from gamehub.core.events.request_events import (
     RequestFailed,
     WatchGame,
 )
+from gamehub.core.events.sync_client_state import SyncClientState
 from gamehub.core.message_builder import MessageBuilder
 from gamehub.core.message_sender import MessageSender
 from gamehub.core.request_parser import RequestParser
@@ -27,6 +28,7 @@ def setup_event_bus(
     event_bus.subscribe(RequestFailed, message_builder.build_error_message)
     event_bus.subscribe(GameRoomUpdate, message_builder.notify_room_update)
     event_bus.subscribe(GameStateUpdate, message_builder.notify_game_state_update)
+    event_bus.subscribe(SyncClientState, message_builder.sync_client_state)
     event_bus.subscribe(OutgoingMessage, message_sender.send)
     event_bus.subscribe(JoinGameById, room_manager.join_game_by_id)
     event_bus.subscribe(RejoinGame, room_manager.rejoin_game)

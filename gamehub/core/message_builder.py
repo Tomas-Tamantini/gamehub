@@ -7,6 +7,7 @@ from gamehub.core.events.game_room_update import GameRoomUpdate
 from gamehub.core.events.game_state_update import GameStateUpdate
 from gamehub.core.events.outgoing_message import OutgoingMessage
 from gamehub.core.events.request_events import RequestFailed
+from gamehub.core.events.sync_client_state import SyncClientState
 from gamehub.core.message import Message, MessageType, error_message
 
 
@@ -23,10 +24,7 @@ class MessageBuilder:
         )
 
     async def notify_room_update(self, room_update: GameRoomUpdate) -> None:
-        msg = Message(
-            message_type=MessageType.GAME_ROOM_UPDATE,
-            payload=room_update.room_state.model_dump(),
-        )
+        msg = self._room_state_message(room_update.room_state)
         for recipient in room_update.recipients:
             await self._event_bus.publish(
                 OutgoingMessage(player_id=recipient, message=msg)
@@ -35,6 +33,27 @@ class MessageBuilder:
     async def notify_game_state_update(self, game_update: GameStateUpdate) -> None:
         await self._notify_private_views(game_update)
         await self._broadcast_shared_view(game_update)
+
+    async def sync_client_state(self, sync_state: SyncClientState) -> None:
+        msg = self._room_state_message(sync_state.room_state)
+        await self._event_bus.publish(
+            OutgoingMessage(player_id=sync_state.client_id, message=msg)
+        )
+        game_state_msg = self._game_state_message(
+            room_id=sync_state.room_state.room_id,
+            shared_view=sync_state.shared_view,
+            private_view=sync_state.private_view,
+        )
+        if len(game_state_msg.payload) > 1:
+            await self._event_bus.publish(
+                OutgoingMessage(player_id=sync_state.client_id, message=game_state_msg)
+            )
+
+    @staticmethod
+    def _room_state_message(room_state: BaseModel) -> Message:
+        return Message(
+            message_type=MessageType.GAME_ROOM_UPDATE, payload=room_state.model_dump()
+        )
 
     @staticmethod
     def _game_state_message(
