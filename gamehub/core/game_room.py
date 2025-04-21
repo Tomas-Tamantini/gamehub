@@ -13,16 +13,17 @@ from gamehub.core.game_state import GameState
 from gamehub.core.move_parser import MoveParser
 from gamehub.core.room_state import RoomState
 
-MoveType = TypeVar("MoveType")
-GameConfigType = TypeVar("GameConfigType")
+S = TypeVar("S", bound=GameState)
+C = TypeVar("C")
+M = TypeVar("M")
 
 
-class GameRoom(Generic[MoveType, GameConfigType]):
+class GameRoom(Generic[S, M, C]):
     def __init__(
         self,
         room_id: int,
-        game_logic: GameLogic[MoveType, GameConfigType],
-        move_parser: MoveParser[MoveType],
+        game_logic: GameLogic[S, M, C],
+        move_parser: MoveParser[M],
         event_bus: EventBus,
     ):
         self._room_id = room_id
@@ -48,7 +49,7 @@ class GameRoom(Generic[MoveType, GameConfigType]):
         self._offline_players = set()
         self._game_state = None
 
-    async def _set_game_state(self, state: GameState) -> None:
+    async def _set_game_state(self, state: S) -> None:
         self._game_state = state
         await self._notify_game_state_update()
         if state.is_terminal():
@@ -60,8 +61,8 @@ class GameRoom(Generic[MoveType, GameConfigType]):
     def room_id(self) -> int:
         return self._room_id
 
-    def room_state(self) -> RoomState[GameConfigType]:
-        return RoomState[GameConfigType](
+    def room_state(self) -> RoomState[C]:
+        return RoomState[C](
             room_id=self._room_id,
             capacity=self._logic.num_players,
             player_ids=self._players[:],
@@ -153,15 +154,15 @@ class GameRoom(Generic[MoveType, GameConfigType]):
             )
         )
 
-    async def _parsed_move(self, player_id: str, raw_move: dict) -> Optional[MoveType]:
+    async def _parsed_move(self, player_id: str, raw_move: dict) -> Optional[M]:
         try:
             return self._parse_move({"player_id": player_id, **raw_move})
         except ValidationError as e:
             await self._event_bus.publish(RequestFailed(player_id, str(e)))
 
     async def _game_state_after_move(
-        self, player_id: str, parsed_move: MoveType
-    ) -> Optional[GameState]:
+        self, player_id: str, parsed_move: M
+    ) -> Optional[S]:
         try:
             return self._logic.make_move(self._game_state, parsed_move)
         except InvalidMoveError as e:
