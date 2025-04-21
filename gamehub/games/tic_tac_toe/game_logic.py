@@ -1,3 +1,5 @@
+from typing import Iterator
+
 from gamehub.core.exceptions import InvalidMoveError
 from gamehub.games.tic_tac_toe.game_state import TicTacToeState
 from gamehub.games.tic_tac_toe.move import TicTacToeMove
@@ -45,3 +47,7 @@ class TicTacToeGameLogic:
             )
             new_players.append(new_player)
         return TicTacToeState(players=tuple(new_players))
+
+    @staticmethod
+    def derived_events(state: TicTacToeState, room_id: int) -> Iterator[object]:
+        return iter([])

@@ -1,5 +1,6 @@
 import pytest
 
+from gamehub.core.events.turn_started import TurnStarted
 from gamehub.games.chinese_poker.status import ChinesePokerStatus
 
 
@@ -123,3 +124,27 @@ def test_partial_results_are_sent_with_each_game_state(
     state = request.getfixturevalue(state)
     result = [p.partial_credits for p in state.shared_view(default_config).players]
     assert expected == result
+
+
+@pytest.mark.parametrize(
+    "state",
+    [
+        "start_game",
+        "start_match",
+        "deal_cards",
+        "start_round",
+        "start_turn",
+        "end_round",
+        "end_match",
+        "update_points",
+        "end_game",
+    ],
+)
+def test_state_doesnt_yield_derived_events(request, state, game_logic):
+    state = request.getfixturevalue(state)
+    assert list(game_logic.derived_events(state, room_id=123)) == []
+
+
+def test_await_action_state_yields_start_turn_event(game_logic, await_action):
+    events = list(game_logic.derived_events(await_action, room_id=123))
+    assert events == [TurnStarted(player_id="Diana", room_id=123)]

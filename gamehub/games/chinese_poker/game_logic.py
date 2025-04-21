@@ -1,5 +1,6 @@
-from typing import Optional
+from typing import Iterator, Optional
 
+from gamehub.core.events.turn_started import TurnStarted
 from gamehub.games.chinese_poker.configuration import ChinesePokerConfiguration
 from gamehub.games.chinese_poker.game_state import ChinesePokerState
 from gamehub.games.chinese_poker.move import ChinesePokerMove
@@ -43,3 +44,8 @@ class ChinesePokerGameLogic:
         self, state: ChinesePokerState
     ) -> Optional[ChinesePokerState]:
         return next_automated_state(state, self._configuration)
+
+    @staticmethod
+    def derived_events(state: ChinesePokerState, room_id: int) -> Iterator[object]:
+        if state.status == ChinesePokerStatus.AWAIT_PLAYER_ACTION:
+            yield TurnStarted(room_id=room_id, player_id=state.current_player_id())

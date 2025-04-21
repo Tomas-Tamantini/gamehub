@@ -119,3 +119,7 @@ def test_rock_paper_scissors_beat_each_other_cyclically(
             state, RPSMove(player_id=player, selection=selection)
         )
     assert state.shared_view(configuration=None).result.winner == "Alice"
+
+
+def test_rock_paper_scissors_states_have_no_derived_events(initial_state):
+    assert list(RPSGameLogic().derived_events(initial_state, room_id=1)) == []
