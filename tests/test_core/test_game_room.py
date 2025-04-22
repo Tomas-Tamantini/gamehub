@@ -1,3 +1,5 @@
+from dataclasses import dataclass
+
 import pytest
 from pydantic import BaseModel
 
@@ -19,6 +21,12 @@ from gamehub.games.rock_paper_scissors.views import (
     RPSSharedPlayerView,
     RPSSharedView,
 )
+
+
+@dataclass(frozen=True)
+class EventStub:
+    status: int
+    room_id: int
 
 
 @pytest.fixture
@@ -44,6 +52,11 @@ def game_state_updates_spy(event_spy):
 @pytest.fixture
 def sync_client_state_spy(event_spy):
     return event_spy(SyncClientState)
+
+
+@pytest.fixture
+def event_stub_spy(event_spy):
+    return event_spy(EventStub)
 
 
 @pytest.fixture
@@ -91,6 +104,9 @@ def automated_transition_logic():
         @property
         def num_players(self):
             return 2
+
+        def derived_events(self, state, room_id):
+            yield EventStub(status=state.status, room_id=room_id)
 
         @property
         def configuration(self):
@@ -542,3 +558,16 @@ async def test_players_cannot_join_as_spectators(rps_room, failed_requests_spy):
         failed_requests_spy[-1].error_msg
         == "Already joined game. Cannot watch as spectator"
     )
+
+
+@pytest.mark.asyncio
+async def test_events_derived_from_game_state_are_raised(
+    automated_transition_room, event_stub_spy
+):
+    await automated_transition_room.join("Alice")
+    await automated_transition_room.join("Bob")
+
+    assert event_stub_spy == [
+        EventStub(status=status, room_id=0)
+        for status in ("START", "AUTO_START_A", "AUTO_START_B")
+    ]

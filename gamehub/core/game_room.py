@@ -52,6 +52,8 @@ class GameRoom(Generic[S, M, C]):
     async def _set_game_state(self, state: S) -> None:
         self._game_state = state
         await self._notify_game_state_update()
+        for derived_event in self._logic.derived_events(state, self._room_id):
+            await self._event_bus.publish(derived_event)
         if state.is_terminal():
             self._reset()
         elif new_state := self._logic.next_automated_state(state):
