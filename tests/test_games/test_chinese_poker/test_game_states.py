@@ -1,5 +1,6 @@
 import pytest
 
+from gamehub.core.events.turn_ended import TurnEnded
 from gamehub.core.events.turn_started import TurnStarted
 from gamehub.games.chinese_poker.status import ChinesePokerStatus
 
@@ -148,3 +149,8 @@ def test_state_doesnt_yield_derived_events(request, state, game_logic):
 def test_await_action_state_yields_start_turn_event(game_logic, await_action):
     events = list(game_logic.derived_events(await_action, room_id=123))
     assert events == [TurnStarted(player_id="Diana", room_id=123)]
+
+
+def test_end_turn_state_yields_end_turn_event(game_logic, end_turn):
+    events = list(game_logic.derived_events(end_turn, room_id=123))
+    assert events == [TurnEnded(player_id="Diana", room_id=123)]

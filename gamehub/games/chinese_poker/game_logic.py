@@ -1,5 +1,6 @@
 from typing import Iterator, Optional
 
+from gamehub.core.events.turn_ended import TurnEnded
 from gamehub.core.events.turn_started import TurnStarted
 from gamehub.games.chinese_poker.configuration import ChinesePokerConfiguration
 from gamehub.games.chinese_poker.game_state import ChinesePokerState
@@ -49,3 +50,5 @@ class ChinesePokerGameLogic:
     def derived_events(state: ChinesePokerState, room_id: int) -> Iterator[object]:
         if state.status == ChinesePokerStatus.AWAIT_PLAYER_ACTION:
             yield TurnStarted(room_id=room_id, player_id=state.current_player_id())
+        elif state.status == ChinesePokerStatus.END_TURN:
+            yield TurnEnded(room_id=room_id, player_id=state.current_player_id())
