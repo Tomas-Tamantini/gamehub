@@ -1,7 +1,6 @@
 from typing import Iterator, Optional
 
-from gamehub.core.events.turn_ended import TurnEnded
-from gamehub.core.events.turn_started import TurnStarted
+from gamehub.core.events.game_state_update import TurnEnded, TurnStarted
 from gamehub.games.chinese_poker.configuration import ChinesePokerConfiguration
 from gamehub.games.chinese_poker.game_state import ChinesePokerState
 from gamehub.games.chinese_poker.move import ChinesePokerMove

@@ -1,7 +1,6 @@
 import pytest
 
-from gamehub.core.events.turn_ended import TurnEnded
-from gamehub.core.events.turn_started import TurnStarted
+from gamehub.core.events.game_state_update import TurnEnded, TurnStarted
 from gamehub.games.chinese_poker.status import ChinesePokerStatus
 
 
