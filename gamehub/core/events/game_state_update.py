@@ -5,20 +5,30 @@ from pydantic import BaseModel
 
 
 @dataclass(frozen=True)
-class GameStateUpdate:
+class _GameStateEvent:
     room_id: int
+
+
+@dataclass(frozen=True)
+class GameStateUpdate(_GameStateEvent):
     shared_view: BaseModel
     private_views: dict[str, BaseModel]
     recipients: Iterable[str]
 
 
 @dataclass(frozen=True)
-class TurnStarted:
-    room_id: int
+class GameStarted(_GameStateEvent): ...
+
+
+@dataclass(frozen=True)
+class GameEnded(_GameStateEvent): ...
+
+
+@dataclass(frozen=True)
+class TurnStarted(_GameStateEvent):
     player_id: str
 
 
 @dataclass(frozen=True)
-class TurnEnded:
-    room_id: int
+class TurnEnded(_GameStateEvent):
     player_id: str

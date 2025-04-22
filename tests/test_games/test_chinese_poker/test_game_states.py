@@ -1,6 +1,11 @@
 import pytest
 
-from gamehub.core.events.game_state_update import TurnEnded, TurnStarted
+from gamehub.core.events.game_state_update import (
+    GameEnded,
+    GameStarted,
+    TurnEnded,
+    TurnStarted,
+)
 from gamehub.games.chinese_poker.status import ChinesePokerStatus
 
 
@@ -129,7 +134,6 @@ def test_partial_results_are_sent_with_each_game_state(
 @pytest.mark.parametrize(
     "state",
     [
-        "start_game",
         "start_match",
         "deal_cards",
         "start_round",
@@ -137,7 +141,6 @@ def test_partial_results_are_sent_with_each_game_state(
         "end_round",
         "end_match",
         "update_points",
-        "end_game",
     ],
 )
 def test_state_doesnt_yield_derived_events(request, state, game_logic):
@@ -153,3 +156,13 @@ def test_await_action_state_yields_start_turn_event(game_logic, await_action):
 def test_end_turn_state_yields_end_turn_event(game_logic, end_turn):
     events = list(game_logic.derived_events(end_turn, room_id=123))
     assert events == [TurnEnded(player_id="Diana", room_id=123)]
+
+
+def test_start_game_state_yields_start_game_event(game_logic, start_game):
+    events = list(game_logic.derived_events(start_game, room_id=123))
+    assert events == [GameStarted(room_id=123)]
+
+
+def test_end_game_state_yields_end_game_event(game_logic, end_game):
+    events = list(game_logic.derived_events(end_game, room_id=123))
+    assert events == [GameEnded(room_id=123)]
