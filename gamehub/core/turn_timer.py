@@ -30,9 +30,9 @@ class TurnTimerRegistry:
         if timer := self._turn_timer(game_start_event.room_id):
             timer.reset()
 
-    def handle_game_end(
-        self, game_end_event: GameEnded
-    ): ...  # TODO: Implement game end logic
+    def handle_game_end(self, game_end_event: GameEnded):
+        if timer := self._turn_timer(game_end_event.room_id):
+            timer.reset()
 
     def handle_turn_start(
         self, turn_start_event: TurnStarted
