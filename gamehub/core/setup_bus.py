@@ -1,5 +1,3 @@
-from typing import Optional
-
 from gamehub.core.event_bus import EventBus
 from gamehub.core.events.game_room_update import GameRoomUpdate
 from gamehub.core.events.game_state_update import (
@@ -32,7 +30,7 @@ def setup_event_bus(
     event_bus: EventBus,
     message_sender: MessageSender,
     room_manager: RoomManager,
-    timekeeper: Optional[TurnTimerRegistry] = None,
+    timekeeper: TurnTimerRegistry,
 ) -> None:
     request_parser = RequestParser(event_bus)
     message_builder = MessageBuilder(event_bus)
@@ -48,8 +46,7 @@ def setup_event_bus(
     event_bus.subscribe(JoinGameByType, room_manager.join_game_by_type)
     event_bus.subscribe(MakeMove, room_manager.make_move)
     event_bus.subscribe(PlayerDisconnected, room_manager.handle_player_disconnected)
-    if timekeeper:
-        event_bus.subscribe(GameStarted, timekeeper.handle_game_start)
-        event_bus.subscribe(GameEnded, timekeeper.handle_game_end)
-        event_bus.subscribe(TurnStarted, timekeeper.handle_turn_start)
-        event_bus.subscribe(TurnEnded, timekeeper.handle_turn_end)
+    event_bus.subscribe(GameStarted, timekeeper.handle_game_start)
+    event_bus.subscribe(GameEnded, timekeeper.handle_game_end)
+    event_bus.subscribe(TurnStarted, timekeeper.handle_turn_start)
+    event_bus.subscribe(TurnEnded, timekeeper.handle_turn_end)
