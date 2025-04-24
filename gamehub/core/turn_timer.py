@@ -18,6 +18,10 @@ class TurnTimer:
 
     def reset(self) -> None: ...  # TODO: Implement reset logic
 
+    def start(self, player_id: str) -> None: ...  # TODO: Implement timer start logic
+
+    def cancel(self, player_id: str) -> None: ...  # TODO: Implement timer cancel logic
+
 
 class TurnTimerRegistry:
     def __init__(self, turn_timers: Iterable[TurnTimer]) -> None:
@@ -34,10 +38,10 @@ class TurnTimerRegistry:
         if timer := self._turn_timer(game_end_event.room_id):
             timer.reset()
 
-    def handle_turn_start(
-        self, turn_start_event: TurnStarted
-    ): ...  # TODO: Implement turn start logic
+    def handle_turn_start(self, turn_start_event: TurnStarted):
+        if timer := self._turn_timer(turn_start_event.room_id):
+            timer.start(turn_start_event.player_id)
 
-    def handle_turn_end(
-        self, turn_end_event: TurnEnded
-    ): ...  # TODO: Implement turn end logic
+    def handle_turn_end(self, turn_end_event: TurnEnded):
+        if timer := self._turn_timer(turn_end_event.room_id):
+            timer.cancel(turn_end_event.player_id)
