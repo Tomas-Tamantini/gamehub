@@ -1,3 +1,5 @@
+from typing import Iterable, Optional
+
 from gamehub.core.events.game_state_update import (
     GameEnded,
     GameStarted,
@@ -6,13 +8,23 @@ from gamehub.core.events.game_state_update import (
 )
 
 
-class TurnTimer: ...
+class TurnTimer:
+    def __init__(self, room_id: int) -> None:
+        self._room_id = room_id
+
+    def reset(self) -> None: ...  # TODO: Implement reset logic
 
 
 class TurnTimerRegistry:
-    def handle_game_start(
-        self, game_start_event: GameStarted
-    ): ...  # TODO: Implement game start logic
+    def __init__(self, turn_timers: Iterable[TurnTimer]) -> None:
+        self._turn_timers = {t.room_id: t for t in turn_timers}
+
+    def _turn_timer(self, room_id: int) -> Optional[TurnTimer]:
+        return self._turn_timers.get(room_id)
+
+    def handle_game_start(self, game_start_event: GameStarted):
+        if timer := self._turn_timer(game_start_event.room_id):
+            timer.reset()
 
     def handle_game_end(
         self, game_end_event: GameEnded
