@@ -25,14 +25,14 @@ from gamehub.core.message_builder import MessageBuilder
 from gamehub.core.message_sender import MessageSender
 from gamehub.core.request_parser import RequestParser
 from gamehub.core.room_manager import RoomManager
-from gamehub.core.timekeeper import Timekeeper
+from gamehub.core.turn_timer import TurnTimerRegistry
 
 
 def setup_event_bus(
     event_bus: EventBus,
     message_sender: MessageSender,
     room_manager: RoomManager,
-    timekeeper: Optional[Timekeeper] = None,
+    timekeeper: Optional[TurnTimerRegistry] = None,
 ) -> None:
     request_parser = RequestParser(event_bus)
     message_builder = MessageBuilder(event_bus)

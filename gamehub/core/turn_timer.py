@@ -6,7 +6,10 @@ from gamehub.core.events.game_state_update import (
 )
 
 
-class Timekeeper:
+class TurnTimer: ...
+
+
+class TurnTimerRegistry:
     def handle_game_start(
         self, game_start_event: GameStarted
     ): ...  # TODO: Implement game start logic
