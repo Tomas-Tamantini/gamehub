@@ -12,6 +12,10 @@ class TurnTimer:
     def __init__(self, room_id: int) -> None:
         self._room_id = room_id
 
+    @property
+    def room_id(self) -> int:
+        return self._room_id
+
     def reset(self) -> None: ...  # TODO: Implement reset logic
 
 
