@@ -13,9 +13,10 @@ def event_bus():
 
 @pytest.fixture
 def event_spy(event_bus):
-    def _spy(event_type: type):
+    def _spy(*event_types: type):
         events = []
-        event_bus.subscribe(event_type, events.append)
+        for event_type in event_types:
+            event_bus.subscribe(event_type, events.append)
         return events
 
     return _spy
