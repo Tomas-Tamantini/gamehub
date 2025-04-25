@@ -47,11 +47,10 @@ def test_turn_timer_registry_resets_proper_turn_timer_on_game_end(spy_timers, re
     spy_timers[1].reset.assert_not_called()
 
 
-@pytest.mark.asyncio
-async def test_turn_timer_registry_delegates_turn_started_event_to_proper_turn_timer(
+def test_turn_timer_registry_delegates_turn_started_event_to_proper_turn_timer(
     spy_timers, registry
 ):
-    await registry.handle_turn_start(TurnStarted(room_id=1, player_id="player1"))
+    registry.handle_turn_start(TurnStarted(room_id=1, player_id="player1"))
     spy_timers[0].start.assert_called_once_with("player1")
     spy_timers[1].start.assert_not_called()
 
@@ -67,18 +66,50 @@ def timer_alert_spy(event_spy):
     return event_spy(TurnTimerAlert, TurnTimeout)
 
 
+@pytest.fixture
+def turn_timer(event_bus):
+    return TurnTimer(
+        event_bus, room_id=1, timeout_seconds=5, reminders_at_seconds_remaining=(1, 2)
+    )
+
+
 # TODO: Speed up test. Use monkeypatching?
 @pytest.mark.asyncio
 async def test_turn_timer_schedules_alert_events_and_timeout_event(
-    timer_alert_spy, event_bus
+    timer_alert_spy, turn_timer
 ):
-    timer = TurnTimer(
-        event_bus, room_id=1, timeout_seconds=5, reminders_at_seconds_remaining=(1, 2)
-    )
-    await timer.start(player_id="player1")
+    turn_timer.start(player_id="player1")
     await asyncio.sleep(6)
     assert timer_alert_spy == [
         TurnTimerAlert(room_id=1, player_id="player1", time_left_seconds=2),
         TurnTimerAlert(room_id=1, player_id="player1", time_left_seconds=1),
         TurnTimeout(room_id=1, player_id="player1"),
     ]
+
+
+@pytest.mark.asyncio
+async def test_turn_timer_allows_cancelling_player_scheduled_events(
+    timer_alert_spy, turn_timer
+):
+    turn_timer.start(player_id="player1")
+    turn_timer.start(player_id="player2")
+    await asyncio.sleep(1)
+    turn_timer.cancel(player_id="player1")
+    await asyncio.sleep(6)
+    assert timer_alert_spy == [
+        TurnTimerAlert(room_id=1, player_id="player2", time_left_seconds=2),
+        TurnTimerAlert(room_id=1, player_id="player2", time_left_seconds=1),
+        TurnTimeout(room_id=1, player_id="player2"),
+    ]
+
+
+@pytest.mark.asyncio
+async def test_turn_timer_allows_cancelling_all_scheduled_events(
+    timer_alert_spy, turn_timer
+):
+    turn_timer.start(player_id="player1")
+    turn_timer.start(player_id="player2")
+    await asyncio.sleep(1)
+    turn_timer.reset()
+    await asyncio.sleep(6)
+    assert timer_alert_spy == []

@@ -1,4 +1,5 @@
 import asyncio
+from collections import defaultdict
 from typing import Iterable, Optional
 
 from gamehub.core.event_bus import EventBus
@@ -23,26 +24,32 @@ class TurnTimer:
         self._event_bus = event_bus
         self._timeout_seconds = timeout_seconds
         self._reminders_at_seconds_remaining = set(reminders_at_seconds_remaining)
+        self._scheduled_tasks = defaultdict(list)
 
     @property
     def room_id(self) -> int:
         return self._room_id
 
-    def reset(self) -> None: ...  # TODO: Implement reset logic
+    def reset(self) -> None:
+        for player_id in self._scheduled_tasks:
+            self.cancel(player_id)
+        self._scheduled_tasks.clear()
 
-    async def start(self, player_id: str) -> None:
-        async def schedule_event(
-            event: TurnTimerAlert | TurnTimeout, wait_seconds: int
-        ) -> None:
+    def _schedule_event(
+        self, event: TurnTimerAlert | TurnTimeout, wait_seconds: int
+    ) -> None:
+        async def schedule_event():
             await asyncio.sleep(wait_seconds)
             await self._event_bus.publish(event)
 
-        asyncio.create_task(
-            schedule_event(
-                TurnTimeout(room_id=self._room_id, player_id=player_id),
-                self._timeout_seconds,
-            )
-        )
+        task = asyncio.create_task(schedule_event())
+        self._scheduled_tasks[event.player_id].append(task)
+
+    def start(self, player_id: str) -> None:
+        self.cancel(player_id)
+
+        timeout_event = TurnTimeout(room_id=self._room_id, player_id=player_id)
+        self._schedule_event(timeout_event, self._timeout_seconds)
         for seconds_remaining in self._reminders_at_seconds_remaining:
             event = TurnTimerAlert(
                 room_id=self._room_id,
@@ -50,9 +57,13 @@ class TurnTimer:
                 time_left_seconds=seconds_remaining,
             )
             schedule_time = self._timeout_seconds - seconds_remaining
-            asyncio.create_task(schedule_event(event, schedule_time))
+            self._schedule_event(event, schedule_time)
 
-    def cancel(self, player_id: str) -> None: ...  # TODO: Implement timer cancel logic
+    def cancel(self, player_id: str) -> None:
+        for task in self._scheduled_tasks[player_id]:
+            if not task.done():
+                task.cancel()
+        self._scheduled_tasks[player_id].clear()
 
 
 class TurnTimerRegistry:
@@ -70,9 +81,9 @@ class TurnTimerRegistry:
         if timer := self._turn_timer(game_end_event.room_id):
             timer.reset()
 
-    async def handle_turn_start(self, turn_start_event: TurnStarted):
+    def handle_turn_start(self, turn_start_event: TurnStarted):
         if timer := self._turn_timer(turn_start_event.room_id):
-            await timer.start(turn_start_event.player_id)
+            timer.start(turn_start_event.player_id)
 
     def handle_turn_end(self, turn_end_event: TurnEnded):
         if timer := self._turn_timer(turn_end_event.room_id):
