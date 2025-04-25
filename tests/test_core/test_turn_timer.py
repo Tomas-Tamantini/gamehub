@@ -10,7 +10,7 @@ from gamehub.core.events.game_state_update import (
     TurnStarted,
 )
 from gamehub.core.events.timer_events import TurnTimeout, TurnTimerAlert
-from gamehub.core.turn_timer import TurnTimer, TurnTimerRegistry
+from gamehub.core.turn_timer import EventScheduler, TurnTimer, TurnTimerRegistry
 
 
 @pytest.fixture
@@ -68,8 +68,12 @@ def timer_alert_spy(event_spy):
 
 @pytest.fixture
 def turn_timer(event_bus):
+    scheduler = EventScheduler(event_bus)
     return TurnTimer(
-        event_bus, room_id=1, timeout_seconds=5, reminders_at_seconds_remaining=(1, 2)
+        event_scheduler=scheduler,
+        room_id=1,
+        timeout_seconds=5,
+        reminders_at_seconds_remaining=(1, 2),
     )
 
 

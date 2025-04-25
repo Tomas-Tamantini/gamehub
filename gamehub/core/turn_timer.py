@@ -12,16 +12,33 @@ from gamehub.core.events.game_state_update import (
 from gamehub.core.events.timer_events import TurnTimeout, TurnTimerAlert
 
 
+class EventScheduler:
+    def __init__(self, event_bus: EventBus) -> None:
+        self._event_bus = event_bus
+
+    def schedule_event(self, event: any, wait_seconds: int) -> asyncio.Task:
+        async def schedule_event():
+            await asyncio.sleep(wait_seconds)
+            await self._event_bus.publish(event)
+
+        return asyncio.create_task(schedule_event())
+
+    @staticmethod
+    def cancel_event(task: asyncio.Task) -> None:
+        if not task.done():
+            task.cancel()
+
+
 class TurnTimer:
     def __init__(
         self,
-        event_bus: EventBus,
+        event_scheduler: EventScheduler,
         room_id: int,
         timeout_seconds: int,
         reminders_at_seconds_remaining: Iterable[int],
     ) -> None:
+        self._scheduler = event_scheduler
         self._room_id = room_id
-        self._event_bus = event_bus
         self._timeout_seconds = timeout_seconds
         self._reminders_at_seconds_remaining = set(reminders_at_seconds_remaining)
         self._scheduled_tasks = defaultdict(list)
@@ -35,14 +52,8 @@ class TurnTimer:
             self.cancel(player_id)
         self._scheduled_tasks.clear()
 
-    def _schedule_event(
-        self, event: TurnTimerAlert | TurnTimeout, wait_seconds: int
-    ) -> None:
-        async def schedule_event():
-            await asyncio.sleep(wait_seconds)
-            await self._event_bus.publish(event)
-
-        task = asyncio.create_task(schedule_event())
+    def _schedule_event(self, event: any, delay_seconds: int) -> None:
+        task = self._scheduler.schedule_event(event, delay_seconds)
         self._scheduled_tasks[event.player_id].append(task)
 
     def start(self, player_id: str) -> None:
@@ -56,13 +67,12 @@ class TurnTimer:
                 player_id=player_id,
                 time_left_seconds=seconds_remaining,
             )
-            schedule_time = self._timeout_seconds - seconds_remaining
-            self._schedule_event(event, schedule_time)
+            delay = self._timeout_seconds - seconds_remaining
+            self._schedule_event(event, delay)
 
     def cancel(self, player_id: str) -> None:
         for task in self._scheduled_tasks[player_id]:
-            if not task.done():
-                task.cancel()
+            self._scheduler.cancel_event(task)
         self._scheduled_tasks[player_id].clear()
 
 

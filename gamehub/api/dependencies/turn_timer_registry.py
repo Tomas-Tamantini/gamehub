@@ -5,12 +5,12 @@ from fastapi import Depends
 
 from gamehub.api.dependencies.event_bus import T_EventBus
 from gamehub.core.event_bus import EventBus
-from gamehub.core.turn_timer import TurnTimer, TurnTimerRegistry
+from gamehub.core.turn_timer import EventScheduler, TurnTimer, TurnTimerRegistry
 
 
 def _create_turn_timer(event_bus: EventBus, room_id: int) -> TurnTimer:
     return TurnTimer(
-        event_bus,
+        event_scheduler=EventScheduler(event_bus),
         room_id=room_id,
         timeout_seconds=60,
         reminders_at_seconds_remaining=[30, 5],

@@ -7,7 +7,7 @@ from gamehub.core.game_room import GameRoom
 from gamehub.core.message import MessageType
 from gamehub.core.room_manager import RoomManager
 from gamehub.core.setup_bus import setup_event_bus
-from gamehub.core.turn_timer import TurnTimer, TurnTimerRegistry
+from gamehub.core.turn_timer import EventScheduler, TurnTimer, TurnTimerRegistry
 from gamehub.games.rock_paper_scissors import RPSGameLogic, RPSMove
 from tests.utils import ExpectedBroadcast, check_messages
 
@@ -37,7 +37,7 @@ def event_bus(message_spy):
     turn_timer_registry = TurnTimerRegistry(
         turn_timers=[
             TurnTimer(
-                event_bus,
+                event_scheduler=EventScheduler(event_bus),
                 room_id=1,
                 timeout_seconds=60,
                 reminders_at_seconds_remaining=[],
