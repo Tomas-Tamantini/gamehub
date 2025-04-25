@@ -8,7 +8,7 @@ from gamehub.core.events.game_state_update import (
     TurnEnded,
     TurnStarted,
 )
-from gamehub.core.events.timer_events import TurnTimerAlert
+from gamehub.core.events.timer_events import TurnTimeout, TurnTimerAlert
 
 
 class TurnTimer:
@@ -31,10 +31,18 @@ class TurnTimer:
     def reset(self) -> None: ...  # TODO: Implement reset logic
 
     async def start(self, player_id: str) -> None:
-        async def schedule_alert(event: TurnTimerAlert, wait_seconds: int) -> None:
+        async def schedule_event(
+            event: TurnTimerAlert | TurnTimeout, wait_seconds: int
+        ) -> None:
             await asyncio.sleep(wait_seconds)
             await self._event_bus.publish(event)
 
+        asyncio.create_task(
+            schedule_event(
+                TurnTimeout(room_id=self._room_id, player_id=player_id),
+                self._timeout_seconds,
+            )
+        )
         for seconds_remaining in self._reminders_at_seconds_remaining:
             event = TurnTimerAlert(
                 room_id=self._room_id,
@@ -42,7 +50,7 @@ class TurnTimer:
                 time_left_seconds=seconds_remaining,
             )
             schedule_time = self._timeout_seconds - seconds_remaining
-            asyncio.create_task(schedule_alert(event, schedule_time))
+            asyncio.create_task(schedule_event(event, schedule_time))
 
     def cancel(self, player_id: str) -> None: ...  # TODO: Implement timer cancel logic
 
