@@ -2,6 +2,7 @@ from unittest.mock import Mock
 
 import pytest
 
+from gamehub.core.event_scheduler import EventScheduler
 from gamehub.core.events.game_state_update import (
     GameEnded,
     GameStarted,
@@ -9,7 +10,7 @@ from gamehub.core.events.game_state_update import (
     TurnStarted,
 )
 from gamehub.core.events.timer_events import TurnTimeout, TurnTimerAlert
-from gamehub.core.turn_timer import EventScheduler, TurnTimer, TurnTimerRegistry
+from gamehub.core.turn_timer import TurnTimer, TurnTimerRegistry
 
 
 @pytest.fixture

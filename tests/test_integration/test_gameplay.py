@@ -1,13 +1,14 @@
 import pytest
 
 from gamehub.core.event_bus import EventBus
+from gamehub.core.event_scheduler import EventScheduler
 from gamehub.core.events.outgoing_message import OutgoingMessage
 from gamehub.core.events.request import RequestType
 from gamehub.core.game_room import GameRoom
 from gamehub.core.message import MessageType
 from gamehub.core.room_manager import RoomManager
 from gamehub.core.setup_bus import setup_event_bus
-from gamehub.core.turn_timer import EventScheduler, TurnTimer, TurnTimerRegistry
+from gamehub.core.turn_timer import TurnTimer, TurnTimerRegistry
 from gamehub.games.rock_paper_scissors import RPSGameLogic, RPSMove
 from tests.utils import ExpectedBroadcast, check_messages
 

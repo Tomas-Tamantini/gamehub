@@ -1,8 +1,7 @@
-import asyncio
 from collections import defaultdict
 from typing import Iterable, Optional
 
-from gamehub.core.event_bus import EventBus
+from gamehub.core.event_scheduler import EventScheduler
 from gamehub.core.events.game_state_update import (
     GameEnded,
     GameStarted,
@@ -10,23 +9,6 @@ from gamehub.core.events.game_state_update import (
     TurnStarted,
 )
 from gamehub.core.events.timer_events import TurnTimeout, TurnTimerAlert
-
-
-class EventScheduler:
-    def __init__(self, event_bus: EventBus) -> None:
-        self._event_bus = event_bus
-
-    def schedule_event(self, event: any, wait_seconds: int) -> asyncio.Task:
-        async def schedule_event():
-            await asyncio.sleep(wait_seconds)
-            await self._event_bus.publish(event)
-
-        return asyncio.create_task(schedule_event())
-
-    @staticmethod
-    def cancel_event(task: asyncio.Task) -> None:
-        if not task.done():
-            task.cancel()
 
 
 class TurnTimer:
