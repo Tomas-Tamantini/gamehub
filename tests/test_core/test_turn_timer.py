@@ -1,3 +1,4 @@
+import asyncio
 from unittest.mock import Mock
 
 import pytest
@@ -8,6 +9,7 @@ from gamehub.core.events.game_state_update import (
     TurnEnded,
     TurnStarted,
 )
+from gamehub.core.events.timer_events import TurnTimerAlert
 from gamehub.core.turn_timer import TurnTimer, TurnTimerRegistry
 
 
@@ -45,10 +47,11 @@ def test_turn_timer_registry_resets_proper_turn_timer_on_game_end(spy_timers, re
     spy_timers[1].reset.assert_not_called()
 
 
-def test_turn_timer_registry_delegates_turn_started_event_to_proper_turn_timer(
+@pytest.mark.asyncio
+async def test_turn_timer_registry_delegates_turn_started_event_to_proper_turn_timer(
     spy_timers, registry
 ):
-    registry.handle_turn_start(TurnStarted(room_id=1, player_id="player1"))
+    await registry.handle_turn_start(TurnStarted(room_id=1, player_id="player1"))
     spy_timers[0].start.assert_called_once_with("player1")
     spy_timers[1].start.assert_not_called()
 
@@ -57,3 +60,29 @@ def test_turn_timer_registry_cancels_turn_timer_on_turn_end(spy_timers, registry
     registry.handle_turn_end(TurnEnded(room_id=1, player_id="player1"))
     spy_timers[0].cancel.assert_called_once_with("player1")
     spy_timers[1].cancel.assert_not_called()
+
+
+@pytest.fixture
+def timer_alert_spy(event_spy):
+    return event_spy(TurnTimerAlert)
+
+
+@pytest.mark.asyncio
+async def test_turn_timer_schedules_alert_events(timer_alert_spy, event_bus):
+    timer = TurnTimer(
+        event_bus, room_id=1, timeout_seconds=5, reminders_at_seconds_remaining=(1, 2)
+    )
+    await timer.start(player_id="player1")
+    await asyncio.sleep(6)
+    assert timer_alert_spy == [
+        TurnTimerAlert(
+            room_id=1,
+            player_id="player1",
+            time_left_seconds=2,
+        ),
+        TurnTimerAlert(
+            room_id=1,
+            player_id="player1",
+            time_left_seconds=1,
+        ),
+    ]

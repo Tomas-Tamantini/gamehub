@@ -1,16 +1,28 @@
+import asyncio
 from typing import Iterable, Optional
 
+from gamehub.core.event_bus import EventBus
 from gamehub.core.events.game_state_update import (
     GameEnded,
     GameStarted,
     TurnEnded,
     TurnStarted,
 )
+from gamehub.core.events.timer_events import TurnTimerAlert
 
 
 class TurnTimer:
-    def __init__(self, room_id: int) -> None:
+    def __init__(
+        self,
+        event_bus: EventBus,
+        room_id: int,
+        timeout_seconds: int,
+        reminders_at_seconds_remaining: Iterable[int],
+    ) -> None:
         self._room_id = room_id
+        self._event_bus = event_bus
+        self._timeout_seconds = timeout_seconds
+        self._reminders_at_seconds_remaining = set(reminders_at_seconds_remaining)
 
     @property
     def room_id(self) -> int:
@@ -18,7 +30,19 @@ class TurnTimer:
 
     def reset(self) -> None: ...  # TODO: Implement reset logic
 
-    def start(self, player_id: str) -> None: ...  # TODO: Implement timer start logic
+    async def start(self, player_id: str) -> None:
+        async def schedule_alert(event: TurnTimerAlert, wait_seconds: int) -> None:
+            await asyncio.sleep(wait_seconds)
+            await self._event_bus.publish(event)
+
+        for seconds_remaining in self._reminders_at_seconds_remaining:
+            event = TurnTimerAlert(
+                room_id=self._room_id,
+                player_id=player_id,
+                time_left_seconds=seconds_remaining,
+            )
+            schedule_time = self._timeout_seconds - seconds_remaining
+            asyncio.create_task(schedule_alert(event, schedule_time))
 
     def cancel(self, player_id: str) -> None: ...  # TODO: Implement timer cancel logic
 
@@ -38,9 +62,9 @@ class TurnTimerRegistry:
         if timer := self._turn_timer(game_end_event.room_id):
             timer.reset()
 
-    def handle_turn_start(self, turn_start_event: TurnStarted):
+    async def handle_turn_start(self, turn_start_event: TurnStarted):
         if timer := self._turn_timer(turn_start_event.room_id):
-            timer.start(turn_start_event.player_id)
+            await timer.start(turn_start_event.player_id)
 
     def handle_turn_end(self, turn_end_event: TurnEnded):
         if timer := self._turn_timer(turn_end_event.room_id):

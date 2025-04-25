@@ -34,7 +34,16 @@ def event_bus(message_spy):
         event_bus=event_bus,
     )
     room_manager = RoomManager([game_room], event_bus)
-    turn_timer_registry = TurnTimerRegistry(turn_timers=[TurnTimer(room_id=1)])
+    turn_timer_registry = TurnTimerRegistry(
+        turn_timers=[
+            TurnTimer(
+                event_bus,
+                room_id=1,
+                timeout_seconds=60,
+                reminders_at_seconds_remaining=[],
+            )
+        ]
+    )
     setup_event_bus(event_bus, message_spy, room_manager, turn_timer_registry)
     return event_bus
 
