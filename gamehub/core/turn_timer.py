@@ -47,7 +47,7 @@ class TurnTimer:
             event = TurnTimerAlert(
                 room_id=self._room_id,
                 player_id=player_id,
-                time_left_seconds=seconds_remaining,
+                seconds_remaining=seconds_remaining,
             )
             delay = self._timeout_seconds - seconds_remaining
             self._schedule_event(event, delay)

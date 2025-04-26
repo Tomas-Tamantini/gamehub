@@ -5,7 +5,7 @@ from dataclasses import dataclass
 class TurnTimerAlert:
     room_id: int
     player_id: str
-    time_left_seconds: int
+    seconds_remaining: int
 
 
 @dataclass(frozen=True)

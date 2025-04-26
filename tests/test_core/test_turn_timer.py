@@ -83,8 +83,8 @@ def test_turn_timer_schedules_alert_events_and_timeout_event(
     assert event_scheduler_spy.schedule_event.call_count == 3
     assert event_scheduler_spy.schedule_event.call_args_list == [
         ((TurnTimeout(room_id=1, player_id="player1"), 5),),
-        ((TurnTimerAlert(room_id=1, player_id="player1", time_left_seconds=1), 4),),
-        ((TurnTimerAlert(room_id=1, player_id="player1", time_left_seconds=2), 3),),
+        ((TurnTimerAlert(room_id=1, player_id="player1", seconds_remaining=1), 4),),
+        ((TurnTimerAlert(room_id=1, player_id="player1", seconds_remaining=2), 3),),
     ]
 
 
