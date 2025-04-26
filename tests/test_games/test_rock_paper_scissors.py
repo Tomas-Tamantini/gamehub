@@ -122,4 +122,7 @@ def test_rock_paper_scissors_beat_each_other_cyclically(
 
 
 def test_rock_paper_scissors_states_have_no_derived_events(initial_state):
-    assert list(RPSGameLogic().derived_events(initial_state, room_id=1)) == []
+    assert (
+        list(RPSGameLogic().derived_events(initial_state, room_id=1, recipients=[]))
+        == []
+    )

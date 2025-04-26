@@ -50,14 +50,16 @@ def test_turn_timer_registry_resets_proper_turn_timer_on_game_end(spy_timers, re
 def test_turn_timer_registry_delegates_turn_started_event_to_proper_turn_timer(
     spy_timers, registry
 ):
-    registry.handle_turn_start(TurnStarted(room_id=1, player_id="player1"))
-    spy_timers[0].start.assert_called_once_with("player1")
+    registry.handle_turn_start(
+        TurnStarted(room_id=1, player_id="p1", recipients=["p1", "p2"])
+    )
+    spy_timers[0].start.assert_called_once_with("p1", ["p1", "p2"])
     spy_timers[1].start.assert_not_called()
 
 
 def test_turn_timer_registry_cancels_turn_timer_on_turn_end(spy_timers, registry):
-    registry.handle_turn_end(TurnEnded(room_id=1, player_id="player1"))
-    spy_timers[0].cancel.assert_called_once_with("player1")
+    registry.handle_turn_end(TurnEnded(room_id=1, player_id="p1"))
+    spy_timers[0].cancel.assert_called_once_with("p1")
     spy_timers[1].cancel.assert_not_called()
 
 
@@ -79,28 +81,48 @@ def turn_timer(event_scheduler_spy):
 def test_turn_timer_schedules_alert_events_and_timeout_event(
     event_scheduler_spy, turn_timer
 ):
-    turn_timer.start(player_id="player1")
+    turn_timer.start(player_id="p1", recipients=["p1", "p2"])
     assert event_scheduler_spy.schedule_event.call_count == 3
     assert event_scheduler_spy.schedule_event.call_args_list == [
-        ((TurnTimeout(room_id=1, player_id="player1"), 5),),
-        ((TurnTimerAlert(room_id=1, player_id="player1", seconds_remaining=1), 4),),
-        ((TurnTimerAlert(room_id=1, player_id="player1", seconds_remaining=2), 3),),
+        ((TurnTimeout(room_id=1, player_id="p1", recipients=["p1", "p2"]), 5),),
+        (
+            (
+                TurnTimerAlert(
+                    room_id=1,
+                    player_id="p1",
+                    seconds_remaining=1,
+                    recipients=["p1", "p2"],
+                ),
+                4,
+            ),
+        ),
+        (
+            (
+                TurnTimerAlert(
+                    room_id=1,
+                    player_id="p1",
+                    seconds_remaining=2,
+                    recipients=["p1", "p2"],
+                ),
+                3,
+            ),
+        ),
     ]
 
 
 def test_turn_timer_allows_cancelling_player_scheduled_events(
     event_scheduler_spy, turn_timer
 ):
-    turn_timer.start(player_id="player1")
-    turn_timer.start(player_id="player2")
-    turn_timer.cancel(player_id="player1")
+    turn_timer.start(player_id="p1", recipients=["p1", "p2"])
+    turn_timer.start(player_id="p2", recipients=["p1", "p2"])
+    turn_timer.cancel(player_id="p1")
     assert event_scheduler_spy.cancel_event.call_count == 3
 
 
 def test_turn_timer_allows_cancelling_all_scheduled_events(
     event_scheduler_spy, turn_timer
 ):
-    turn_timer.start(player_id="player1")
-    turn_timer.start(player_id="player2")
+    turn_timer.start(player_id="p1", recipients=["p1", "p2"])
+    turn_timer.start(player_id="p2", recipients=["p1", "p2"])
     turn_timer.reset()
     assert event_scheduler_spy.cancel_event.call_count == 6

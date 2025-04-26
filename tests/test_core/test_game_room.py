@@ -105,7 +105,7 @@ def automated_transition_logic():
         def num_players(self):
             return 2
 
-        def derived_events(self, state, room_id):
+        def derived_events(self, state, room_id, recipients):
             yield EventStub(status=state.status, room_id=room_id)
 
         @property

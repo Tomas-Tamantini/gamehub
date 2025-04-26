@@ -1,4 +1,4 @@
-from typing import Iterator, Optional
+from typing import Iterable, Iterator, Optional
 
 from gamehub.core.events.game_state_update import (
     GameEnded,
@@ -51,12 +51,18 @@ class ChinesePokerGameLogic:
         return next_automated_state(state, self._configuration)
 
     @staticmethod
-    def derived_events(state: ChinesePokerState, room_id: int) -> Iterator[object]:
+    def derived_events(
+        state: ChinesePokerState, room_id: int, recipients: Iterable[str]
+    ) -> Iterator[object]:
         if state.status == ChinesePokerStatus.START_GAME:
             yield GameStarted(room_id=room_id)
         elif state.status == ChinesePokerStatus.END_GAME:
             yield GameEnded(room_id=room_id)
         elif state.status == ChinesePokerStatus.AWAIT_PLAYER_ACTION:
-            yield TurnStarted(room_id=room_id, player_id=state.current_player_id())
+            yield TurnStarted(
+                room_id=room_id,
+                player_id=state.current_player_id(),
+                recipients=recipients,
+            )
         elif state.status == ChinesePokerStatus.END_TURN:
             yield TurnEnded(room_id=room_id, player_id=state.current_player_id())

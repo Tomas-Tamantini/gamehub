@@ -1,4 +1,4 @@
-from typing import Iterator
+from typing import Iterable, Iterator
 
 from gamehub.games.rock_paper_scissors.game_state import RPSGameState, RPSPlayer
 from gamehub.games.rock_paper_scissors.move import RPSMove
@@ -41,5 +41,7 @@ class RPSGameLogic:
         return RPSGameState(players=new_players)
 
     @staticmethod
-    def derived_events(state: RPSGameState, room_id: int) -> Iterator[object]:
+    def derived_events(
+        state: RPSGameState, room_id: int, recipients: Iterable[str]
+    ) -> Iterator[object]:
         return iter([])

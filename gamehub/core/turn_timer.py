@@ -38,16 +38,19 @@ class TurnTimer:
         task = self._scheduler.schedule_event(event, delay_seconds)
         self._scheduled_tasks[event.player_id].append(task)
 
-    def start(self, player_id: str) -> None:
+    def start(self, player_id: str, recipients: Iterable[str]) -> None:
         self.cancel(player_id)
 
-        timeout_event = TurnTimeout(room_id=self._room_id, player_id=player_id)
+        timeout_event = TurnTimeout(
+            room_id=self._room_id, player_id=player_id, recipients=recipients
+        )
         self._schedule_event(timeout_event, self._timeout_seconds)
         for seconds_remaining in self._reminders_at_seconds_remaining:
             event = TurnTimerAlert(
                 room_id=self._room_id,
                 player_id=player_id,
                 seconds_remaining=seconds_remaining,
+                recipients=recipients,
             )
             delay = self._timeout_seconds - seconds_remaining
             self._schedule_event(event, delay)
@@ -75,7 +78,7 @@ class TurnTimerRegistry:
 
     def handle_turn_start(self, turn_start_event: TurnStarted):
         if timer := self._turn_timer(turn_start_event.room_id):
-            timer.start(turn_start_event.player_id)
+            timer.start(turn_start_event.player_id, turn_start_event.recipients)
 
     def handle_turn_end(self, turn_end_event: TurnEnded):
         if timer := self._turn_timer(turn_end_event.room_id):

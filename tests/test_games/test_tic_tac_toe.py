@@ -134,4 +134,11 @@ def test_tic_tac_toe_has_no_private_views(initial_state):
 
 
 def test_tic_tac_toe_states_have_no_derived_events(initial_state):
-    assert list(TicTacToeGameLogic().derived_events(initial_state, room_id=123)) == []
+    assert (
+        list(
+            TicTacToeGameLogic().derived_events(
+                initial_state, room_id=123, recipients=[]
+            )
+        )
+        == []
+    )

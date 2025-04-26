@@ -27,6 +27,7 @@ class GameEnded(_GameStateEvent): ...
 @dataclass(frozen=True)
 class TurnStarted(_GameStateEvent):
     player_id: str
+    recipients: Iterable[str]
 
 
 @dataclass(frozen=True)

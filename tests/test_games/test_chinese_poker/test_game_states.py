@@ -145,24 +145,33 @@ def test_partial_results_are_sent_with_each_game_state(
 )
 def test_state_doesnt_yield_derived_events(request, state, game_logic):
     state = request.getfixturevalue(state)
-    assert list(game_logic.derived_events(state, room_id=123)) == []
+    assert (
+        list(game_logic.derived_events(state, room_id=123, recipients=["Alice", "Bob"]))
+        == []
+    )
 
 
 def test_await_action_state_yields_start_turn_event(game_logic, await_action):
-    events = list(game_logic.derived_events(await_action, room_id=123))
-    assert events == [TurnStarted(player_id="Diana", room_id=123)]
+    events = list(
+        game_logic.derived_events(
+            await_action, room_id=123, recipients=["Alice", "Bob"]
+        )
+    )
+    assert events == [
+        TurnStarted(player_id="Diana", room_id=123, recipients=["Alice", "Bob"])
+    ]
 
 
 def test_end_turn_state_yields_end_turn_event(game_logic, end_turn):
-    events = list(game_logic.derived_events(end_turn, room_id=123))
+    events = list(game_logic.derived_events(end_turn, room_id=123, recipients=[]))
     assert events == [TurnEnded(player_id="Diana", room_id=123)]
 
 
 def test_start_game_state_yields_start_game_event(game_logic, start_game):
-    events = list(game_logic.derived_events(start_game, room_id=123))
+    events = list(game_logic.derived_events(start_game, room_id=123, recipients=[]))
     assert events == [GameStarted(room_id=123)]
 
 
 def test_end_game_state_yields_end_game_event(game_logic, end_game):
-    events = list(game_logic.derived_events(end_game, room_id=123))
+    events = list(game_logic.derived_events(end_game, room_id=123, recipients=[]))
     assert events == [GameEnded(room_id=123)]

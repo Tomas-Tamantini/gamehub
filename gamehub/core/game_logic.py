@@ -1,4 +1,4 @@
-from typing import Generic, Iterator, Optional, Protocol, TypeVar
+from typing import Generic, Iterable, Iterator, Optional, Protocol, TypeVar
 
 from gamehub.core.game_state import GameState
 
@@ -23,4 +23,6 @@ class GameLogic(Protocol, Generic[S, M, C]):
 
     def next_automated_state(self, state: S) -> Optional[S]: ...
 
-    def derived_events(self, state: S, room_id: int) -> Iterator[object]: ...
+    def derived_events(
+        self, state: S, room_id: int, recipients: Iterable[str]
+    ) -> Iterator[object]: ...

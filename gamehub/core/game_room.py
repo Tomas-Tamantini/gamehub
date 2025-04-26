@@ -1,4 +1,4 @@
-from typing import Generic, Optional, TypeVar
+from typing import Generic, Iterator, Optional, TypeVar
 
 from pydantic import ValidationError
 
@@ -43,6 +43,10 @@ class GameRoom(Generic[S, M, C]):
     def is_full(self) -> bool:
         return len(self._players) >= self._logic.num_players
 
+    def _notification_recipients(self) -> Iterator[str]:
+        yield from self._players
+        yield from self._spectators
+
     def _reset(self) -> None:
         self._players = list()
         self._spectators = set()
@@ -52,7 +56,9 @@ class GameRoom(Generic[S, M, C]):
     async def _set_game_state(self, state: S) -> None:
         self._game_state = state
         await self._notify_game_state_update()
-        for derived_event in self._logic.derived_events(state, self._room_id):
+        for derived_event in self._logic.derived_events(
+            state, self._room_id, recipients=list(self._notification_recipients())
+        ):
             await self._event_bus.publish(derived_event)
         if state.is_terminal():
             self._reset()
@@ -74,7 +80,7 @@ class GameRoom(Generic[S, M, C]):
         )
 
     async def _notify_room_state_update(self) -> None:
-        recipients = self._players + list(self._spectators)
+        recipients = list(self._notification_recipients())
         await self._event_bus.publish(GameRoomUpdate(self.room_state(), recipients))
 
     async def _notify_game_state_update(self) -> None:
@@ -86,7 +92,7 @@ class GameRoom(Generic[S, M, C]):
                     player_id: private_view
                     for player_id, private_view in self._game_state.private_views()
                 },
-                recipients=self._players + list(self._spectators),
+                recipients=list(self._notification_recipients()),
             )
         )
 
