@@ -7,6 +7,7 @@ class MessageType(Enum):
     ERROR = "ERROR"
     GAME_ROOM_UPDATE = "GAME_ROOM_UPDATE"
     GAME_STATE = "GAME_STATE"
+    TURN_TIMER_ALERT = "TURN_TIMER_ALERT"
 
 
 class Message(BaseModel):

@@ -8,6 +8,7 @@ from gamehub.core.events.game_state_update import GameStateUpdate
 from gamehub.core.events.outgoing_message import OutgoingMessage
 from gamehub.core.events.request_events import RequestFailed
 from gamehub.core.events.sync_client_state import SyncClientState
+from gamehub.core.events.timer_events import TurnTimeout, TurnTimerAlert
 from gamehub.core.message import Message, MessageType, error_message
 
 
@@ -47,6 +48,34 @@ class MessageBuilder:
         if len(game_state_msg.payload) > 1:
             await self._event_bus.publish(
                 OutgoingMessage(player_id=sync_state.client_id, message=game_state_msg)
+            )
+
+    async def notify_turn_timer_alert(self, turn_timer_alert: TurnTimerAlert) -> None:
+        msg = Message(
+            message_type=MessageType.TURN_TIMER_ALERT,
+            payload={
+                "room_id": turn_timer_alert.room_id,
+                "player_id": turn_timer_alert.player_id,
+                "seconds_remaining": turn_timer_alert.seconds_remaining,
+            },
+        )
+        for recipient in turn_timer_alert.recipients:
+            await self._event_bus.publish(
+                OutgoingMessage(player_id=recipient, message=msg)
+            )
+
+    async def notify_turn_timeout(self, turn_timeout: TurnTimeout) -> None:
+        msg = Message(
+            message_type=MessageType.TURN_TIMER_ALERT,
+            payload={
+                "room_id": turn_timeout.room_id,
+                "player_id": turn_timeout.player_id,
+                "seconds_remaining": 0,
+            },
+        )
+        for recipient in turn_timeout.recipients:
+            await self._event_bus.publish(
+                OutgoingMessage(player_id=recipient, message=msg)
             )
 
     @staticmethod

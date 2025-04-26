@@ -6,6 +6,7 @@ from gamehub.core.events.game_state_update import GameStateUpdate
 from gamehub.core.events.outgoing_message import OutgoingMessage
 from gamehub.core.events.request_events import RequestFailed
 from gamehub.core.events.sync_client_state import SyncClientState
+from gamehub.core.events.timer_events import TurnTimeout, TurnTimerAlert
 from gamehub.core.message import MessageType
 from gamehub.core.message_builder import MessageBuilder
 from gamehub.core.room_state import RoomState
@@ -142,3 +143,46 @@ async def test_message_builder_sends_full_state_for_reconnecting_client_to_sync(
         "shared_view": {"field": "shared"},
         "private_view": {"field": "private"},
     }
+
+
+@pytest.mark.asyncio
+async def test_message_builder_broadcasts_timer_alerts_to_players_and_spectators(
+    event_bus, messages_spy
+):
+    msg_builder = MessageBuilder(event_bus)
+    alert = TurnTimerAlert(
+        room_id=123,
+        player_id="Bob",
+        seconds_remaining=30,
+        recipients=["Alice", "Bob"],
+    )
+    await msg_builder.notify_turn_timer_alert(alert)
+    expected = [
+        ExpectedBroadcast(
+            ["Alice", "Bob"],
+            MessageType.TURN_TIMER_ALERT,
+            {"room_id": 123, "player_id": "Bob", "seconds_remaining": 30},
+        )
+    ]
+    check_messages(messages_spy, expected)
+
+
+@pytest.mark.asyncio
+async def test_message_builder_broadcasts_timeout_alert_to_players_and_spectators(
+    event_bus, messages_spy
+):
+    msg_builder = MessageBuilder(event_bus)
+    alert = TurnTimeout(
+        room_id=123,
+        player_id="Bob",
+        recipients=["Alice", "Bob"],
+    )
+    await msg_builder.notify_turn_timeout(alert)
+    expected = [
+        ExpectedBroadcast(
+            ["Alice", "Bob"],
+            MessageType.TURN_TIMER_ALERT,
+            {"room_id": 123, "player_id": "Bob", "seconds_remaining": 0},
+        )
+    ]
+    check_messages(messages_spy, expected)

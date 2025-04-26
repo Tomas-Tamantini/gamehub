@@ -19,6 +19,7 @@ from gamehub.core.events.request_events import (
     WatchGame,
 )
 from gamehub.core.events.sync_client_state import SyncClientState
+from gamehub.core.events.timer_events import TurnTimeout, TurnTimerAlert
 from gamehub.core.message_builder import MessageBuilder
 from gamehub.core.message_sender import MessageSender
 from gamehub.core.request_parser import RequestParser
@@ -50,3 +51,5 @@ def setup_event_bus(
     event_bus.subscribe(GameEnded, timekeeper.handle_game_end)
     event_bus.subscribe(TurnStarted, timekeeper.handle_turn_start)
     event_bus.subscribe(TurnEnded, timekeeper.handle_turn_end)
+    event_bus.subscribe(TurnTimerAlert, message_builder.notify_turn_timer_alert)
+    event_bus.subscribe(TurnTimeout, message_builder.notify_turn_timeout)
