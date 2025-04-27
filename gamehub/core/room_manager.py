@@ -11,6 +11,7 @@ from gamehub.core.events.request_events import (
     RequestFailed,
     WatchGame,
 )
+from gamehub.core.events.timer_events import TurnTimeout
 from gamehub.core.game_room import GameRoom
 from gamehub.core.room_state import RoomState
 
@@ -92,3 +93,7 @@ class RoomManager:
         else:
             for room in self._rooms_by_game_type(game_type):
                 yield room.room_state()
+
+    def handle_timeout(self, timeout: TurnTimeout) -> None:
+        if (room := self._rooms.get(timeout.room_id)) is not None:
+            room.handle_timeout(timeout.player_id)

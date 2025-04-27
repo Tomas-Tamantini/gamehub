@@ -198,3 +198,7 @@ class GameRoom(Generic[S, M, C]):
             await self._notify_room_state_update()
         elif player_id in self._spectators:
             self._spectators.remove(player_id)
+
+    def handle_timeout(
+        self, player_id: str
+    ) -> None: ...  # TODO: Implement timeout handling

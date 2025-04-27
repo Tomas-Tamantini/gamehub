@@ -12,6 +12,7 @@ from gamehub.core.events.request_events import (
     RequestFailed,
     WatchGame,
 )
+from gamehub.core.events.timer_events import TurnTimeout
 from gamehub.core.game_room import GameRoom
 from gamehub.core.room_manager import RoomManager
 from gamehub.core.room_state import RoomState
@@ -192,3 +193,19 @@ async def test_room_manager_returns_room_states_filtered_by_game_type(
     room_manager = RoomManager(example_rooms, event_bus)
     room_states = list(room_manager.room_states(game_type="tic-tac-toe"))
     assert room_states == [expected_room_states[0], expected_room_states[2]]
+
+
+def test_room_manager_ignores_timeout_event_if_no_room_matches_id(spy_room):
+    room = spy_room(room_id=1)
+    room_manager = RoomManager([room], EventBus())
+    event = TurnTimeout(room_id=2, player_id="Ana", recipients=[])
+    room_manager.handle_timeout(event)
+    spy_room().handle_timeout.assert_not_called()
+
+
+def test_room_manager_forwards_timeout_event_to_proper_room(spy_room):
+    room = spy_room(room_id=1)
+    room_manager = RoomManager([room], EventBus())
+    event = TurnTimeout(room_id=1, player_id="Ana", recipients=[])
+    room_manager.handle_timeout(event)
+    room.handle_timeout.assert_called_once_with("Ana")
