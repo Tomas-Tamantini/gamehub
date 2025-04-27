@@ -199,6 +199,6 @@ class GameRoom(Generic[S, M, C]):
         elif player_id in self._spectators:
             self._spectators.remove(player_id)
 
-    def handle_timeout(
-        self, player_id: str
-    ) -> None: ...  # TODO: Implement timeout handling
+    async def handle_timeout(self, player_id: str) -> None:
+        if new_state := self._logic.state_after_timeout(self._game_state, player_id):
+            await self._set_game_state(new_state)

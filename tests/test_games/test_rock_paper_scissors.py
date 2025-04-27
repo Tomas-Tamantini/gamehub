@@ -126,3 +126,7 @@ def test_rock_paper_scissors_states_have_no_derived_events(initial_state):
         list(RPSGameLogic().derived_events(initial_state, room_id=1, recipients=[]))
         == []
     )
+
+
+def test_rock_paper_scissors_has_no_state_after_timeout(initial_state):
+    assert RPSGameLogic().state_after_timeout(initial_state, "Alice") is None

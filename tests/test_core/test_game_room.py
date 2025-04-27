@@ -124,6 +124,9 @@ def automated_transition_logic():
             elif state.status.endswith("_A"):
                 return _MockState(status=state.status.replace("_A", "_B"))
 
+        def state_after_timeout(self, *_, **__):
+            return _MockState(status="STATE_AFTER_TIMEOUT")
+
     return MockLogic()
 
 
@@ -571,3 +574,29 @@ async def test_events_derived_from_game_state_are_raised(
         EventStub(status=status, room_id=0)
         for status in ("START", "AUTO_START_A", "AUTO_START_B")
     ]
+
+
+@pytest.mark.asyncio
+async def test_player_timeout_is_ignored_if_no_new_state_generated(
+    rps_room, game_state_updates_spy
+):
+    await rps_room.join("Alice")
+    await rps_room.join("Bob")
+    await rps_room.handle_timeout("Alice")
+    assert len(game_state_updates_spy) == 1
+
+
+@pytest.mark.asyncio
+async def test_player_timeout_has_new_state_broadcasted(
+    automated_transition_room, game_state_updates_spy
+):
+    await automated_transition_room.join("Alice")
+    await automated_transition_room.join("Bob")
+    await automated_transition_room.handle_timeout("Alice")
+
+    assert game_state_updates_spy[-1] == GameStateUpdate(
+        room_id=0,
+        shared_view=_MockState(status="STATE_AFTER_TIMEOUT"),
+        private_views={},
+        recipients=["Alice", "Bob"],
+    )

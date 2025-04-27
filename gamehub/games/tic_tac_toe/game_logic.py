@@ -1,4 +1,4 @@
-from typing import Iterable, Iterator
+from typing import Iterable, Iterator, Optional
 
 from gamehub.core.exceptions import InvalidMoveError
 from gamehub.games.tic_tac_toe.game_state import TicTacToeState
@@ -53,3 +53,9 @@ class TicTacToeGameLogic:
         state: TicTacToeState, room_id: int, recipients: Iterable[str]
     ) -> Iterator[object]:
         return iter([])
+
+    @staticmethod
+    def state_after_timeout(
+        state: TicTacToeState, timed_out_player_id: str
+    ) -> Optional[TicTacToeState]:
+        return None

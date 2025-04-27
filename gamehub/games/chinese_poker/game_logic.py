@@ -66,3 +66,9 @@ class ChinesePokerGameLogic:
             )
         elif state.status == ChinesePokerStatus.END_TURN:
             yield TurnEnded(room_id=room_id, player_id=state.current_player_id())
+
+    @staticmethod
+    def state_after_timeout(
+        state: ChinesePokerState, timed_out_player_id: str
+    ) -> Optional[ChinesePokerState]:
+        return None  # TODO: Implement timeout logic

@@ -1,4 +1,4 @@
-from typing import Iterable, Iterator
+from typing import Iterable, Iterator, Optional
 
 from gamehub.games.rock_paper_scissors.game_state import RPSGameState, RPSPlayer
 from gamehub.games.rock_paper_scissors.move import RPSMove
@@ -45,3 +45,9 @@ class RPSGameLogic:
         state: RPSGameState, room_id: int, recipients: Iterable[str]
     ) -> Iterator[object]:
         return iter([])
+
+    @staticmethod
+    def state_after_timeout(
+        state: RPSGameState, timed_out_player_id: str
+    ) -> Optional[RPSGameState]:
+        return None

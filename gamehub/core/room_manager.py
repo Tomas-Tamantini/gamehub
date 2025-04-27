@@ -94,6 +94,6 @@ class RoomManager:
             for room in self._rooms_by_game_type(game_type):
                 yield room.room_state()
 
-    def handle_timeout(self, timeout: TurnTimeout) -> None:
+    async def handle_timeout(self, timeout: TurnTimeout) -> None:
         if (room := self._rooms.get(timeout.room_id)) is not None:
-            room.handle_timeout(timeout.player_id)
+            await room.handle_timeout(timeout.player_id)

@@ -195,17 +195,19 @@ async def test_room_manager_returns_room_states_filtered_by_game_type(
     assert room_states == [expected_room_states[0], expected_room_states[2]]
 
 
-def test_room_manager_ignores_timeout_event_if_no_room_matches_id(spy_room):
+@pytest.mark.asyncio
+async def test_room_manager_ignores_timeout_event_if_no_room_matches_id(spy_room):
     room = spy_room(room_id=1)
     room_manager = RoomManager([room], EventBus())
     event = TurnTimeout(room_id=2, player_id="Ana", recipients=[])
-    room_manager.handle_timeout(event)
+    await room_manager.handle_timeout(event)
     spy_room().handle_timeout.assert_not_called()
 
 
-def test_room_manager_forwards_timeout_event_to_proper_room(spy_room):
+@pytest.mark.asyncio
+async def test_room_manager_forwards_timeout_event_to_proper_room(spy_room):
     room = spy_room(room_id=1)
     room_manager = RoomManager([room], EventBus())
     event = TurnTimeout(room_id=1, player_id="Ana", recipients=[])
-    room_manager.handle_timeout(event)
+    await room_manager.handle_timeout(event)
     room.handle_timeout.assert_called_once_with("Ana")

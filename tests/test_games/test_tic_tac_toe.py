@@ -142,3 +142,7 @@ def test_tic_tac_toe_states_have_no_derived_events(initial_state):
         )
         == []
     )
+
+
+def test_tic_tac_toe_has_no_state_after_timeout(initial_state):
+    assert TicTacToeGameLogic().state_after_timeout(initial_state, "Alice") is None

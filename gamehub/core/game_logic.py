@@ -26,3 +26,7 @@ class GameLogic(Protocol, Generic[S, M, C]):
     def derived_events(
         self, state: S, room_id: int, recipients: Iterable[str]
     ) -> Iterator[object]: ...
+
+    def state_after_timeout(
+        self, state: S, timed_out_player_id: str
+    ) -> Optional[S]: ...
