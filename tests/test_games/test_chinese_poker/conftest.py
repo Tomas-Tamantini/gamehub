@@ -159,6 +159,14 @@ def end_turn(game_logic, await_action, first_move):
 
 
 @pytest.fixture
+def await_second_action(game_logic, end_turn):
+    current_state = end_turn
+    while current_state.status != ChinesePokerStatus.AWAIT_PLAYER_ACTION:
+        current_state = game_logic.next_automated_state(current_state)
+    return current_state
+
+
+@pytest.fixture
 def end_last_turn(await_action, moves_first_round, make_moves):
     return make_moves(await_action, moves_first_round)
 

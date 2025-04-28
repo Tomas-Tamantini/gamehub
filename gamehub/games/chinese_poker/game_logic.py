@@ -15,6 +15,7 @@ from gamehub.games.chinese_poker.transitions import (
     next_automated_state,
     state_after_move,
 )
+from gamehub.games.playing_cards import PlayingCard
 
 
 class ChinesePokerGameLogic:
@@ -68,7 +69,18 @@ class ChinesePokerGameLogic:
             yield TurnEnded(room_id=room_id, player_id=state.current_player_id())
 
     @staticmethod
+    def _automatic_move_cards(state: ChinesePokerState) -> tuple[PlayingCard]:
+        if state.move_history:
+            return tuple()
+        else:
+            return (state.current_player().smallest_card(),)
+
     def state_after_timeout(
-        state: ChinesePokerState, timed_out_player_id: str
+        self, state: ChinesePokerState, timed_out_player_id: str
     ) -> Optional[ChinesePokerState]:
-        return None  # TODO: Implement timeout logic
+        if (state.status == ChinesePokerStatus.AWAIT_PLAYER_ACTION) and (
+            state.current_player_id() == timed_out_player_id
+        ):
+            cards = self._automatic_move_cards(state)
+            move = ChinesePokerMove(player_id=timed_out_player_id, cards=cards)
+            return self.make_move(state, move)
