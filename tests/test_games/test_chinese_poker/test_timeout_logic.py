@@ -38,6 +38,7 @@ def test_state_after_timeout_is_player_passing_if_they_can_pass(
     next_state = game_logic.state_after_timeout(await_second_action, "Alice")
     assert next_state.status == ChinesePokerStatus.END_TURN
     assert next_state.move_history[-1].cards == tuple()
+    assert next_state.move_history[-1].is_bot_move
 
 
 def test_state_after_timeout_is_player_playing_smallest_card_if_they_cannot_pass(
@@ -46,3 +47,4 @@ def test_state_after_timeout_is_player_playing_smallest_card_if_they_cannot_pass
     next_state = game_logic.state_after_timeout(await_action, "Diana")
     assert next_state.status == ChinesePokerStatus.END_TURN
     assert next_state.move_history[-1].cards == parse_hand("3d")
+    assert next_state.move_history[-1].is_bot_move

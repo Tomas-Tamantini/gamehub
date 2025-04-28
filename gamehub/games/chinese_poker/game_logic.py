@@ -82,5 +82,7 @@ class ChinesePokerGameLogic:
             state.current_player_id() == timed_out_player_id
         ):
             cards = self._automatic_move_cards(state)
-            move = ChinesePokerMove(player_id=timed_out_player_id, cards=cards)
+            move = ChinesePokerMove(
+                player_id=timed_out_player_id, cards=cards, is_bot_move=True
+            )
             return self.make_move(state, move)
