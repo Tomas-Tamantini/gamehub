@@ -1,6 +1,7 @@
 from unittest.mock import Mock
 
 import pytest
+from freezegun import freeze_time
 
 from gamehub.core.event_scheduler import EventScheduler
 from gamehub.core.events.game_state_update import (
@@ -9,7 +10,7 @@ from gamehub.core.events.game_state_update import (
     TurnEnded,
     TurnStarted,
 )
-from gamehub.core.events.timer_events import TurnTimeout, TurnTimerAlert
+from gamehub.core.events.timer_events import TurnTimeout
 from gamehub.core.turn_timer import TurnTimer, TurnTimerRegistry
 
 
@@ -73,41 +74,35 @@ def turn_timer(event_scheduler_spy):
     return TurnTimer(
         event_scheduler=event_scheduler_spy,
         room_id=1,
-        timeout_seconds=5,
-        reminders_at_seconds_remaining=(1, 2),
+        timeout_seconds=60,
+        reminders_at_seconds_remaining=(5, 20),
     )
 
 
-def test_turn_timer_schedules_alert_events_and_timeout_event(
-    event_scheduler_spy, turn_timer
-):
+def test_turn_timer_schedules_timeout_event(event_scheduler_spy, turn_timer):
     turn_timer.start(player_id="p1", recipients=["p1", "p2"])
-    assert event_scheduler_spy.schedule_event.call_count == 3
-    assert event_scheduler_spy.schedule_event.call_args_list == [
-        ((TurnTimeout(room_id=1, player_id="p1", recipients=["p1", "p2"]), 5),),
-        (
-            (
-                TurnTimerAlert(
-                    room_id=1,
-                    player_id="p1",
-                    seconds_remaining=1,
-                    recipients=["p1", "p2"],
-                ),
-                4,
-            ),
-        ),
-        (
-            (
-                TurnTimerAlert(
-                    room_id=1,
-                    player_id="p1",
-                    seconds_remaining=2,
-                    recipients=["p1", "p2"],
-                ),
-                3,
-            ),
-        ),
-    ]
+    assert event_scheduler_spy.schedule_event.call_args_list[0].args[0] == TurnTimeout(
+        room_id=1, player_id="p1", recipients=["p1", "p2"]
+    )
+    assert event_scheduler_spy.schedule_event.call_args_list[0].args[1] == 60
+
+
+@freeze_time("2025-05-31 13:45:00")
+def test_turn_timer_schedules_reminder_events(event_scheduler_spy, turn_timer):
+    turn_timer.start(player_id="p1", recipients=["p1", "p2"])
+    assert event_scheduler_spy.schedule_event.call_args_list[1].args[1] == 40
+    assert event_scheduler_spy.schedule_event.call_args_list[2].args[1] == 55
+    for i in range(1, 3):
+        received = event_scheduler_spy.schedule_event.call_args_list[i].args[0]
+        assert received.room_id == 1
+        assert received.player_id == "p1"
+        assert received.recipients == ["p1", "p2"]
+        assert received.turn_expires_at.year == 2025
+        assert received.turn_expires_at.month == 5
+        assert received.turn_expires_at.day == 31
+        assert received.turn_expires_at.hour == 13
+        assert received.turn_expires_at.minute == 46
+        assert received.turn_expires_at.second == 0
 
 
 def test_turn_timer_allows_cancelling_player_scheduled_events(

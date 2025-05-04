@@ -1,4 +1,5 @@
 from collections import defaultdict
+from datetime import datetime, timedelta, timezone
 from typing import Iterable, Optional
 
 from gamehub.core.event_scheduler import EventScheduler
@@ -40,20 +41,22 @@ class TurnTimer:
 
     def start(self, player_id: str, recipients: Iterable[str]) -> None:
         self.cancel(player_id)
-
         timeout_event = TurnTimeout(
             room_id=self._room_id, player_id=player_id, recipients=recipients
         )
         self._schedule_event(timeout_event, self._timeout_seconds)
+        turn_expires_at = datetime.now(timezone.utc) + timedelta(
+            seconds=self._timeout_seconds
+        )
+        alert_event = TurnTimerAlert(
+            room_id=self._room_id,
+            player_id=player_id,
+            turn_expires_at=turn_expires_at,
+            recipients=recipients,
+        )
         for seconds_remaining in self._reminders_at_seconds_remaining:
-            event = TurnTimerAlert(
-                room_id=self._room_id,
-                player_id=player_id,
-                seconds_remaining=seconds_remaining,
-                recipients=recipients,
-            )
             delay = self._timeout_seconds - seconds_remaining
-            self._schedule_event(event, delay)
+            self._schedule_event(alert_event, delay)
 
     def cancel(self, player_id: str) -> None:
         for task in self._scheduled_tasks[player_id]:

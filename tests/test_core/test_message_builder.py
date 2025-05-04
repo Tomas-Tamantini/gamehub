@@ -1,3 +1,5 @@
+from datetime import datetime, timezone
+
 import pytest
 from pydantic import BaseModel
 
@@ -6,7 +8,7 @@ from gamehub.core.events.game_state_update import GameStateUpdate
 from gamehub.core.events.outgoing_message import OutgoingMessage
 from gamehub.core.events.request_events import RequestFailed
 from gamehub.core.events.sync_client_state import SyncClientState
-from gamehub.core.events.timer_events import TurnTimeout, TurnTimerAlert
+from gamehub.core.events.timer_events import TurnTimerAlert
 from gamehub.core.message import MessageType
 from gamehub.core.message_builder import MessageBuilder
 from gamehub.core.room_state import RoomState
@@ -153,7 +155,7 @@ async def test_message_builder_broadcasts_timer_alerts_to_players_and_spectators
     alert = TurnTimerAlert(
         room_id=123,
         player_id="Bob",
-        seconds_remaining=30,
+        turn_expires_at=datetime(2025, 5, 31, 13, 45, 0, tzinfo=timezone.utc),
         recipients=["Alice", "Bob"],
     )
     await msg_builder.notify_turn_timer_alert(alert)
@@ -161,28 +163,11 @@ async def test_message_builder_broadcasts_timer_alerts_to_players_and_spectators
         ExpectedBroadcast(
             ["Alice", "Bob"],
             MessageType.TURN_TIMER_ALERT,
-            {"room_id": 123, "player_id": "Bob", "seconds_remaining": 30},
-        )
-    ]
-    check_messages(messages_spy, expected)
-
-
-@pytest.mark.asyncio
-async def test_message_builder_broadcasts_timeout_alert_to_players_and_spectators(
-    event_bus, messages_spy
-):
-    msg_builder = MessageBuilder(event_bus)
-    alert = TurnTimeout(
-        room_id=123,
-        player_id="Bob",
-        recipients=["Alice", "Bob"],
-    )
-    await msg_builder.notify_turn_timeout(alert)
-    expected = [
-        ExpectedBroadcast(
-            ["Alice", "Bob"],
-            MessageType.TURN_TIMER_ALERT,
-            {"room_id": 123, "player_id": "Bob", "seconds_remaining": 0},
+            {
+                "room_id": 123,
+                "player_id": "Bob",
+                "turn_expires_at_timestamp": 1748699100,
+            },
         )
     ]
     check_messages(messages_spy, expected)

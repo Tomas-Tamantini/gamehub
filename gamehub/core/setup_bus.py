@@ -52,5 +52,4 @@ def setup_event_bus(
     event_bus.subscribe(TurnStarted, timekeeper.handle_turn_start)
     event_bus.subscribe(TurnEnded, timekeeper.handle_turn_end)
     event_bus.subscribe(TurnTimerAlert, message_builder.notify_turn_timer_alert)
-    event_bus.subscribe(TurnTimeout, message_builder.notify_turn_timeout)
     event_bus.subscribe(TurnTimeout, room_manager.handle_timeout)

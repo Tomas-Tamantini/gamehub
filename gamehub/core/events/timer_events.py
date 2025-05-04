@@ -1,4 +1,5 @@
 from dataclasses import dataclass
+from datetime import datetime
 from typing import Iterable
 
 
@@ -6,7 +7,7 @@ from typing import Iterable
 class TurnTimerAlert:
     room_id: int
     player_id: str
-    seconds_remaining: int
+    turn_expires_at: datetime
     recipients: Iterable[str]
 
 
